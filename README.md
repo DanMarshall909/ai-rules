@@ -1,19 +1,33 @@
 # ai-rules
 
-Lean, agent-agnostic coding rules. Works with Claude Code, Cursor, Windsurf, Cline, and any AI coding assistant that reads markdown rule files.
+Lean, agent-agnostic AI coding rules. Works with Claude Code, Cursor, Windsurf, Cline, and any assistant that reads markdown rule files.
 
-## Structure
+## Rules
 
+| Rule | What it does |
+|------|-------------|
+| `rules/breaks.md` | 30-min + 2-hour break reminders with cross-project check-in |
+| `rules/tdd.md` | Red → Green → Refactor → Coverage, one AC at a time |
+| `rules/git.md` | pull --rebase, backup before force-push, staged diff review |
+| `rules/issues.md` | `docs/issues/[open\|resolved]/[area]/` structured tracking |
+
+## Install the break-reminders skill (Claude Code)
+
+The break-reminders skill automates the 30-min and 2-hour reminders so you don't have to think about them.
+
+**macOS / Linux:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/DanMarshall909/ai-rules/main/scripts/install-break-reminders.sh | bash
 ```
-AGENTS.md          ← main entry point (@imports the rules below)
-rules/
-  breaks.md        ← 30-min + 2-hour break reminders with goal check-in
-  tdd.md           ← Red→Green→Refactor→Coverage cycle
-  git.md           ← pull --rebase, backup before force-push
-  issues.md        ← docs/issues/[open|resolved]/[area]/ tracking
+
+**Windows (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/DanMarshall909/ai-rules/main/scripts/install-break-reminders.ps1 | iex
 ```
 
-## Usage
+Then run `/break-reminders` at the start of any Claude Code session.
+
+## Adopt the rules
 
 **Claude Code** — add to your project `CLAUDE.md`:
 ```
@@ -25,4 +39,21 @@ rules/
 @ai-rules/AGENTS.md
 ```
 
-**Copy** — paste `AGENTS.md` content directly into your project's AI rules file.
+**Any agent** — copy `AGENTS.md` into your project's AI rules file directly.
+
+## Structure
+
+```
+AGENTS.md                        ← main rules file (@ imports + inline fallback)
+CLAUDE.md                        ← Claude Code entry point
+rules/
+  breaks.md
+  tdd.md
+  git.md
+  issues.md
+skills/
+  break-reminders/SKILL.md      ← Claude Code skill (auto-schedules reminders)
+scripts/
+  install-break-reminders.sh    ← macOS/Linux installer
+  install-break-reminders.ps1   ← Windows installer
+```
