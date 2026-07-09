@@ -1,0 +1,15 @@
+name: AGENTS.md is generated
+
+# AGENTS.md is built from rules/*.md and must never be hand-edited: agents
+# without `@` import support read it as their only source of the rules.
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: AGENTS.md matches rules/
+        run: scripts/build-agents.sh --check

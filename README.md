@@ -31,23 +31,41 @@ Then run `/break-reminders` at the start of any Claude Code session.
 
 ## Adopt the rules
 
+`AGENTS.md` is generated from `rules/*.md` and is **fully self-contained** — no
+imports, no placeholders. Agents that lack an import syntax (Codex, OpenCode,
+Cursor, Cline) can read it as-is. `CLAUDE.md` is the Claude Code entry point and
+`@`-imports the same rule files, because Claude resolves imports.
+
 **Claude Code** — add to your project `CLAUDE.md`:
 ```
-@https://raw.githubusercontent.com/DanMarshall909/ai-rules/main/AGENTS.md
+@~/code/ai-rules/CLAUDE.md
 ```
 
-**Cursor** — add to `.cursor/rules/ai-rules.mdc`:
-```
-@ai-rules/AGENTS.md
+**Codex / OpenCode / any agent that reads AGENTS.md** — copy `AGENTS.md` into
+your project root, or symlink it:
+```bash
+ln -s ~/code/ai-rules/AGENTS.md AGENTS.md
 ```
 
-**Any agent** — copy `AGENTS.md` into your project's AI rules file directly.
+**Cursor** — copy `AGENTS.md` to `.cursor/rules/ai-rules.mdc`.
+
+## Editing the rules
+
+`rules/*.md` is the single source of truth. After changing one, regenerate:
+
+```bash
+scripts/build-agents.sh           # rewrite AGENTS.md
+scripts/build-agents.sh --check   # fail if AGENTS.md is stale (runs in CI)
+```
+
+Never edit `AGENTS.md` by hand — it is overwritten. CI rejects a stale copy.
 
 ## Structure
 
 ```
-AGENTS.md                        ← main rules file (@ imports + inline fallback)
-CLAUDE.md                        ← Claude Code entry point
+rules/*.md                       ← single source of truth
+AGENTS.md                        ← GENERATED: self-contained, for agents without @ imports
+CLAUDE.md                        ← Claude Code entry point (@ imports rules/*.md)
 rules/
   breaks.md
   tdd.md
@@ -60,6 +78,7 @@ skills/
   behavior-first-tdd/SKILL.md   ← Claude Code skill (behaviour-first TDD)
   reflect/SKILL.md              ← Claude Code skill (capture lessons when work lands)
 scripts/
+  build-agents.sh               ← regenerates AGENTS.md from rules/*.md
   install-break-reminders.sh    ← macOS/Linux installer
   install-break-reminders.ps1   ← Windows installer
 ```
@@ -75,7 +94,7 @@ ln -s ~/code/ai-rules/skills/reflect ~/.claude/skills/reflect
 ```
 
 ```
-@~/code/ai-rules/AGENTS.md
+@~/code/ai-rules/CLAUDE.md
 ```
 
 Editing the rules then means editing this repo — a rule that only exists on one
