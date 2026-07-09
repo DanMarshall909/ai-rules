@@ -7,8 +7,10 @@ Lean, agent-agnostic rules for any coding assistant.
 
 @rules/breaks.md
 @rules/tdd.md
+@rules/coverage.md
 @rules/git.md
 @rules/issues.md
+@rules/reflection.md
 
 ---
 
@@ -56,6 +58,42 @@ Every 2 hours, pause and run this check-in:
 
 ---
 
+### Coverage & Dead Code
+
+Aim for 100% coverage of core code through behaviour-driven tests that drive real
+code paths and assert observable output.
+
+**Code must justify itself.** Code that cannot be justified is removed, not
+covered; code that exists only to be exercised by its own tests is not justified
+by those tests. Before deleting dead code, decide whether it is useful
+functionality that should be *wired up* instead — never delete useful code to
+raise a coverage number.
+
+**Read the gap before you close it.** An uncovered line means that behaviour has
+never once executed. If one half of a pair is covered and the other is not, the
+untested half is load-bearing code nobody has run. Assert the behaviour the gap
+reveals, not the line. Assert what you believe and let a failure correct the
+belief — never weaken an assertion to match observed output without
+understanding why it differs.
+
+**Never call a branch unreachable.** An unreachable branch means the type does
+not carry what you already know. Before writing "unreachable" or "defensive" in a
+comment, work this list in order:
+
+1. **Carry the value forward** — an earlier step proved the lookup succeeds, then
+   threw the result away.
+2. **Remove the impossible variant** — an `Option`/`Result` no path returns is a
+   lie; change the return type.
+3. **Make a silent skip a loud failure** — a lookup that quietly does nothing on
+   a miss emits a *wrong answer* if the invariant breaks. `.expect("why this
+   holds")` fails loudly and costs no coverage.
+4. **Re-derive reachability from the public API** — you are usually wrong.
+
+Only when all four fail is code genuinely uncoverable. Keep it, exclude it, state
+the reason inline. Exclusion is a last resort, not a permission.
+
+---
+
 ### Git Workflow
 
 - `git pull --rebase` before every push
@@ -82,3 +120,27 @@ docs/issues/
 - On resolution: update `status: Resolved`, add decision log entry, move to `resolved/[area]/`
 
 > Claude Code users: use `/issue` and `/security-finding` skills.
+
+---
+
+### Reflection
+
+When finished with a piece of work — tests green, commit landed — capture any
+durable lesson before the context is lost. Writing nothing is the common, correct
+outcome; most tasks teach nothing worth keeping.
+
+A lesson is worth keeping only if it is **transferable** (about judgment, not
+about this file), **non-obvious** (not what you'd have done anyway), and
+**load-bearing** (knowing it at the start would have changed what you did).
+Lessons hide in user corrections — especially corrections phrased as a question,
+which mean you had already talked yourself into something — and in any moment you
+defended code rather than fixing it.
+
+Route each lesson to the scope it pertains to: a rule you must *obey* goes in a
+rules file, a lesson you should *recall* goes in memory or a skill; a rule that
+binds everywhere goes global, one that binds one codebase stays local. Do not
+leave a globally useful lesson in a project's memory just because that is where
+you learned it. If an existing rule is what let you go wrong, amend that rule
+rather than adding a contradictory one beside it.
+
+> Claude Code users: use the `/reflect` skill.
