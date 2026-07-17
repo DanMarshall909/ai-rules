@@ -1,6 +1,10 @@
 # Git Workflow
 
-- `git pull --rebase` before every push
+- `git pull --rebase` before every push — **except when pushing a merge commit**:
+  plain `--rebase` silently discards merges, replaying their commits and throwing
+  the merge (and its message) away. The push still succeeds, so the loss is
+  invisible unless you look. Integrate *before* merging, or use
+  `git pull --rebase=merges`, and verify with `git log --graph` before pushing
 - Before force-push: create `backup/<branch>-<timestamp>` first
 - Never commit without reviewing the staged diff first
 - Commit messages: present tense, imperative, explain *why* not *what*
