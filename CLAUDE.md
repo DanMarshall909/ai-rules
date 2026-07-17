@@ -10,6 +10,7 @@ Other agents (Codex, OpenCode, Cursor, Cline) have no import syntax — they rea
 @rules/breaks.md
 @rules/tdd.md
 @rules/coverage.md
+@rules/guardrails.md
 @rules/git.md
 @rules/issues.md
 @rules/reflection.md

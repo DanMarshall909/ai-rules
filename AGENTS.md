@@ -97,6 +97,33 @@ resort, not a permission.
 
 ---
 
+## Guardrails
+
+When a mistake is **repeatable** and **bad**, and a test could mechanically
+prevent it, flag that test. Say what it would assert and what it would have
+caught. Don't silently fix the instance and move on — the instance is one
+sample of a class.
+
+Repeatable means it can recur without anyone noticing: a convention that only
+holds while people remember it, a layering rule enforced by habit, a constant
+duplicated by hand, a shape every implementation must share. A one-off typo the
+compiler already rejects is not repeatable.
+
+Prefer the guardrail that fails at build time over the one that relies on
+review. An architecture/convention test that sweeps *every* type is worth more
+than a unit test pinning the one type that happened to break today — write the
+test against the rule, not against the instance.
+
+Flag it and let the user decide whether to build it now. Not every guardrail
+earns its cost; that call is theirs.
+
+**Judgment is not mechanizable.** A rule about *when* code is worth writing at
+all — speculative generality, wrong abstraction, premature migration paths —
+cannot be a test. Don't propose one; route that lesson to a rules file instead
+(see [[reflection]]).
+
+---
+
 ## Git Workflow
 
 - `git pull --rebase` before every push
@@ -104,6 +131,26 @@ resort, not a permission.
 - Never commit without reviewing the staged diff first
 - Commit messages: present tense, imperative, explain *why* not *what*
 - Never skip hooks (`--no-verify`) unless explicitly asked
+
+### Trunk-Based Development
+
+Trunk is the single source of truth, and it is always releasable. Work merges
+back within roughly a day — a branch that outlives that is the problem, not the
+merge that follows it.
+
+- Branch from trunk, keep it short-lived, merge back as soon as it is green
+- Merge small vertical increments — a coherent, green, releasable slice beats a
+  finished feature that sat unmerged for a week
+- Never let a branch accumulate work that could have landed already; long-lived
+  branches turn into merge risk and hide work from everyone else
+- Unfinished-but-safe belongs on trunk behind a flag or simply unwired, in
+  preference to a branch nobody can see
+- Trunk stays green: if a merge breaks it, fixing trunk outranks whatever came
+  next
+
+Merging an increment does not mean the task is done. When a slice lands with
+work still outstanding, say what is still missing rather than letting the merge
+imply completion.
 
 ---
 
