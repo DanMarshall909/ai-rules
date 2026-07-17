@@ -62,6 +62,26 @@ code paths and assert observable output.
   delete genuine leftovers and duplicates. Never delete useful code to raise a
   coverage number.
 
+### Compatibility code needs a real past
+
+Migrations, upcasters, versioned shapes, deprecation shims, and fallback paths
+are justified by something that *actually exists* depending on the old shape: a
+released version, data already written, a caller you do not control. Absent
+that, there is no old shape — only the current one, arrived at by editing.
+
+Before writing any of it, establish what depends on the old shape. If nothing
+does, change the shape in place and delete the old one.
+
+Pre-release is the common case: nothing is deployed, no data was ever written,
+so every schema is version 1 no matter how many times it changed on the way
+here. Ask whether the project has shipped; do not assume it has because the code
+looks mature.
+
+This one is hard to catch from the inside, because writing the upcaster *feels*
+like diligence rather than waste. The tell is noticing "nothing depends on this
+yet" and building it anyway — if you can say the cost is currently zero, you
+have already proved the code is currently pointless.
+
 ### Read the gap before you close it
 
 An uncovered line means **that behaviour has never once executed**. It is a
