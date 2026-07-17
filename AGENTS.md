@@ -93,6 +93,54 @@ statement about the code, not about the tests.
 - Assert what you believe, then let a failure correct the belief. Never weaken an
   assertion to match observed output without first understanding why it differs.
 
+### Covered is not checked
+
+The converse of the section above, and the more dangerous half. Coverage says a
+line **ran**. It says nothing about whether anything **checked** it. A suite can
+sit at 100% line coverage, all green, and pin nothing — and unlike a coverage
+gap, this failure is invisible, because every signal you are looking at is the
+colour you wanted.
+
+Two ways a property-based test tests nothing while looking thorough:
+
+- **It is written relative to the output.** If every property compares against
+  `outcome.damage`, they all agree with each other about a damage figure that is
+  wrong by a constant. Consistency among outputs is not correctness. At least one
+  property must say what the value **must be**, derived from the inputs alone.
+- **The generator fixes the input's shape.** Vary arity and collection size, not
+  only values. With one element, `sum`, `max`, `first` and `last` are the same
+  function — a whole class of operator error is unreachable by a generator that
+  looked exhaustive because it ran ten thousand cases.
+
+So: **before trusting a suite, break the code on purpose.** Injecting a fault is
+the only cheap way to learn what the tests actually hold. If nothing goes red,
+the suite does not test that, whatever the coverage report says. Mutation testing
+is this, systematised — run it where it exists, and hand-inject where it does not.
+
+### A surviving mutant may be the code talking
+
+A survivor is not automatically a missing test. Before writing one — and *well*
+before excluding a mutant class in config — ask whether it is pointing at surface
+that decides nothing:
+
+- An **equivalent** mutant (`x * 1` → `x / 1`) is dead arithmetic. It survives
+  because it cannot change the answer, which is also why the code should not be
+  there.
+- A comparison that **cannot** change the answer is dead. Comparing fields that
+  the type fixes to constants is a comparison of two things that are always equal.
+- Surface beyond the contract invites survivors. A hand-written `GetHashCode`
+  spraying every field through a hash has more moving parts than "equal objects
+  hash alike" requires; the parts that no test can distinguish are the parts that
+  earn nothing.
+
+The exclusion hides it. The deletion fixes it — and the score rises because there
+is less code, which is the better outcome twice over.
+
+Excluding a mutant class is legitimate only where killing it would assert
+something you have decided not to own: the wording of an exception message, or a
+guard whose behaviour belongs to the standard library. Say so where the exclusion
+lives, or the next reader will read it as a lowered bar.
+
 ### Never call a branch unreachable
 
 An unreachable branch means the type does not carry what you already know. Before
