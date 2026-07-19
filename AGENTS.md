@@ -136,6 +136,21 @@ that decides nothing:
 The exclusion hides it. The deletion fixes it — and the score rises because there
 is less code, which is the better outcome twice over.
 
+A survivor that decides nothing is one reading; a survivor that decides something
+**unspecified** is the other. When a boundary mutant lives (`>` → `>=` holds), find
+where the rule came from before pinning it: `> 10` versus `>= 10` may be an
+assumption nobody made, and a test that freezes it encodes the accident as law. The
+fix may be to correct the boundary, name the rule as its own policy, or delete a
+decision another module already owns — not to add an assertion. And when killing one
+boundary needs half the application stood up, the mutant is naming a **misplaced
+responsibility**, not a missing test: extract the rule to a small object answerable
+to one source of change, and the assertion that was impossible becomes trivial.
+
+The score is a diagnostic, not the target. Chasing 100% with ever-narrower
+assertions buys a suite welded to today's implementation that says little about what
+the system must do. Killing a mutant is the by-product of pinning a real rule,
+deleting dead surface, or moving a misplaced one — never the goal in itself.
+
 Excluding a mutant class is legitimate only where killing it would assert
 something you have decided not to own: the wording of an exception message, or a
 guard whose behaviour belongs to the standard library. Say so where the exclusion
