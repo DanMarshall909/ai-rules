@@ -69,6 +69,17 @@ the only cheap way to learn what the tests actually hold. If nothing goes red,
 the suite does not test that, whatever the coverage report says. Mutation testing
 is this, systematised — run it where it exists, and hand-inject where it does not.
 
+**A memoized result is invisible to mutation testing.** If the suite computes the
+system's output once — a `static Lazy`, a shared fixture, a cached scan — and every
+test asserts against that one snapshot, the mutant activates but nothing re-runs the
+mutated path: the snapshot was produced under the original code, so the survivor is
+a false one and the score is a false floor. The tell is a survivor whose behaviour a
+green test plainly asserts; confirm it by hand-injecting the mutant and watching that
+test go red. Each assertion must **re-drive** the code under test, not read a cached
+answer — the memoization that makes a slow suite fast is often the very thing that
+makes it blind. Prefer pinning the inputs that reproduce a case (a known seed) over
+caching the outputs it produced.
+
 ## A surviving mutant may be the code talking
 
 A survivor is not automatically a missing test. Before writing one — and *well*
