@@ -13,17 +13,25 @@
 
 set -uo pipefail
 
+# Only for --set: a skill a rule set claims travels with that set when it is
+# installed into a project, and the claim lives in the set's manifest.
+source "$(dirname "$0")/rule-sets.sh"
+
 cd "$(dirname "$0")/.."
 
 DESCRIPTION=""
+SET=""
 NAME=""
 
 usage() {
-  cat <<'EOF'
-usage: new-skill.sh [--description "..."] <name>
+  cat <<EOF
+usage: new-skill.sh [--description "..."] [--set <set>] <name>
 
   <name>          kebab-case; becomes both the directory and the frontmatter name
   --description   one line telling an agent when to reach for this skill
+  --set           a rule set that ships this skill with it
+
+  sets: $(set_names | tr '\n' ' ')
 EOF
 }
 
@@ -31,6 +39,8 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --description)   DESCRIPTION="${2:-}"; shift 2 || { echo "error: --description needs a value" >&2; exit 2; } ;;
     --description=*) DESCRIPTION="${1#*=}"; shift ;;
+    --set)           SET="${2:-}"; shift 2 || { echo "error: --set needs a value" >&2; exit 2; } ;;
+    --set=*)         SET="${1#*=}"; shift ;;
     -h|--help)       usage; exit 0 ;;
     -*)              echo "error: unknown option: $1" >&2; usage >&2; exit 2 ;;
     *)
@@ -53,6 +63,12 @@ fi
 if [[ ! "${NAME}" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
   echo "error: not a valid skill name: ${NAME}" >&2
   echo "       use lower-case kebab-case, e.g. my-skill" >&2
+  exit 2
+fi
+
+if [[ -n "${SET}" ]] && ! known_set "${SET}"; then
+  echo "error: no such rule set: ${SET}" >&2
+  echo "       known: $(set_names | tr '\n' ' ')" >&2
   exit 2
 fi
 
@@ -99,7 +115,12 @@ them as steps to carry out, and say what to do when a step cannot be completed.
 - TODO: anything the agent should know but not do
 EOF
 
-echo "Created ${FILE}"
+if [[ -n "${SET}" ]]; then
+  printf 'skill: %s\n' "${NAME}" >> "$(manifest_of "${SET}")"
+  echo "Created ${FILE}, claimed by $(manifest_of "${SET}")"
+else
+  echo "Created ${FILE}"
+fi
 echo ""
 echo "Next:"
 echo "  1. write the steps, and replace the description in the frontmatter"

@@ -44,6 +44,8 @@ sandbox() {
   # check-conventions.sh also reads the rule entrypoints and README.md, so the
   # sandbox has to be a whole repo rather than just the parts under test.
   cp -R "${REPO}"/rules/. "${s}/rules/"
+  mkdir -p "${s}/rule-sets"
+  cp -R "${REPO}"/rule-sets/. "${s}/rule-sets/"
   cp "${REPO}/AGENTS.md" "${REPO}/CLAUDE.md" "${REPO}/README.md" "${s}/"
   cd "${s}"
   NEW="${s}/scripts/new-skill.sh"
@@ -140,6 +142,43 @@ if bash "${CHECK}" >/dev/null 2>&1; then
   ok "a description with YAML punctuation still parses"
 else
   no "a description with YAML punctuation still parses" "$(bash "${CHECK}" 2>&1 >/dev/null | head -2)"
+fi
+
+# --- --set -----------------------------------------------------------------
+# A skill claimed by a rule set travels with it: installing the set into a repo
+# installs its skills there too. The claim only exists in the manifest, so a
+# scaffold that wrote the skill and not the claim would produce a skill that
+# looks like part of the set and reaches nobody who installs the set.
+
+echo "--set"
+sandbox
+bash "${NEW}" --set ai-rules set-owned >/dev/null 2>&1
+if grep -q '^skill: set-owned$' rule-sets/ai-rules.set 2>/dev/null; then
+  ok "records the skill in the set's manifest"
+else
+  no "records the skill in the set's manifest" "$(grep '^skill:' rule-sets/ai-rules.set 2>&1)"
+fi
+if [[ -f skills/set-owned/SKILL.md ]]; then
+  ok "still writes the skill itself"
+else
+  no "still writes the skill itself"
+fi
+if bash "${CHECK}" >/dev/null 2>&1; then
+  ok "a claimed skill satisfies the conventions check"
+else
+  no "a claimed skill satisfies the conventions check" "$(bash "${CHECK}" 2>&1 >/dev/null | head -2)"
+fi
+
+sandbox
+if bash "${NEW}" --set nosuchset stray >/dev/null 2>&1; then
+  no "refuses a set that does not exist" "expected non-zero exit"
+else
+  ok "refuses a set that does not exist"
+fi
+if [[ -e skills/stray ]]; then
+  no "writes no skill when the set is unknown" "skills/stray exists"
+else
+  ok "writes no skill when the set is unknown"
 fi
 
 # --- refusing --------------------------------------------------------------

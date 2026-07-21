@@ -18,35 +18,13 @@
 
 set -euo pipefail
 
+# Manifest layout, field reading and which set is the base are shared with the
+# scaffolds and the installers, so none of them can disagree about it.
+source "$(dirname "$0")/rule-sets.sh"
+
 cd "$(dirname "$0")/.."
 
-RULE_SET_DIR="rule-sets"
 OUTPUT="AGENTS.md"
-
-# The set AGENTS.md points at, and the one a project gets by default. Named
-# here because three scripts have to agree on which set is the base.
-BASE_SET="ai-rules"
-
-manifest_of()  { printf '%s/%s.set' "${RULE_SET_DIR}" "$1"; }
-generated_of() { printf '%s/%s.md' "${RULE_SET_DIR}" "$1"; }
-
-# Manifests are line-based (`field: value`) so bash can read them without a
-# YAML parser, and `#` comments fall out for free: nothing matches them.
-field() { # <manifest> <field> -> every value, in file order
-  sed -n "s/^$2: *//p" "$1"
-}
-
-# tail, not head: `head -n 1` closes the pipe, sed dies of SIGPIPE, and under
-# `set -o pipefail` reading a field would fail the whole build.
-field_one() { field "$1" "$2" | tail -n 1; }
-
-set_names() {
-  local path
-  for path in "${RULE_SET_DIR}"/*.set; do
-    [[ -f "${path}" ]] || continue
-    basename "${path}" .set
-  done
-}
 
 # Demote every heading one level so the rule files' `#` titles nest under the
 # set's single `# Title`. Headings inside fenced code blocks are left alone.

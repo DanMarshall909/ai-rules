@@ -9,6 +9,26 @@ rule-sets/ai-rules.md
 `AGENTS.md` is intentionally minimal. It points agents at the rule set instead
 of carrying the full policy itself.
 
+## Rule sets
+
+A rule set is a manifest (`rule-sets/<name>.set`) naming the rule fragments it
+ships, and the markdown file generated from it. `ai-rules` is the base set every
+project gets; a set that *layers* on it is an addition for one kind of repo,
+read alongside the base rather than instead of it.
+
+| Set | For | Layers on |
+|-----|-----|-----------|
+| `rule-sets/ai-rules.md` | every project | — |
+
+```bash
+scripts/new-rule-set.sh --title "Tool Repo Rules" \
+  --blurb "For repos whose product is a tool an agent drives." \
+  --layer ai-rules tool-repos       # manifest, first rule, README row, rebuild
+
+scripts/new-rule.sh --set tool-repos --title "Agent Contract" agent-contract
+scripts/new-rule.sh --title "Caching" caching     # into the base set
+```
+
 ## Rules
 
 | Rule | What it does |
