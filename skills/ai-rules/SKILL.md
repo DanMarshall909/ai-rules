@@ -110,6 +110,7 @@ scripts/build-agents.sh --check    # AGENTS.md matches rules/
 scripts/test-install-skill.sh      # the skill installer's behaviour
 scripts/test-install-rules.sh      # the rules installer's behaviour
 scripts/test-new-skill.sh          # the scaffold's behaviour
+scripts/test-check-conventions.sh  # the conventions check's own behaviour
 scripts/check-conventions.sh       # skills load, installers agree, rules registered
 ```
 
@@ -119,10 +120,20 @@ On Windows, also:
 scripts\test-install-skill.ps1
 ```
 
-All of them run in CI. If `build-agents.sh --check` reports `AGENTS.md` stale while
-`git diff` says it is unchanged, the working copy has CRLF line endings —
-`.gitattributes` should prevent that, so report it rather than working around
-it.
+All of them run in CI, and `check-conventions.sh` fails if a `scripts/test-*.sh`
+is not named in `.github/workflows/` — so adding a suite means wiring it up in
+the same commit.
+
+`.gitattributes` does not force LF on everything, and the exception is a trap:
+`.sh`, `.md` and the git hooks arrive LF everywhere, but `*.ps1` arrives
+**CRLF** everywhere, Linux and CI included, because PowerShell is
+Windows-native. A bash script reading `install-skill.ps1` therefore sees a
+trailing `\r` on every line, and an end-anchored pattern matches nothing at all.
+Strip the CR before parsing, not after.
+
+If `build-agents.sh --check` reports `AGENTS.md` stale while `git diff` says it
+is unchanged, that is the opposite failure — an `.sh` or `.md` that arrived CRLF
+despite the rule. Report it rather than working around it.
 
 ---
 
