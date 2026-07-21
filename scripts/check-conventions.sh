@@ -92,6 +92,27 @@ else
   done <<<"${sh_agents}"
 fi
 
+# --- every rule is registered everywhere it has to be ----------------------
+# build-agents.sh already refuses to build when rules/ holds a file its RULES
+# array omits, so AGENTS.md cannot silently lose a rule. The other two homes
+# have no such check: guardrails.md was missing from the README table for its
+# whole life, and a rule absent from CLAUDE.md is one Claude Code never loads
+# while every other agent obeys it.
+echo "rules are registered"
+for path in rules/*.md; do
+  name="$(basename "${path}" .md)"
+
+  if ! grep -qF "@rules/${name}.md" CLAUDE.md; then
+    fail "CLAUDE.md does not @import rules/${name}.md"
+  fi
+
+  if ! grep -qF "rules/${name}.md" README.md; then
+    fail "README.md's rules table does not list rules/${name}.md"
+  fi
+
+  printf '  %s\n' "${name}"
+done
+
 echo ""
 if [[ ${failures} -gt 0 ]]; then
   printf '%d convention(s) broken\n' "${failures}" >&2

@@ -64,6 +64,14 @@ Two ways a property-based test tests nothing while looking thorough:
   function — a whole class of operator error is unreachable by a generator that
   looked exhaustive because it ran ten thousand cases.
 
+A third way, wherever a test parses what the code wrote: **the reader in the test
+is more permissive than the real consumer.** A helper that strips optional quotes
+before comparing reads quoted and unquoted output as the same string — so the
+assertion holds whichever the code emits, and the format nobody re-reads is the
+format nothing pins. The writer and the test agree with each other; the consumer
+was never consulted. Parse with a reader at least as strict as the thing that
+will actually load the output, and prefer the real parser to a hand-rolled one.
+
 So: **before trusting a suite, break the code on purpose.** Injecting a fault is
 the only cheap way to learn what the tests actually hold. If nothing goes red,
 the suite does not test that, whatever the coverage report says. Mutation testing
@@ -79,6 +87,16 @@ test go red. Each assertion must **re-drive** the code under test, not read a ca
 answer — the memoization that makes a slow suite fast is often the very thing that
 makes it blind. Prefer pinning the inputs that reproduce a case (a known seed) over
 caching the outputs it produced.
+
+**A mutant that never applied is not a survivor.** Before reading a green suite
+as evidence the tests are blind, confirm the fault actually reached the file: a
+`sed` that matched nothing, a patch against a moved line, or quoting mangled on
+its way through `eval` all leave the original code running and the suite
+truthfully passing. The two failures look identical from the outside, and the
+false one is the more expensive, because it sends you strengthening a test that
+was already correct — or worse, "fixing" working code to make the phantom
+reproduce. Diff the mutated file, or print the changed line, before you believe
+the result.
 
 ## A surviving mutant may be the code talking
 

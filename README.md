@@ -113,7 +113,7 @@ scripts/install-skill.sh ai-rules
 scripts/build-agents.sh --check    # AGENTS.md matches rules/
 scripts/test-install-skill.sh      # the installer's behaviour
 scripts/test-new-skill.sh          # the scaffold's behaviour
-scripts/check-conventions.sh       # skills discoverable, installers agree
+scripts/check-conventions.sh       # skills load, installers agree, rules registered
 ```
 ```powershell
 scripts\test-install-skill.ps1
@@ -146,7 +146,7 @@ scripts/
   new-skill.sh                  ← scaffolds skills/<name>/SKILL.md
   install-skill.sh              ← installs a skill into any agent (macOS/Linux/Git Bash)
   install-skill.ps1             ← the same, for Windows PowerShell
-  check-conventions.sh          ← skills are discoverable; the installers agree
+  check-conventions.sh          ← skills load; installers agree; rules registered
   test-*.sh / test-*.ps1        ← behaviour tests for the above
 .gitattributes                   ← forces LF on *.sh; CRLF breaks them silently
 ```

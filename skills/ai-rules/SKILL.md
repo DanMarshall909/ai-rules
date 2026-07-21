@@ -37,9 +37,6 @@ yourself editing `AGENTS.md`, stop — the change will be overwritten.
 
 ## Step 2 — Adding a rule touches four places
 
-`scripts/build-agents.sh` refuses to build if a file in `rules/` is missing from
-its `RULES` array, so that one announces itself. The other two do not:
-
 1. `rules/<name>.md` — write it
 2. `RULES=(...)` in `scripts/build-agents.sh` — add it, in reading order
 3. `@rules/<name>.md` in `CLAUDE.md` — same order
@@ -48,8 +45,10 @@ its `RULES` array, so that one announces itself. The other two do not:
 Then run `scripts/build-agents.sh` to regenerate `AGENTS.md`, and commit the
 regenerated file alongside the rule.
 
-`guardrails.md` was absent from the README table for its whole life, because
-nothing checks step 4. Assume the same of step 3 until told otherwise.
+Miss any of them and a check will say so — `build-agents.sh` guards step 2,
+`check-conventions.sh` guards steps 3 and 4. That was not always true:
+`guardrails.md` was absent from the README table for its whole life, which is
+why the check exists.
 
 ---
 
@@ -100,7 +99,7 @@ autodetection, and the target path. The check names whichever you forget.
 scripts/build-agents.sh --check    # AGENTS.md matches rules/
 scripts/test-install-skill.sh      # the installer's behaviour
 scripts/test-new-skill.sh          # the scaffold's behaviour
-scripts/check-conventions.sh       # skills discoverable, installers agree
+scripts/check-conventions.sh       # skills load, installers agree, rules registered
 ```
 
 On Windows, also:
