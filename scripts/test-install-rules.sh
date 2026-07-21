@@ -78,7 +78,7 @@ exits_nonzero() {
 # this platform needs.
 import_line() {
   if command -v cygpath >/dev/null 2>&1; then
-    printf '@%s/CLAUDE.md' "$(cygpath -w "${REPO}")"
+    printf '@%s/CLAUDE.md' "$(cygpath -m "${REPO}")"
   else
     printf '@%s/CLAUDE.md' "${REPO}"
   fi
@@ -166,6 +166,18 @@ if grep -qE '^@/[a-z]/' "${HOME}/.claude/CLAUDE.md" 2>/dev/null; then
   no "writes a path the agent can open" "wrote a POSIX-style drive path"
 else
   ok "writes a path the agent can open"
+fi
+
+# `cygpath -w` yields D:\code\ai-rules, which this script then appends
+# /CLAUDE.md to — a path mixing both separators. It mostly works, and "mostly"
+# is not a thing to leave in a config file nobody will look at again.
+sandbox
+"${INSTALL}" --agent claude >/dev/null 2>&1
+line="$(grep '^@' "${HOME}/.claude/CLAUDE.md" 2>/dev/null)"
+if [[ "${line}" == *'\'* && "${line}" == *'/'* ]]; then
+  no "writes one separator style, not two" "got: ${line}"
+else
+  ok "writes one separator style, not two"
 fi
 
 # --- listing ---------------------------------------------------------------

@@ -60,9 +60,13 @@ repo_root() { # <path to the script, normally ${BASH_SOURCE[0]} of the caller>
 # The path an agent has to be given on this platform. Git Bash resolves the
 # repo to /d/code/..., which Claude Code on Windows cannot open, so anything
 # written *into a config file* rather than passed to ln needs converting.
+#
+# -m, not -w: both give a usable drive path, but -w returns backslashes, and
+# callers append their own "/something" to it. The result works and reads like a
+# mistake, which is how it gets "fixed" wrongly later.
 native_path() {
   if command -v cygpath >/dev/null 2>&1; then
-    cygpath -w "$1"
+    cygpath -m "$1"
   else
     printf '%s' "$1"
   fi
