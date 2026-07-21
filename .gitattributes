@@ -1,0 +1,18 @@
+# Shell scripts must check out with LF even on Windows.
+#
+# With core.autocrlf=true and no rule here, a Windows clone rewrites every .sh
+# to CRLF, and bash then reads the trailing \r as part of the last token on the
+# line. The failures are quiet rather than loud:
+#
+#   build-agents.sh --check   reports AGENTS.md stale when it is byte-identical
+#   install-skill.sh --list   finds no skills at all, and still exits 0
+#
+# Neither reproduces in CI, which runs on Linux and never sees a CRLF checkout.
+*.sh text eol=lf
+
+# Markdown is data for these scripts (skills are symlinked and read as-is), so
+# keep it stable across platforms too.
+*.md text eol=lf
+
+# PowerShell is Windows-native; CRLF is correct there.
+*.ps1 text eol=crlf
