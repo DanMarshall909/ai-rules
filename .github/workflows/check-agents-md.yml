@@ -15,3 +15,5 @@ jobs:
         run: scripts/build-agents.sh --check
       - name: installer behaves
         run: scripts/test-install-skill.sh
+      - name: conventions hold
+        run: scripts/check-conventions.sh
