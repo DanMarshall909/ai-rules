@@ -19,5 +19,7 @@ jobs:
         run: scripts/test-install-rules.sh
       - name: scaffold behaves
         run: scripts/test-new-skill.sh
+      - name: conventions check behaves
+        run: scripts/test-check-conventions.sh
       - name: conventions hold
         run: scripts/check-conventions.sh

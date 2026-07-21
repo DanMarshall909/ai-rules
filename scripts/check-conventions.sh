@@ -141,6 +141,26 @@ else
   printf '  %d executable\n' "${executable}"
 fi
 
+# --- every test suite is actually run ---------------------------------------
+# A suite that no workflow invokes is worse than no suite: it is written, it
+# passes locally, and it is counted on. The workflow is edited by hand and the
+# omission looks like nothing at all.
+echo "test suites run in CI"
+WORKFLOWS=".github/workflows"
+if [[ ! -d "${WORKFLOWS}" ]]; then
+  printf '  skipped (no %s here)\n' "${WORKFLOWS}"
+else
+  for path in scripts/test-*.sh; do
+    [[ -f "${path}" ]] || continue
+
+    if ! grep -qrF "${path}" "${WORKFLOWS}"; then
+      fail "${path} is not run by any workflow in ${WORKFLOWS}"
+    fi
+
+    printf '  %s\n' "$(basename "${path}")"
+  done
+fi
+
 # --- every rule is registered everywhere it has to be ----------------------
 # build-agents.sh already refuses to build when rules/ holds a file its RULES
 # array omits, so AGENTS.md cannot silently lose a rule. The other two homes
