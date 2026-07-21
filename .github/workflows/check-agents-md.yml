@@ -1,4 +1,4 @@
-name: AGENTS.md is generated
+name: checks
 
 # AGENTS.md is built from rules/*.md and must never be hand-edited: agents
 # without `@` import support read it as their only source of the rules.
@@ -13,3 +13,5 @@ jobs:
       - uses: actions/checkout@v4
       - name: AGENTS.md matches rules/
         run: scripts/build-agents.sh --check
+      - name: installer behaves
+        run: scripts/test-install-skill.sh
