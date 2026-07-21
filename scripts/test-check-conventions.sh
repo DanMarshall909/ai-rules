@@ -54,6 +54,8 @@ sandbox() {
   cp "${REPO}"/scripts/*.sh "${REPO}"/scripts/*.ps1 "${s}/scripts/"
   cp -R "${REPO}"/skills/. "${s}/skills/"
   cp -R "${REPO}"/rules/. "${s}/rules/"
+  mkdir -p "${s}/rule-sets"
+  cp -R "${REPO}"/rule-sets/. "${s}/rule-sets/"
   cp "${REPO}/AGENTS.md" "${REPO}/CLAUDE.md" "${REPO}/README.md" "${s}/"
   cp -R "${REPO}/.github" "${s}/.github"
   cd "${s}"
@@ -247,15 +249,48 @@ run_check
 reports "catches a rule the README does not list" \
   "README.md's rules table does not list rules/ghost.md"
 
-# The generated rule set and README are independent: satisfying one must not
-# satisfy the other, which is the shape the original bug had — guardrails.md was
+# The manifest and the README are independent: satisfying one must not satisfy
+# the other, which is the shape the original bug had — guardrails.md was
 # imported and undocumented for its whole life.
 sandbox_git
 printf '# Ghost\n' > rules/ghost.md
-perl -i -pe 's/RULES=\((.*)\)/RULES=($1 ghost)/' scripts/build-agents.sh
+printf 'rule: ghost\n' >> rule-sets/ai-rules.set
 run_check
 reports "still reports it as undocumented" \
   "README.md's rules table does not list rules/ghost.md"
+
+# --- rule sets are registered ----------------------------------------------
+# A set nobody can find is a set nobody installs. The README table is the only
+# place a reader learns a second set exists at all, and nothing else checks it.
+
+echo "rule sets are registered"
+sandbox_git
+mkdir -p rules/widgets
+printf '# Widget Rule\n\nBody.\n' > rules/widgets/thing.md
+printf 'title: Widget Rules\nblurb: b\nlayer: ai-rules\nrule: widgets/thing\n' \
+  > rule-sets/widgets.set
+run_check
+reports "catches a set the README does not list" \
+  "README.md's rule sets table does not list rule-sets/widgets.md"
+
+# A set renamed or deleted leaves its generated markdown behind, and an
+# installer will happily link a project to a rule set nothing regenerates —
+# frozen at whatever it said the day the manifest disappeared.
+sandbox_git
+printf '# Stale Set\n\nGenerated from a manifest that no longer exists.\n' \
+  > rule-sets/orphan.md
+run_check
+reports "catches a generated set with no manifest" \
+  "rule-sets/orphan.md has no rule-sets/orphan.set"
+
+# The claim is what makes a skill travel with its set. A claim naming a skill
+# that is not there installs nothing and reports success, and the rules that
+# refer to the skill are left pointing at a file the project never received.
+sandbox_git
+printf 'skill: ghost-skill\n' >> rule-sets/ai-rules.set
+run_check
+reports "catches a set claiming a skill that does not exist" \
+  "rule-sets/ai-rules.set claims skill 'ghost-skill'"
 
 # --- the executable bit ----------------------------------------------------
 

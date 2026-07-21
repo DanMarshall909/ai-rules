@@ -194,6 +194,43 @@ for path in rules/*.md; do
   printf '  %s\n' "${name}"
 done
 
+# --- every rule set is registered, and every one is generated --------------
+# build-agents.sh guards what goes *into* a set. These are the two things it
+# cannot see: whether anyone can find the set, and whether a generated file
+# still has a manifest behind it.
+echo "rule sets are registered"
+for path in rule-sets/*.set; do
+  [[ -f "${path}" ]] || continue
+  name="$(basename "${path}" .set)"
+
+  if ! grep -qF "rule-sets/${name}.md" README.md; then
+    fail "README.md's rule sets table does not list rule-sets/${name}.md"
+  fi
+
+  # A skill a set claims but does not have installs nothing, successfully, and
+  # leaves the set's rules referring to a skill the project never received.
+  while IFS= read -r skill; do
+    [[ -z "${skill}" ]] && continue
+    if [[ ! -f "skills/${skill}/SKILL.md" ]]; then
+      fail "${path} claims skill '${skill}', which is not in skills/"
+    fi
+  done < <(sed -n 's/^skill: *//p' "${path}")
+
+  printf '  %s\n' "${name}"
+done
+
+# The reverse: a set renamed or deleted leaves its generated markdown behind,
+# and every project already linked to it keeps reading a rule set nothing
+# regenerates — frozen at whatever it said the day the manifest went away.
+for path in rule-sets/*.md; do
+  [[ -f "${path}" ]] || continue
+  name="$(basename "${path}" .md)"
+
+  if [[ ! -f "rule-sets/${name}.set" ]]; then
+    fail "${path} has no rule-sets/${name}.set, so nothing regenerates it"
+  fi
+done
+
 echo ""
 if [[ ${failures} -gt 0 ]]; then
   printf '%d convention(s) broken\n' "${failures}" >&2
