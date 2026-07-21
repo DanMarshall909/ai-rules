@@ -106,6 +106,26 @@ scripts/install-rules.sh:rules_target"
   done <<<"${sh_agents}"
 fi
 
+# --- anything with a shebang is executable in the index --------------------
+# git stores the executable bit, but Windows checkouts run with
+# core.filemode=false, so `chmod +x` changes the working copy and records
+# nothing. The script runs fine for its author and dies on Linux with
+# "Permission denied" — visible only in CI, and only after a push. Sourced
+# libraries have no shebang and are deliberately not executable.
+echo "scripts are executable"
+while IFS= read -r entry; do
+  mode="${entry%% *}"
+  file="${entry#*$'\t'}"
+  [[ -f "${file}" ]] || continue
+  head -c 2 "${file}" | grep -q '#!' || continue
+
+  if [[ "${mode}" != "100755" ]]; then
+    fail "${file} starts with a shebang but is ${mode} in the index (needs 100755)"
+    fail "  fix: git update-index --chmod=+x ${file}"
+  fi
+done < <(git ls-files -s scripts/ 2>/dev/null)
+printf '  %s\n' "$(git ls-files -s scripts/ | grep -c 100755) executable"
+
 # --- every rule is registered everywhere it has to be ----------------------
 # build-agents.sh already refuses to build when rules/ holds a file its RULES
 # array omits, so AGENTS.md cannot silently lose a rule. The other two homes
