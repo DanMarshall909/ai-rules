@@ -15,5 +15,7 @@ jobs:
         run: scripts/build-agents.sh --check
       - name: installer behaves
         run: scripts/test-install-skill.sh
+      - name: scaffold behaves
+        run: scripts/test-new-skill.sh
       - name: conventions hold
         run: scripts/check-conventions.sh
