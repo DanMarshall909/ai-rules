@@ -2,6 +2,13 @@
 
 Lean, agent-agnostic AI coding rules. Works with Claude Code, Cursor, Windsurf, Cline, and any assistant that reads markdown rule files.
 
+The complete shared rule set lives in:
+
+rule-sets/ai-rules.md
+
+`AGENTS.md` is intentionally minimal. It points agents at the rule set instead
+of carrying the full policy itself.
+
 ## Rules
 
 | Rule | What it does |
@@ -71,15 +78,15 @@ From the project you want the rules in:
 | Agent | Gets | Where |
 |-------|------|-------|
 | `claude` | an `@` import of this repo's `CLAUDE.md` | `~/.claude/CLAUDE.md` (user) |
-| `codex`, `opencode` | a symlink to `AGENTS.md` | `./AGENTS.md` (project) |
-| `cursor` | a symlink to `AGENTS.md` | `.cursor/rules/ai-rules.mdc` |
-| `cline` | a symlink to `AGENTS.md` | `.clinerules/ai-rules.md` |
+| `codex`, `opencode` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `./AGENTS.md` and `./rule-sets/ai-rules.md` |
+| `cursor` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `.cursor/rules/ai-rules.mdc` and `.cursor/rules/rule-sets/ai-rules.md` |
+| `cline` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `.clinerules/ai-rules.md` and `.clinerules/rule-sets/ai-rules.md` |
 
-Claude Code resolves `@` imports at read time, so it reads `rules/*.md` directly
-and an edit is live immediately. Everyone else reads `AGENTS.md`, which is
-**generated** — so an edit to a rule reaches them only once
-`scripts/build-agents.sh` has run. The link means you never have to reinstall;
-the hook below means you never forget to regenerate.
+Claude Code resolves `@` imports at read time, so it imports
+`rule-sets/ai-rules.md`. Everyone else reads a small `AGENTS.md` entrypoint that
+points at the same generated rule set. An edit to a rule reaches installed
+projects once `scripts/build-agents.sh` has run. The links mean you never have
+to reinstall; the hook below means you never forget to regenerate.
 
 For Claude the installer appends one line to `~/.claude/CLAUDE.md`, keeping
 whatever is already there, and won't add it twice.
@@ -90,19 +97,22 @@ whatever is already there, and won't add it twice.
 git config core.hooksPath scripts/hooks
 ```
 
-Refuses a commit where `AGENTS.md` doesn't match `rules/`, or a repo convention
-is broken. CI enforces the same thing, but by then you've pushed.
+Refuses a commit where `AGENTS.md` or `rule-sets/ai-rules.md` doesn't match
+`rules/`, or a repo convention is broken. CI enforces the same thing, but by
+then you've pushed.
 
 ## Editing the rules
 
-`rules/*.md` is the single source of truth. After changing one, regenerate:
+`rules/*.md` is the source used to build the complete rule set in
+`rule-sets/ai-rules.md`. After changing one, regenerate:
 
 ```bash
-scripts/build-agents.sh           # rewrite AGENTS.md
-scripts/build-agents.sh --check   # fail if AGENTS.md is stale (runs in CI)
+scripts/build-agents.sh           # rewrite AGENTS.md and rule-sets/ai-rules.md
+scripts/build-agents.sh --check   # fail if either generated file is stale
 ```
 
-Never edit `AGENTS.md` by hand — it is overwritten. CI rejects a stale copy.
+Never edit `AGENTS.md` or `rule-sets/ai-rules.md` by hand — they are
+overwritten. CI rejects stale generated files.
 
 ## Writing a skill
 
@@ -126,7 +136,7 @@ scripts/install-skill.sh ai-rules
 ## Checks
 
 ```bash
-scripts/build-agents.sh --check    # AGENTS.md matches rules/
+scripts/build-agents.sh --check    # generated rule entrypoints match rules/
 scripts/test-install-skill.sh      # the skill installer's behaviour
 scripts/test-install-rules.sh      # the rules installer's behaviour
 scripts/test-new-skill.sh          # the scaffold's behaviour
@@ -142,9 +152,10 @@ directory, so they never touch your real config.
 ## Structure
 
 ```
-rules/*.md                       ← single source of truth
-AGENTS.md                        ← GENERATED: self-contained, for agents without @ imports
-CLAUDE.md                        ← Claude Code entry point (@ imports rules/*.md)
+rules/*.md                       ← authored rule fragments
+rule-sets/ai-rules.md            ← GENERATED: complete shared rule set
+AGENTS.md                        ← GENERATED: minimal entrypoint
+CLAUDE.md                        ← Claude Code entry point (@ imports the rule set)
 rules/
   breaks.md
   tdd.md
@@ -159,13 +170,13 @@ skills/
   behavior-first-tdd/SKILL.md   ← behaviour-first TDD
   reflect/SKILL.md              ← capture lessons when work lands
 scripts/
-  build-agents.sh               ← regenerates AGENTS.md from rules/*.md
+  build-agents.sh               ← regenerates AGENTS.md and the rule set
   new-skill.sh                  ← scaffolds skills/<name>/SKILL.md
   agents.sh                     ← shared agent table + linking (sourced)
   install-skill.sh              ← installs a skill into any agent
   install-skill.ps1             ← the same, for Windows PowerShell
   install-rules.sh              ← points an agent at these rules
-  hooks/pre-commit              ← refuses a stale AGENTS.md
+  hooks/pre-commit              ← refuses stale generated rule files
   check-conventions.sh          ← skills load; installers agree; rules registered
   test-*.sh / test-*.ps1        ← behaviour tests for the above
 .gitattributes                   ← forces LF on *.sh; CRLF breaks them silently

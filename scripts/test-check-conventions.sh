@@ -54,7 +54,7 @@ sandbox() {
   cp "${REPO}"/scripts/*.sh "${REPO}"/scripts/*.ps1 "${s}/scripts/"
   cp -R "${REPO}"/skills/. "${s}/skills/"
   cp -R "${REPO}"/rules/. "${s}/rules/"
-  cp "${REPO}/CLAUDE.md" "${REPO}/README.md" "${s}/"
+  cp "${REPO}/AGENTS.md" "${REPO}/CLAUDE.md" "${REPO}/README.md" "${s}/"
   cp -R "${REPO}/.github" "${s}/.github"
   cd "${s}"
   CHECK="${s}/scripts/check-conventions.sh"
@@ -213,26 +213,43 @@ run_check
 reports "does not accept a 'name:' from the body" \
   "skills/body-named/SKILL.md frontmatter has no 'name:'"
 
+# --- rule set entrypoints --------------------------------------------------
+
+echo "rule set entrypoints"
+sandbox_git
+perl -i -pe 's/rule-sets\/ai-rules\.md/rule-sets\/missing.md/g' AGENTS.md
+run_check
+reports "catches AGENTS.md without the rule set" \
+  "AGENTS.md does not point at rule-sets/ai-rules.md"
+
+sandbox_git
+perl -i -pe 's/@rule-sets\/ai-rules\.md/@rule-sets\/missing.md/g' CLAUDE.md
+run_check
+reports "catches CLAUDE.md without the rule set import" \
+  "CLAUDE.md does not @import rule-sets/ai-rules.md"
+
+sandbox_git
+perl -i -pe 's/rule-sets\/ai-rules\.md/rule-sets\/missing.md/g' README.md
+run_check
+reports "catches README without the rule set" \
+  "README.md does not document rule-sets/ai-rules.md"
+
 # --- rules are registered --------------------------------------------------
 
 echo "rules are registered"
 sandbox_git
 printf '# Ghost\n' > rules/ghost.md
 run_check
-reports "catches a rule CLAUDE.md does not import" \
-  "CLAUDE.md does not @import rules/ghost.md"
 reports "catches a rule the README does not list" \
   "README.md's rules table does not list rules/ghost.md"
 
-# The two homes are independent: satisfying one must not satisfy the other,
-# which is the shape the original bug had — guardrails.md was imported and
-# undocumented for its whole life.
+# The generated rule set and README are independent: satisfying one must not
+# satisfy the other, which is the shape the original bug had — guardrails.md was
+# imported and undocumented for its whole life.
 sandbox_git
 printf '# Ghost\n' > rules/ghost.md
-printf '@rules/ghost.md\n' >> CLAUDE.md
+perl -i -pe 's/RULES=\((.*)\)/RULES=($1 ghost)/' scripts/build-agents.sh
 run_check
-says_nothing_about "stops reporting a rule once it is imported" \
-  "CLAUDE.md does not @import rules/ghost.md"
 reports "still reports it as undocumented" \
   "README.md's rules table does not list rules/ghost.md"
 

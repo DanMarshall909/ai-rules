@@ -1,17 +1,6 @@
 # AI Rules
 
-Claude Code entry point. Claude resolves `@` imports, so the rule files are
-pulled in directly rather than inlined.
+Claude Code entry point. Claude resolves `@` imports, so this file imports the
+same rule set that `AGENTS.md` points other agents toward.
 
-Other agents (Codex, OpenCode, Cursor, Cline) have no import syntax — they read
-`AGENTS.md`, which is generated from these same rule files by
-`scripts/build-agents.sh` and is self-contained.
-
-@rules/breaks.md
-@rules/tdd.md
-@rules/coverage.md
-@rules/guardrails.md
-@rules/security.md
-@rules/git.md
-@rules/issues.md
-@rules/reflection.md
+@rule-sets/ai-rules.md

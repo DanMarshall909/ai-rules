@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # install-rules.sh
-# Points an agent at this repo's rules, so editing rules/*.md reaches it.
+# Points an agent at this repo's rules, so editing the rule set here reaches it.
 #
 #   scripts/install-rules.sh --list          what would be installed, and where
 #   scripts/install-rules.sh                 every agent detected here
@@ -13,10 +13,9 @@
 #   of this repo's CLAUDE.md written into ~/.claude/CLAUDE.md. Nothing is
 #   copied and nothing can go stale.
 #
-#   Everyone else reads AGENTS.md, so they get a symlink to this repo's copy.
-#   AGENTS.md is generated from rules/*.md, so the link is only half the job —
-#   `build-agents.sh` still has to run after a rule changes. The pre-commit
-#   hook in scripts/hooks exists to catch that.
+#   Everyone else reads AGENTS.md, so they get a minimal symlinked entrypoint
+#   plus the rule-set file it points at. `build-agents.sh` still has to run
+#   after a rule changes. The pre-commit hook in scripts/hooks catches that.
 #
 # Run from the project you want the rules in; project-scoped agents install
 # relative to the current directory.
@@ -27,6 +26,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/agents.sh"
 
 REPO="$(repo_root "${BASH_SOURCE[0]}")"
 AGENTS_MD="${REPO}/AGENTS.md"
+RULE_SET="${REPO}/rule-sets/ai-rules.md"
 
 # The import Claude Code is given. A native path, because Git Bash resolves the
 # repo to /d/code/... and Claude Code on Windows cannot open that.
@@ -41,6 +41,13 @@ rules_target() { # <agent>
     codex|opencode)    printf '%s' "${PWD}/AGENTS.md" ;;
     cursor)            printf '%s' "${PWD}/.cursor/rules/ai-rules.mdc" ;;
     cline)             printf '%s' "${PWD}/.clinerules/ai-rules.md" ;;
+  esac
+}
+
+rule_set_target() { # <agent>
+  case "$1" in
+    claude) printf '%s' "" ;;
+    *)      printf '%s/rule-sets/ai-rules.md' "$(dirname "$(rules_target "$1")")" ;;
   esac
 }
 
@@ -115,7 +122,9 @@ if [[ ${LIST} -eq 1 ]]; then
       claude_imported && printf '              installed: @import\n'
     else
       t="$(rules_target "${a}")"
-      [[ -L "${t}" && "$(readlink "${t}")" == "${AGENTS_MD}" ]] &&
+      r="$(rule_set_target "${a}")"
+      [[ -L "${t}" && "$(readlink "${t}")" == "${AGENTS_MD}" &&
+         -L "${r}" && "$(readlink "${r}")" == "${RULE_SET}" ]] &&
         printf '              installed: AGENTS.md\n'
     fi
   done
@@ -133,6 +142,11 @@ fi
 
 if [[ ! -f "${AGENTS_MD}" ]]; then
   err "${AGENTS_MD} does not exist — run scripts/build-agents.sh first"
+  exit 1
+fi
+
+if [[ ! -f "${RULE_SET}" ]]; then
+  err "${RULE_SET} does not exist — run scripts/build-agents.sh first"
   exit 1
 fi
 
@@ -169,7 +183,10 @@ for agent in "${TARGET_AGENTS[@]}"; do
     install_claude_import
   else
     target="$(rules_target "${agent}")"
-    link_to "${AGENTS_MD}" "${target}" "${agent}: ${target}"
+    if link_to "${AGENTS_MD}" "${target}" "${agent}: ${target}"; then
+      rule_target="$(rule_set_target "${agent}")"
+      link_to "${RULE_SET}" "${rule_target}" "${agent}: ${rule_target}"
+    fi
   fi
 done
 
@@ -182,6 +199,7 @@ fi
 if [[ ${DRY_RUN} -eq 1 ]]; then
   echo "dry run — nothing changed."
 else
-  echo "Done. AGENTS.md is generated — run scripts/build-agents.sh after"
-  echo "changing a rule, or install the hook: git config core.hooksPath scripts/hooks"
+  echo "Done. AGENTS.md and rule-sets/ai-rules.md are generated — run"
+  echo "scripts/build-agents.sh after changing a rule, or install the hook:"
+  echo "git config core.hooksPath scripts/hooks"
 fi

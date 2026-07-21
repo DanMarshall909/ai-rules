@@ -93,6 +93,8 @@ sandbox
 "${INSTALL}" --agent codex >/dev/null 2>&1
 links_to "codex links AGENTS.md into the project" \
   "${PWD}/AGENTS.md" "${REPO}/AGENTS.md"
+links_to "codex links the rule set beside AGENTS.md" \
+  "${PWD}/rule-sets/ai-rules.md" "${REPO}/rule-sets/ai-rules.md"
 
 sandbox
 "${INSTALL}" --agent cursor >/dev/null 2>&1
@@ -110,8 +112,8 @@ project="${PWD}"
 links_to "installs into the given directory" "${project}/AGENTS.md" "${REPO}/AGENTS.md"
 absent "does not touch HOME for a project agent" "${HOME}/AGENTS.md"
 
-# A link means an edit to rules/ reaches the project as soon as AGENTS.md is
-# regenerated. A copy would not, which is the whole point.
+# A link means an edit to rules/ reaches the project as soon as generated rule
+# files are regenerated. A copy would not, which is the whole point.
 sandbox
 "${INSTALL}" --agent codex >/dev/null 2>&1
 if [[ -L "${PWD}/AGENTS.md" ]]; then
@@ -223,6 +225,7 @@ if [[ "$(cat "${PWD}/AGENTS.md")" == "a project's own AGENTS.md" ]]; then
 else
   no "leaves the real file untouched" "contents changed"
 fi
+absent "does not half-install the rule set" "${PWD}/rule-sets/ai-rules.md"
 
 sandbox
 echo "a project's own AGENTS.md" > "${PWD}/AGENTS.md"
@@ -236,6 +239,7 @@ sandbox
 mkdir -p "${HOME}/.codex" "${HOME}/.claude"
 "${INSTALL}" --dry-run >/dev/null 2>&1
 absent "links nothing" "${PWD}/AGENTS.md"
+absent "links no rule set" "${PWD}/rule-sets/ai-rules.md"
 absent "writes no import" "${HOME}/.claude/CLAUDE.md"
 
 # --- bad input -------------------------------------------------------------

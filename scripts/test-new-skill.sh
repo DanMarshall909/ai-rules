@@ -41,10 +41,10 @@ sandbox() {
   mkdir -p "${s}/scripts" "${s}/skills" "${s}/rules"
   cp "${REPO}"/scripts/*.sh "${REPO}"/scripts/*.ps1 "${s}/scripts/"
   cp -R "${REPO}"/skills/. "${s}/skills/"
-  # check-conventions.sh also reads rules/, CLAUDE.md and README.md, so the
+  # check-conventions.sh also reads the rule entrypoints and README.md, so the
   # sandbox has to be a whole repo rather than just the parts under test.
   cp -R "${REPO}"/rules/. "${s}/rules/"
-  cp "${REPO}/CLAUDE.md" "${REPO}/README.md" "${s}/"
+  cp "${REPO}/AGENTS.md" "${REPO}/CLAUDE.md" "${REPO}/README.md" "${s}/"
   cd "${s}"
   NEW="${s}/scripts/new-skill.sh"
   CHECK="${s}/scripts/check-conventions.sh"

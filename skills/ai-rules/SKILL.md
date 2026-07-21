@@ -22,16 +22,18 @@ something silently broke.
 | `rules/*.md` | **authored** — the single source of truth |
 | `skills/*/SKILL.md` | **authored** |
 | `scripts/*` | **authored** |
-| `AGENTS.md` | **generated** by `scripts/build-agents.sh` — never edit |
-| `CLAUDE.md` | authored, but must stay in step with `rules/` |
+| `rule-sets/ai-rules.md` | **generated** complete rule set — never edit |
+| `AGENTS.md` | **generated** minimal entrypoint — never edit |
+| `CLAUDE.md` | authored, but should import the rule set |
 
-`AGENTS.md` exists because Codex, OpenCode, Cursor and Cline have no `@` import
-syntax and read one self-contained file. `CLAUDE.md` imports the same rules
-instead. Both must describe the same set of rules, or the agents disagree about
-what the rules are.
+`AGENTS.md` exists because Codex, OpenCode, Cursor and Cline look for that
+filename. It should stay small and point at `rule-sets/ai-rules.md`. `CLAUDE.md`
+imports that same rule set. The rule set is the policy; the agent files are
+entrypoints.
 
 If asked to change a rule, change `rules/<name>.md` and regenerate. If you find
-yourself editing `AGENTS.md`, stop — the change will be overwritten.
+yourself editing `AGENTS.md` or `rule-sets/ai-rules.md`, stop — the change will
+be overwritten.
 
 ---
 
@@ -39,16 +41,15 @@ yourself editing `AGENTS.md`, stop — the change will be overwritten.
 
 1. `rules/<name>.md` — write it
 2. `RULES=(...)` in `scripts/build-agents.sh` — add it, in reading order
-3. `@rules/<name>.md` in `CLAUDE.md` — same order
-4. the rules table in `README.md`
+3. the rules table in `README.md`
 
-Then run `scripts/build-agents.sh` to regenerate `AGENTS.md`, and commit the
-regenerated file alongside the rule.
+Then run `scripts/build-agents.sh` to regenerate `AGENTS.md` and
+`rule-sets/ai-rules.md`, and commit the generated files alongside the rule.
 
-Miss any of them and a check will say so — `build-agents.sh` guards step 2,
-`check-conventions.sh` guards steps 3 and 4. That was not always true:
-`guardrails.md` was absent from the README table for its whole life, which is
-why the check exists.
+Miss any of them and a check will say so — `build-agents.sh` guards step 2, and
+`check-conventions.sh` guards the README table. That was not always true:
+`guardrails.md` was absent from the README table for its whole life, which is why
+the check exists.
 
 ---
 
@@ -97,16 +98,17 @@ Rules and skills install differently, and the difference is the point:
 
 - **Skills** are symlinked, so an edit is live at once.
 - **Rules** reach Claude Code through an `@` import, also live at once — but
-  reach every other agent through `AGENTS.md`, which is *generated*. An edit to
-  `rules/` does not reach them until `build-agents.sh` runs. Enable the hook
-  (`git config core.hooksPath scripts/hooks`) so a commit cannot leave it stale.
+  reach every other agent through a minimal `AGENTS.md` plus a symlinked
+  `rule-sets/ai-rules.md`. An edit to `rules/` does not reach them until
+  `build-agents.sh` runs. Enable the hook (`git config core.hooksPath
+  scripts/hooks`) so a commit cannot leave it stale.
 
 ---
 
 ## Step 5 — Run the checks before committing
 
 ```bash
-scripts/build-agents.sh --check    # AGENTS.md matches rules/
+scripts/build-agents.sh --check    # generated rule entrypoints match rules/
 scripts/test-install-skill.sh      # the skill installer's behaviour
 scripts/test-install-rules.sh      # the rules installer's behaviour
 scripts/test-new-skill.sh          # the scaffold's behaviour
@@ -131,9 +133,9 @@ Windows-native. A bash script reading `install-skill.ps1` therefore sees a
 trailing `\r` on every line, and an end-anchored pattern matches nothing at all.
 Strip the CR before parsing, not after.
 
-If `build-agents.sh --check` reports `AGENTS.md` stale while `git diff` says it
-is unchanged, that is the opposite failure — an `.sh` or `.md` that arrived CRLF
-despite the rule. Report it rather than working around it.
+If `build-agents.sh --check` reports a generated markdown file stale while
+`git diff` says it is unchanged, that is the opposite failure — an `.sh` or `.md`
+that arrived CRLF despite the rule. Report it rather than working around it.
 
 ---
 
@@ -159,6 +161,6 @@ worse than none, because it reads as coverage.
   routing table.
 - The break-reminders skill schedules cron jobs that expire after 7 days;
   re-running `/break-reminders` each session is expected, not a bug.
-- `rules/coverage.md` is the longest rule and the most often relevant. If a task
+- `rules/coverage.md` is the longest source rule and the most often relevant. If a task
   involves tests, coverage numbers, or a surviving mutant, read it before
   proposing a fix.
