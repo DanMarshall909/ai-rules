@@ -1,29 +1,55 @@
 #!/usr/bin/env bash
 # build-agents.sh
-# Generates the shared rule set and a minimal AGENTS.md entrypoint.
+# Generates every rule set from its manifest, plus the AGENTS.md entrypoint.
 #
-# AGENTS.md is intentionally small. The substantive policy lives in
-# rule-sets/ai-rules.md so the rule set has one markdown home and the agent
-# entrypoint is only compatibility wiring.
+# A rule set is `rule-sets/<name>.set` — a line-based manifest naming the rule
+# fragments it ships, in order — and `rule-sets/<name>.md`, generated from it.
+# `ai-rules` is the base set every project gets; a set with a `layer:` field is
+# an addition for one kind of repo, read alongside the set it names.
 #
-# Source of truth is rules/*.md. Never edit generated rule files by hand.
+# AGENTS.md is intentionally small. The substantive policy lives in the rule
+# sets, so the policy has one markdown home and the agent entrypoint is only
+# compatibility wiring.
 #
-#   scripts/build-agents.sh           regenerate AGENTS.md
-#   scripts/build-agents.sh --check   fail if generated rule files are stale
+# Source of truth is rules/*.md and the manifests. Never edit a generated file.
+#
+#   scripts/build-agents.sh           regenerate every rule set and AGENTS.md
+#   scripts/build-agents.sh --check   fail if any generated file is stale
 
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-# Order in which rules appear in the shared rule set.
-RULES=(breaks tdd coverage guardrails git issues reflection)
-
+RULE_SET_DIR="rule-sets"
 OUTPUT="AGENTS.md"
-RULE_SET_OUTPUT="rule-sets/ai-rules.md"
 
-# Demote every heading one level so the rule files' `#` titles nest under this
-# document's single `# AI Rules`. Headings inside fenced code blocks are left
-# alone.
+# The set AGENTS.md points at, and the one a project gets by default. Named
+# here because three scripts have to agree on which set is the base.
+BASE_SET="ai-rules"
+
+manifest_of()  { printf '%s/%s.set' "${RULE_SET_DIR}" "$1"; }
+generated_of() { printf '%s/%s.md' "${RULE_SET_DIR}" "$1"; }
+
+# Manifests are line-based (`field: value`) so bash can read them without a
+# YAML parser, and `#` comments fall out for free: nothing matches them.
+field() { # <manifest> <field> -> every value, in file order
+  sed -n "s/^$2: *//p" "$1"
+}
+
+# tail, not head: `head -n 1` closes the pipe, sed dies of SIGPIPE, and under
+# `set -o pipefail` reading a field would fail the whole build.
+field_one() { field "$1" "$2" | tail -n 1; }
+
+set_names() {
+  local path
+  for path in "${RULE_SET_DIR}"/*.set; do
+    [[ -f "${path}" ]] || continue
+    basename "${path}" .set
+  done
+}
+
+# Demote every heading one level so the rule files' `#` titles nest under the
+# set's single `# Title`. Headings inside fenced code blocks are left alone.
 demote_headings() {
   awk '
     /^```/ { fence = !fence; print; next }
@@ -32,59 +58,103 @@ demote_headings() {
   ' "$1"
 }
 
-build_rule_set() {
-  cat <<'HEADER'
-# AI Rules
+build_rule_set() { # <set name>
+  local name="$1" manifest title blurb layer rule
+  manifest="$(manifest_of "${name}")"
+  title="$(field_one "${manifest}" title)"
+  blurb="$(field_one "${manifest}" blurb)"
+  layer="$(field_one "${manifest}" layer)"
 
-Lean, agent-agnostic rules for any coding assistant.
+  printf '# %s\n\n%s\n' "${title}" "${blurb}"
+
+  # A layered set is half a policy. An agent handed one has to be told where
+  # the rest of it is, or it obeys the additions and none of the base.
+  if [[ -n "${layer}" ]]; then
+    printf '\nThis set extends [%s.md](%s.md) rather than replacing it. Read both.\n' \
+      "${layer}" "${layer}"
+  fi
+
+  cat <<EOF
 
 <!-- GENERATED FILE — do not edit by hand.
-     Source of truth: rules/*.md
+     Source of truth: ${manifest} and the rules/ files it lists
      Regenerate:      scripts/build-agents.sh
      Verify:          scripts/build-agents.sh --check -->
-HEADER
+EOF
 
-  for rule in "${RULES[@]}"; do
+  while IFS= read -r rule; do
+    [[ -z "${rule}" ]] && continue
     printf '\n---\n\n'
     demote_headings "rules/${rule}.md"
-  done
+  done < <(field "${manifest}" rule)
 }
 
 build_agents() {
-  cat <<'HEADER'
+  cat <<EOF
 # AI Rules
 
-Read and follow the shared rule set in [rule-sets/ai-rules.md](rule-sets/ai-rules.md).
+Read and follow the shared rule set in [${RULE_SET_DIR}/${BASE_SET}.md](${RULE_SET_DIR}/${BASE_SET}.md).
 
 This file is intentionally minimal. The rule set is the policy; AGENTS.md is
 only the entrypoint for agents that look for this filename.
 
 <!-- GENERATED FILE — do not edit by hand.
-     Source of truth: rule-sets/ai-rules.md and rules/*.md
+     Source of truth: ${RULE_SET_DIR}/${BASE_SET}.md and rules/*.md
      Regenerate:      scripts/build-agents.sh
      Verify:          scripts/build-agents.sh --check -->
-HEADER
+EOF
 }
 
-for rule in "${RULES[@]}"; do
-  if [[ ! -f "rules/${rule}.md" ]]; then
-    echo "error: rules/${rule}.md does not exist" >&2
-    exit 1
+die() { echo "error: $*" >&2; exit 1; }
+
+# --- validation -------------------------------------------------------------
+# Everything below fails the build rather than generating something wrong,
+# because every one of these mistakes is invisible in the output: the file is
+# written, the check passes, and an agent somewhere reads a rule set missing a
+# rule it was meant to obey.
+
+[[ -f "$(manifest_of "${BASE_SET}")" ]] ||
+  die "$(manifest_of "${BASE_SET}") does not exist — ${OUTPUT} points at the ${BASE_SET} set"
+
+claimed=""
+for name in $(set_names); do
+  manifest="$(manifest_of "${name}")"
+
+  [[ -n "$(field_one "${manifest}" title)" ]] ||
+    die "${manifest} has no 'title:' — the generated set would open with an empty heading"
+
+  layer="$(field_one "${manifest}" layer)"
+  if [[ -n "${layer}" ]]; then
+    [[ -f "$(manifest_of "${layer}")" ]] ||
+      die "${manifest} layers on '${layer}', which is not a rule set here"
+    [[ "${layer}" != "${name}" ]] ||
+      die "${manifest} layers on itself"
   fi
+
+  rules_in_set=0
+  while IFS= read -r rule; do
+    [[ -z "${rule}" ]] && continue
+    [[ -f "rules/${rule}.md" ]] ||
+      die "${manifest} lists '${rule}', but rules/${rule}.md does not exist"
+    claimed+=" rules/${rule}.md"
+    rules_in_set=$((rules_in_set + 1))
+  done < <(field "${manifest}" rule)
+
+  [[ ${rules_in_set} -gt 0 ]] ||
+    die "${manifest} lists no rules — it would generate an empty rule set"
 done
 
-# Every rule file must appear in RULES. Without this, adding rules/foo.md and
-# forgetting the list above silently drops it from AGENTS.md — the generator
-# succeeds, --check passes (it compares against the same short list), and only
-# non-Claude agents notice, by never seeing the rule.
-for path in rules/*.md; do
-  rule="$(basename "${path}" .md)"
-  if [[ ! " ${RULES[*]} " == *" ${rule} "* ]]; then
-    echo "error: rules/${rule}.md is not listed in RULES, so ${OUTPUT} would omit it." >&2
-    echo "       Add '${rule}' to RULES in $0 (and an @import to CLAUDE.md)." >&2
-    exit 1
-  fi
-done
+# The mistake this catches: a rule file written, never listed, and therefore
+# shipped to nobody. The build succeeds, --check passes, the repo looks right,
+# and only a reader of the rule set would ever notice it is not there.
+while IFS= read -r path; do
+  case " ${claimed} " in
+    *" ${path} "*) ;;
+    *) die "${path} is not listed by any ${RULE_SET_DIR}/*.set, so no rule set ships it" ;;
+  esac
+done < <(find rules -type f -name '*.md' | sort)
+
+# --- generate or check ------------------------------------------------------
 
 if [[ "${1:-}" == "--check" ]]; then
   if ! build_agents | diff -u "${OUTPUT}" - ; then
@@ -92,16 +162,22 @@ if [[ "${1:-}" == "--check" ]]; then
     echo "error: ${OUTPUT} is stale. Run scripts/build-agents.sh" >&2
     exit 1
   fi
-  if ! build_rule_set | diff -u "${RULE_SET_OUTPUT}" - ; then
-    echo "" >&2
-    echo "error: ${RULE_SET_OUTPUT} is stale. Run scripts/build-agents.sh" >&2
-    exit 1
-  fi
-  echo "${OUTPUT} and ${RULE_SET_OUTPUT} are up to date."
+  for name in $(set_names); do
+    out="$(generated_of "${name}")"
+    if ! build_rule_set "${name}" | diff -u "${out}" - ; then
+      echo "" >&2
+      echo "error: ${out} is stale. Run scripts/build-agents.sh" >&2
+      exit 1
+    fi
+  done
+  echo "${OUTPUT} and $(set_names | wc -l | tr -d ' ') rule set(s) are up to date."
   exit 0
 fi
 
-mkdir -p "$(dirname "${RULE_SET_OUTPUT}")"
+mkdir -p "${RULE_SET_DIR}"
 build_agents > "${OUTPUT}"
-build_rule_set > "${RULE_SET_OUTPUT}"
-echo "Wrote ${OUTPUT} and ${RULE_SET_OUTPUT} from ${#RULES[@]} rule files."
+for name in $(set_names); do
+  build_rule_set "${name}" > "$(generated_of "${name}")"
+  echo "Wrote $(generated_of "${name}")"
+done
+echo "Wrote ${OUTPUT}"

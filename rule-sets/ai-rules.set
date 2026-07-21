@@ -1,0 +1,15 @@
+# ai-rules — the base set every project gets.
+#
+# Order is reading order: breaks and TDD frame what follows, reflection closes.
+# A set with no `layer:` is a base set; it stands on its own.
+
+title: AI Rules
+blurb: Lean, agent-agnostic rules for any coding assistant.
+
+rule: breaks
+rule: tdd
+rule: coverage
+rule: guardrails
+rule: git
+rule: issues
+rule: reflection

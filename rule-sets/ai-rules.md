@@ -3,7 +3,7 @@
 Lean, agent-agnostic rules for any coding assistant.
 
 <!-- GENERATED FILE — do not edit by hand.
-     Source of truth: rules/*.md
+     Source of truth: rule-sets/ai-rules.set and the rules/ files it lists
      Regenerate:      scripts/build-agents.sh
      Verify:          scripts/build-agents.sh --check -->
 
