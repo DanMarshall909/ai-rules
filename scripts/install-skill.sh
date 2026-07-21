@@ -17,47 +17,16 @@
 
 set -uo pipefail
 
-# Ask the Git Bash runtime for real NTFS symlinks rather than its copy fallback.
-# Harmless everywhere else.
-export MSYS="${MSYS:-} winsymlinks:nativestrict"
+# The agent table, link_to() and the repo/path helpers are shared with
+# install-rules.sh so the two cannot disagree about where an agent keeps things.
+source "$(dirname "${BASH_SOURCE[0]}")/agents.sh"
 
-# --- where this checkout lives ---------------------------------------------
-# Resolved through symlinks, so the script still finds skills/ when it is itself
-# invoked via a link on $PATH.
-self="${BASH_SOURCE[0]}"
-while [[ -L "${self}" ]]; do
-  self_dir="$(cd -P "$(dirname "${self}")" && pwd)"
-  self="$(readlink "${self}")"
-  [[ "${self}" != /* ]] && self="${self_dir}/${self}"
-done
-REPO="$(cd -P "$(dirname "${self}")/.." && pwd)"
+REPO="$(repo_root "${BASH_SOURCE[0]}")"
 SKILLS_DIR="${REPO}/skills"
 
-# --- agent table ------------------------------------------------------------
-# One line per agent per column. These are each agent's documented convention at
-# time of writing; if one moves, this table is the only thing to change.
-#
-#   root   — presence of this path means the agent is installed (autodetect)
-#   target — where the skill has to appear for that agent to see it
-#   source — what gets linked: Claude reads a skill directory, the rest read a
-#            single markdown file, so they link SKILL.md directly
-#
-# Agents differ in scope: claude/codex/opencode are per-user, cursor/cline are
-# per-project and install relative to the current directory.
-KNOWN_AGENTS="claude codex opencode cursor cline"
-
-config_home() { printf '%s' "${XDG_CONFIG_HOME:-${HOME}/.config}"; }
-
-agent_root() {
-  case "$1" in
-    claude)   printf '%s' "${HOME}/.claude" ;;
-    codex)    printf '%s' "${HOME}/.codex" ;;
-    opencode) printf '%s' "$(config_home)/opencode" ;;
-    cursor)   printf '%s' "${PWD}/.cursor" ;;
-    cline)    printf '%s' "${PWD}/.clinerules" ;;
-  esac
-}
-
+# Where a skill has to appear for each agent to see it. Claude Code reads a
+# skill directory; the rest read a single markdown file, so they link SKILL.md
+# directly. Roots and scopes live in agents.sh.
 agent_target() { # <agent> <skill>
   case "$1" in
     claude)   printf '%s' "${HOME}/.claude/skills/$2" ;;
@@ -73,21 +42,6 @@ agent_source() { # <agent> <skill>
     claude) printf '%s' "${SKILLS_DIR}/$2" ;;
     *)      printf '%s' "${SKILLS_DIR}/$2/SKILL.md" ;;
   esac
-}
-
-agent_scope() {
-  case "$1" in
-    cursor|cline) printf 'project' ;;
-    *)            printf 'user' ;;
-  esac
-}
-
-# --- helpers ----------------------------------------------------------------
-
-err() { printf 'error: %s\n' "$*" >&2; }
-
-known_agent() {
-  case " ${KNOWN_AGENTS} " in *" $1 "*) return 0 ;; *) return 1 ;; esac
 }
 
 available_skills() {
@@ -135,13 +89,6 @@ while [[ $# -gt 0 ]]; do
 done
 
 # --- resolve which agents to install for ------------------------------------
-
-detected_agents() {
-  local a
-  for a in ${KNOWN_AGENTS}; do
-    [[ -d "$(agent_root "${a}")" ]] && printf '%s\n' "${a}"
-  done
-}
 
 TARGET_AGENTS=()
 if [[ "${AGENT_ARG}" == "all" ]]; then
@@ -213,54 +160,8 @@ fi
 
 # --- linking ----------------------------------------------------------------
 
+# link_to() comes from agents.sh and reads FORCE, DRY_RUN and failures.
 failures=0
-
-link_to() { # <source> <target> <label>
-  local src="$1" dst="$2" label="$3"
-
-  if [[ -L "${dst}" ]]; then
-    if [[ "$(readlink "${dst}")" == "${src}" ]]; then
-      printf '  = %s (already linked)\n' "${label}"
-      return 0
-    fi
-    # A symlink is ours to repoint; only real files are somebody's work.
-    [[ ${DRY_RUN} -eq 1 ]] || rm -f "${dst}"
-  elif [[ -e "${dst}" ]]; then
-    if [[ ${FORCE} -ne 1 ]]; then
-      err "${label}: ${dst} already exists and is not a symlink"
-      err "  inspect it, then pass --force to replace it"
-      failures=$((failures + 1))
-      return 1
-    fi
-    [[ ${DRY_RUN} -eq 1 ]] || rm -rf "${dst}"
-  fi
-
-  if [[ ${DRY_RUN} -eq 1 ]]; then
-    printf '  + %s -> %s (dry run)\n' "${dst}" "${src}"
-    return 0
-  fi
-
-  mkdir -p "$(dirname "${dst}")"
-  if ! ln -s "${src}" "${dst}" 2>/dev/null; then
-    err "${label}: could not create symlink ${dst}"
-    err "  on Windows, run scripts/install-skill.ps1, or enable Developer Mode"
-    failures=$((failures + 1))
-    return 1
-  fi
-
-  # Git Bash without native symlink support answers `ln -s` with a deep copy and
-  # exits 0. A copy silently stops tracking this checkout, so refuse it outright
-  # rather than leave a fork behind.
-  if [[ ! -L "${dst}" ]]; then
-    rm -rf "${dst}"
-    err "${label}: the shell copied instead of linking ${dst}"
-    err "  run scripts/install-skill.ps1, or enable Windows Developer Mode"
-    failures=$((failures + 1))
-    return 1
-  fi
-
-  printf '  + %s\n' "${label}"
-}
 
 for skill in "${SKILLS[@]}"; do
   echo "${skill}"

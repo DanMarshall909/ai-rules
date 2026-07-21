@@ -60,7 +60,7 @@ done
 # have separate test suites, so one can gain an agent the other lacks and both
 # suites stay green — the divergence only shows up as "works on my machine".
 echo "installers agree on agents"
-SH="scripts/install-skill.sh"
+SH="scripts/agents.sh"
 PS="scripts/install-skill.ps1"
 
 sh_agents="$(sed -n 's/^KNOWN_AGENTS="\(.*\)"$/\1/p' "${SH}" | tr ' ' '\n' | sort)"
@@ -78,13 +78,21 @@ elif [[ "${sh_agents}" != "${ps_agents}" ]]; then
 else
   # Listing an agent is not the same as knowing where its files go: a name added
   # to the list alone would install nothing, silently.
+  # Every agent needs a root to be autodetected by, and a target in each
+  # installer. They live in different files: the root is shared, the targets are
+  # specific to what is being installed.
+  TABLES="scripts/agents.sh:agent_root
+scripts/install-skill.sh:agent_target
+scripts/install-rules.sh:rules_target"
+
   while IFS= read -r agent; do
     [[ -z "${agent}" ]] && continue
-    for fn in agent_root agent_target; do
-      if ! awk "/^${fn}\(\)/,/^}/" "${SH}" | grep -qE "^ *${agent}\)"; then
-        fail "${SH}: ${fn}() has no case for '${agent}'"
+    while IFS=: read -r file fn; do
+      [[ -f "${file}" ]] || continue
+      if ! awk "/^${fn}\(\)/,/^}/" "${file}" | grep -qE "^ *${agent}[)|]"; then
+        fail "${file}: ${fn}() has no case for '${agent}'"
       fi
-    done
+    done <<<"${TABLES}"
     if ! grep -qE "^ *'${agent}' \{" "${PS}"; then
       fail "${PS}: Get-AgentSpec has no branch for '${agent}'"
     fi
