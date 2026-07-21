@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# pre-commit — enable with:  git config core.hooksPath scripts/hooks
+#
+# AGENTS.md is generated from rules/*.md, and every project that installed the
+# rules reads it through a symlink. So editing a rule and not regenerating does
+# not fail locally and does not fail visibly anywhere else — it just quietly
+# serves the old rule to every agent that is not Claude Code until someone
+# pushes and CI says so.
+#
+# This is that check, moved to the point where it is cheap to fix.
+
+set -uo pipefail
+
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+status=0
+
+if ! scripts/build-agents.sh --check >/dev/null 2>&1; then
+  echo "pre-commit: AGENTS.md is stale." >&2
+  echo "  run scripts/build-agents.sh and stage the result" >&2
+  status=1
+fi
+
+if ! scripts/check-conventions.sh >/dev/null 2>&1; then
+  echo "pre-commit: a repo convention is broken." >&2
+  scripts/check-conventions.sh 2>&1 >/dev/null | sed 's/^/  /' >&2
+  status=1
+fi
+
+# The test suites are CI's job: they take long enough that running them on every
+# commit would teach people to reach for --no-verify, which costs more than it
+# saves.
+
+exit ${status}

@@ -89,7 +89,13 @@ scripts/install-rules.sh:rules_target"
     [[ -z "${agent}" ]] && continue
     while IFS=: read -r file fn; do
       [[ -f "${file}" ]] || continue
-      if ! awk "/^${fn}\(\)/,/^}/" "${file}" | grep -qE "^ *${agent}[)|]"; then
+      # Case labels may share a branch — `codex|opencode)` covers both — so
+      # collect the labels and split them, rather than matching line starts.
+      # A pattern that missed the second alternative would report a complete
+      # table as broken, and a guardrail that cries wolf gets bypassed.
+      labels="$(awk "/^${fn}\(\)/,/^}/" "${file}" \
+        | sed -n 's/^ *\([a-z|]*\)).*/\1/p' | tr '|' '\n')"
+      if ! grep -qx "${agent}" <<<"${labels}"; then
         fail "${file}: ${fn}() has no case for '${agent}'"
       fi
     done <<<"${TABLES}"

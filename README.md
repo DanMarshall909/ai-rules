@@ -59,23 +59,38 @@ Then run `/break-reminders` at the start of any Claude Code session.
 
 ## Adopt the rules
 
-`AGENTS.md` is generated from `rules/*.md` and is **fully self-contained** — no
-imports, no placeholders. Agents that lack an import syntax (Codex, OpenCode,
-Cursor, Cline) can read it as-is. `CLAUDE.md` is the Claude Code entry point and
-`@`-imports the same rule files, because Claude resolves imports.
+From the project you want the rules in:
 
-**Claude Code** — add to your project `CLAUDE.md`:
-```
-@~/code/ai-rules/CLAUDE.md
-```
-
-**Codex / OpenCode / any agent that reads AGENTS.md** — copy `AGENTS.md` into
-your project root, or symlink it:
 ```bash
-ln -s ~/code/ai-rules/AGENTS.md AGENTS.md
+~/code/ai-rules/scripts/install-rules.sh --list   # what each agent would get
+~/code/ai-rules/scripts/install-rules.sh          # every agent detected here
+~/code/ai-rules/scripts/install-rules.sh --agent claude,cursor
 ```
 
-**Cursor** — copy `AGENTS.md` to `.cursor/rules/ai-rules.mdc`.
+| Agent | Gets | Where |
+|-------|------|-------|
+| `claude` | an `@` import of this repo's `CLAUDE.md` | `~/.claude/CLAUDE.md` (user) |
+| `codex`, `opencode` | a symlink to `AGENTS.md` | `./AGENTS.md` (project) |
+| `cursor` | a symlink to `AGENTS.md` | `.cursor/rules/ai-rules.mdc` |
+| `cline` | a symlink to `AGENTS.md` | `.clinerules/ai-rules.md` |
+
+Claude Code resolves `@` imports at read time, so it reads `rules/*.md` directly
+and an edit is live immediately. Everyone else reads `AGENTS.md`, which is
+**generated** — so an edit to a rule reaches them only once
+`scripts/build-agents.sh` has run. The link means you never have to reinstall;
+the hook below means you never forget to regenerate.
+
+For Claude the installer appends one line to `~/.claude/CLAUDE.md`, keeping
+whatever is already there, and won't add it twice.
+
+### Don't let AGENTS.md go stale
+
+```bash
+git config core.hooksPath scripts/hooks
+```
+
+Refuses a commit where `AGENTS.md` doesn't match `rules/`, or a repo convention
+is broken. CI enforces the same thing, but by then you've pushed.
 
 ## Editing the rules
 
@@ -111,7 +126,8 @@ scripts/install-skill.sh ai-rules
 
 ```bash
 scripts/build-agents.sh --check    # AGENTS.md matches rules/
-scripts/test-install-skill.sh      # the installer's behaviour
+scripts/test-install-skill.sh      # the skill installer's behaviour
+scripts/test-install-rules.sh      # the rules installer's behaviour
 scripts/test-new-skill.sh          # the scaffold's behaviour
 scripts/check-conventions.sh       # skills load, installers agree, rules registered
 ```
@@ -119,7 +135,7 @@ scripts/check-conventions.sh       # skills load, installers agree, rules regist
 scripts\test-install-skill.ps1
 ```
 
-All four run in CI. The tests install into a throwaway `HOME` and project
+All of these run in CI. The tests install into a throwaway `HOME` and project
 directory, so they never touch your real config.
 
 ## Structure
@@ -144,8 +160,11 @@ skills/
 scripts/
   build-agents.sh               ← regenerates AGENTS.md from rules/*.md
   new-skill.sh                  ← scaffolds skills/<name>/SKILL.md
-  install-skill.sh              ← installs a skill into any agent (macOS/Linux/Git Bash)
+  agents.sh                     ← shared agent table + linking (sourced)
+  install-skill.sh              ← installs a skill into any agent
   install-skill.ps1             ← the same, for Windows PowerShell
+  install-rules.sh              ← points an agent at these rules
+  hooks/pre-commit              ← refuses a stale AGENTS.md
   check-conventions.sh          ← skills load; installers agree; rules registered
   test-*.sh / test-*.ps1        ← behaviour tests for the above
 .gitattributes                   ← forces LF on *.sh; CRLF breaks them silently
@@ -153,16 +172,14 @@ scripts/
 
 ## Use as your global rules (Claude Code)
 
-Check the repo out once, then `@`-import it from `~/.claude/CLAUDE.md` so every
-project inherits the rules:
+Check the repo out once, then let every project inherit both the rules and the
+skills:
 
 ```bash
 git clone https://github.com/DanMarshall909/ai-rules ~/code/ai-rules
-~/code/ai-rules/scripts/install-skill.sh --agent all reflect
-```
-
-```
-@~/code/ai-rules/CLAUDE.md
+cd ~/code/ai-rules
+scripts/install-rules.sh --agent claude    # @import into ~/.claude/CLAUDE.md
+scripts/install-skill.sh --agent claude ai-rules reflect
 ```
 
 Editing the rules then means editing this repo — a rule that only exists on one

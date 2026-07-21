@@ -10,7 +10,7 @@ propagates to every project that imports it. Everything below is about keeping
 the generated copies honest and the conventions enforced by something other than
 memory.
 
-Run the checks at the end. They are fast, and three of the four exist because
+Run the checks at the end. They are fast, and most of them exist because
 something silently broke.
 
 ---
@@ -83,13 +83,23 @@ shell; `install-skill.ps1` names the setting when it cannot link.
 
 ## Step 4 — Changing the installers
 
-`install-skill.sh` and `install-skill.ps1` are parallel implementations with
-separate test suites, so one can drift ahead of the other while both stay green.
-`check-conventions.sh` compares their agent tables — if you teach one about a
-new agent, teach the other in the same commit.
+`scripts/agents.sh` holds the one agent table: roots, scopes, and the `link_to`
+that refuses to leave a copy where a symlink was meant. Both bash installers
+source it. `install-skill.ps1` keeps its own copy for want of a shell it can
+source, so it is the one that can drift.
 
-Adding an agent means, in both scripts: the agent list, the root used for
-autodetection, and the target path. The check names whichever you forget.
+Adding an agent means: the list and root in `agents.sh`, a target in
+`install-skill.sh` and in `install-rules.sh`, and the whole lot again in
+`install-skill.ps1`. `check-conventions.sh` names whichever you forget — it
+reads all four.
+
+Rules and skills install differently, and the difference is the point:
+
+- **Skills** are symlinked, so an edit is live at once.
+- **Rules** reach Claude Code through an `@` import, also live at once — but
+  reach every other agent through `AGENTS.md`, which is *generated*. An edit to
+  `rules/` does not reach them until `build-agents.sh` runs. Enable the hook
+  (`git config core.hooksPath scripts/hooks`) so a commit cannot leave it stale.
 
 ---
 
@@ -97,7 +107,8 @@ autodetection, and the target path. The check names whichever you forget.
 
 ```bash
 scripts/build-agents.sh --check    # AGENTS.md matches rules/
-scripts/test-install-skill.sh      # the installer's behaviour
+scripts/test-install-skill.sh      # the skill installer's behaviour
+scripts/test-install-rules.sh      # the rules installer's behaviour
 scripts/test-new-skill.sh          # the scaffold's behaviour
 scripts/check-conventions.sh       # skills load, installers agree, rules registered
 ```
@@ -108,7 +119,7 @@ On Windows, also:
 scripts\test-install-skill.ps1
 ```
 
-All four run in CI. If `build-agents.sh --check` reports `AGENTS.md` stale while
+All of them run in CI. If `build-agents.sh --check` reports `AGENTS.md` stale while
 `git diff` says it is unchanged, the working copy has CRLF line endings —
 `.gitattributes` should prevent that, so report it rather than working around
 it.

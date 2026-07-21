@@ -10,6 +10,11 @@
 # Neither reproduces in CI, which runs on Linux and never sees a CRLF checkout.
 *.sh text eol=lf
 
+# Git hooks have no extension, so the rule above does not reach them. A CRLF
+# pre-commit hook fails with "bad interpreter: /usr/bin/env bash^M" on every
+# commit, which reads as the hook being broken rather than the checkout.
+scripts/hooks/* text eol=lf
+
 # Markdown is data for these scripts (skills are symlinked and read as-is), so
 # keep it stable across platforms too.
 *.md text eol=lf
