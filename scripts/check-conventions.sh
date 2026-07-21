@@ -64,7 +64,12 @@ SH="scripts/agents.sh"
 PS="scripts/install-skill.ps1"
 
 sh_agents="$(sed -n 's/^KNOWN_AGENTS="\(.*\)"$/\1/p' "${SH}" | tr ' ' '\n' | sort)"
-ps_agents="$(sed -n "s/^\\\$knownAgents = @(\(.*\))$/\1/p" "${PS}" \
+# .gitattributes checks .ps1 out with CRLF deliberately, on Linux as well as
+# Windows, so every line here ends "\r\n". An end-anchored pattern then matches
+# nothing and the comparison below reports the table as unreadable instead of
+# comparing it. Drop the CR before parsing, not after.
+ps_agents="$(tr -d '\r' <"${PS}" \
+  | sed -n "s/^\\\$knownAgents = @(\(.*\))$/\1/p" \
   | tr -d "' " | tr ',' '\n' | sort)"
 
 if [[ -z "${sh_agents}" ]]; then
@@ -113,18 +118,28 @@ fi
 # "Permission denied" — visible only in CI, and only after a push. Sourced
 # libraries have no shebang and are deliberately not executable.
 echo "scripts are executable"
-while IFS= read -r entry; do
-  mode="${entry%% *}"
-  file="${entry#*$'\t'}"
-  [[ -f "${file}" ]] || continue
-  head -c 2 "${file}" | grep -q '#!' || continue
+if ! git rev-parse --git-dir >/dev/null 2>&1; then
+  # test-new-skill.sh runs this script inside a plain copy of scripts/, which
+  # has no index to read. Name the skip: a silent "0 executable" reads like a
+  # result, and this check can only ever pass where it cannot run.
+  printf '  skipped (not a git checkout)\n'
+else
+  executable=0
+  while IFS= read -r entry; do
+    mode="${entry%% *}"
+    file="${entry#*$'\t'}"
+    [[ -f "${file}" ]] || continue
+    head -c 2 "${file}" | grep -q '#!' || continue
 
-  if [[ "${mode}" != "100755" ]]; then
-    fail "${file} starts with a shebang but is ${mode} in the index (needs 100755)"
-    fail "  fix: git update-index --chmod=+x ${file}"
-  fi
-done < <(git ls-files -s scripts/ 2>/dev/null)
-printf '  %s\n' "$(git ls-files -s scripts/ | grep -c 100755) executable"
+    if [[ "${mode}" != "100755" ]]; then
+      fail "${file} starts with a shebang but is ${mode} in the index (needs 100755)"
+      fail "  fix: git update-index --chmod=+x ${file}"
+    else
+      executable=$((executable + 1))
+    fi
+  done < <(git ls-files -s scripts/)
+  printf '  %d executable\n' "${executable}"
+fi
 
 # --- every rule is registered everywhere it has to be ----------------------
 # build-agents.sh already refuses to build when rules/ holds a file its RULES
