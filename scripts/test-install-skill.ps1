@@ -125,6 +125,34 @@ try {
   Assert-LinksTo "project agent installs under cwd" "$s\project\.cursor\rules\reflect.mdc" "$repo\skills\reflect\SKILL.md"
   Assert-Absent "project agent does not touch the profile" "$s\home\.cursor"
 
+  # --- -Project ------------------------------------------------------------
+  # A skill shipped by a rule set for one kind of repo belongs in that repo,
+  # not in every session on the machine. Names kept parallel with the bash
+  # suite: the two installers must agree about where -Project puts things.
+  Write-Host "-Project"
+  $s = New-Sandbox
+  Invoke-Install -Project "$s\project" -Agent claude reflect | Out-Null
+  Assert-LinksTo "claude reads a skills directory inside the project" `
+    "$s\project\.claude\skills\reflect" "$repo\skills\reflect"
+  Assert-Absent "installs nothing into the profile" "$s\home\.claude\skills\reflect"
+
+  $s = New-Sandbox
+  Invoke-Install -Project "$s\project" -Agent codex reflect | Out-Null
+  Assert-LinksTo "codex gets the skill under .agents" `
+    "$s\project\.agents\skills\reflect\SKILL.md" "$repo\skills\reflect\SKILL.md"
+  Assert-Absent "leaves the codex prompts directory alone" "$s\home\.codex\prompts\reflect.md"
+
+  $s = New-Sandbox
+  New-Item -ItemType Directory -Force -Path "$s\elsewhere" | Out-Null
+  Invoke-Install -Project "$s\elsewhere" -Agent cursor reflect | Out-Null
+  Assert-LinksTo "a project agent follows -Project too" `
+    "$s\elsewhere\.cursor\rules\reflect.mdc" "$repo\skills\reflect\SKILL.md"
+  Assert-Absent "leaves the working directory alone" "$s\project\.cursor\rules\reflect.mdc"
+
+  $s = New-Sandbox
+  Assert-Fails "refuses a project directory that does not exist" `
+    -Project "$s\nowhere" -Agent claude reflect
+
   # --- all / autodetect ----------------------------------------------------
   Write-Host "-Agent all"
   $s = New-Sandbox

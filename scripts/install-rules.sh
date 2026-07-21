@@ -6,27 +6,41 @@
 #   scripts/install-rules.sh                 every agent detected here
 #   scripts/install-rules.sh --agent codex   one named agent
 #   scripts/install-rules.sh --agent all
+#   scripts/install-rules.sh --rule-set tool-repos --project ../some-tool
 #
 # Two mechanisms, because agents read rules two ways:
 #
 #   Claude Code resolves `@` imports at read time, so it gets a one-line import
-#   of this repo's CLAUDE.md written into ~/.claude/CLAUDE.md. Nothing is
-#   copied and nothing can go stale.
+#   written into a CLAUDE.md. Nothing is copied and nothing can go stale.
 #
 #   Everyone else reads AGENTS.md, so they get a minimal symlinked entrypoint
 #   plus the rule-set file it points at. `build-agents.sh` still has to run
 #   after a rule changes. The pre-commit hook in scripts/hooks catches that.
 #
-# Run from the project you want the rules in; project-scoped agents install
-# relative to the current directory.
+# And two kinds of rule set, which install to different places:
+#
+#   The **base** set is the policy for every project you work on, so it goes
+#   into your profile — one import, once, covering everything.
+#
+#   A **layered** set is rules for one kind of repo, so it goes into that repo:
+#   a link to the set, a pointer added to files the project already owns, and
+#   the skills the set ships installed project-scoped beside them. Nothing the
+#   project wrote is replaced.
+#
+# Run from the project you want the rules in, or name it with --project.
 
 set -uo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/agents.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/rule-sets.sh"
 
 REPO="$(repo_root "${BASH_SOURCE[0]}")"
 AGENTS_MD="${REPO}/AGENTS.md"
-RULE_SET="${REPO}/rule-sets/ai-rules.md"
+RULE_SET="${REPO}/rule-sets/${BASE_SET}.md"
+
+# Manifests are read out of the checkout, not out of whatever directory this
+# was run from.
+RULE_SET_DIR="${REPO}/rule-sets"
 
 # The import Claude Code is given. A native path, because Git Bash resolves the
 # repo to /d/code/... and Claude Code on Windows cannot open that.
@@ -38,16 +52,27 @@ CLAUDE_CONFIG="${HOME}/.claude/CLAUDE.md"
 rules_target() { # <agent>
   case "$1" in
     claude)            printf '%s' "${CLAUDE_CONFIG}" ;;
-    codex|opencode)    printf '%s' "${PWD}/AGENTS.md" ;;
-    cursor)            printf '%s' "${PWD}/.cursor/rules/ai-rules.mdc" ;;
-    cline)             printf '%s' "${PWD}/.clinerules/ai-rules.md" ;;
+    codex|opencode)    printf '%s' "${PROJECT}/AGENTS.md" ;;
+    cursor)            printf '%s' "${PROJECT}/.cursor/rules/${BASE_SET}.mdc" ;;
+    cline)             printf '%s' "${PROJECT}/.clinerules/${BASE_SET}.md" ;;
   esac
 }
 
 rule_set_target() { # <agent>
   case "$1" in
     claude) printf '%s' "" ;;
-    *)      printf '%s/rule-sets/ai-rules.md' "$(dirname "$(rules_target "$1")")" ;;
+    *)      printf '%s/rule-sets/%s.md' "$(dirname "$(rules_target "$1")")" "${BASE_SET}" ;;
+  esac
+}
+
+# Where a *layered* set's markdown goes in the project that wants it. Claude is
+# absent again: it is given an import of the set instead of a link to it.
+set_target() { # <agent>
+  case "$1" in
+    claude)         printf '%s' "" ;;
+    codex|opencode) printf '%s/rule-sets/%s.md' "${PROJECT}" "${SET_NAME}" ;;
+    cursor)         printf '%s/.cursor/rules/%s.mdc' "${PROJECT}" "${SET_NAME}" ;;
+    cline)          printf '%s/.clinerules/%s.md' "${PROJECT}" "${SET_NAME}" ;;
   esac
 }
 
@@ -57,14 +82,18 @@ usage: install-rules.sh [options]
 
   --agent <a>[,<a>...]  install for these agents, or 'all'
                         (default: every agent detected on this machine)
+  --rule-set <name>     which set to install (default: ${BASE_SET})
+  --project <dir>       the repo to install a layered set into
+                        (default: the current directory)
   --list                show what each agent would get, and what it has
   --force               replace a target that is a real file, not a symlink
   --dry-run             print what would happen, change nothing
   -h, --help            this message
 
   agents: ${KNOWN_AGENTS}
+  sets:   $(set_names | tr '\n' ' ')
 
-Project-scoped agents install into the current directory: $(pwd)
+Project-scoped agents install into: ${PROJECT}
 EOF
 }
 
@@ -72,18 +101,38 @@ AGENT_ARG=""
 FORCE=0
 DRY_RUN=0
 LIST=0
+SET_NAME="${BASE_SET}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --agent)   AGENT_ARG="${2:-}"; shift 2 || { err "--agent needs a value"; exit 2; } ;;
-    --agent=*) AGENT_ARG="${1#*=}"; shift ;;
-    --list)    LIST=1; shift ;;
-    --force)   FORCE=1; shift ;;
-    --dry-run) DRY_RUN=1; shift ;;
-    -h|--help) usage; exit 0 ;;
-    *)         err "unknown option: $1"; usage >&2; exit 2 ;;
+    --agent)      AGENT_ARG="${2:-}"; shift 2 || { err "--agent needs a value"; exit 2; } ;;
+    --agent=*)    AGENT_ARG="${1#*=}"; shift ;;
+    --rule-set)   SET_NAME="${2:-}"; shift 2 || { err "--rule-set needs a value"; exit 2; } ;;
+    --rule-set=*) SET_NAME="${1#*=}"; shift ;;
+    --project)    PROJECT="${2:-}"; shift 2 || { err "--project needs a value"; exit 2; } ;;
+    --project=*)  PROJECT="${1#*=}"; shift ;;
+    --list)       LIST=1; shift ;;
+    --force)      FORCE=1; shift ;;
+    --dry-run)    DRY_RUN=1; shift ;;
+    -h|--help)    usage; exit 0 ;;
+    *)            err "unknown option: $1"; usage >&2; exit 2 ;;
   esac
 done
+
+if ! known_set "${SET_NAME}"; then
+  err "no such rule set: ${SET_NAME}"
+  err "known sets: $(set_names | tr '\n' ' ')"
+  exit 2
+fi
+
+if [[ ! -d "${PROJECT}" ]]; then
+  err "no such project directory: ${PROJECT}"
+  exit 2
+fi
+
+MANIFEST="$(manifest_of "${SET_NAME}")"
+SET_FILE="$(generated_of "${SET_NAME}")"
+LAYER="$(field_one "${MANIFEST}" layer)"
 
 # --- resolve agents ---------------------------------------------------------
 
@@ -112,6 +161,16 @@ claude_imported() {
 
 if [[ ${LIST} -eq 1 ]]; then
   echo "rules from ${REPO}"
+  echo ""
+  echo "  sets:"
+  for s in $(set_names); do
+    layer="$(field_one "$(manifest_of "${s}")" layer)"
+    if [[ -n "${layer}" ]]; then
+      printf '    %-12s layers on %s — installs into a project\n' "${s}" "${layer}"
+    else
+      printf '    %-12s the base set — installs into your profile\n' "${s}"
+    fi
+  done
   echo ""
   for a in ${KNOWN_AGENTS}; do
     root="$(agent_root "${a}")"
@@ -150,6 +209,11 @@ if [[ ! -f "${RULE_SET}" ]]; then
   exit 1
 fi
 
+if [[ ! -f "${SET_FILE}" ]]; then
+  err "${SET_FILE} does not exist — run scripts/build-agents.sh first"
+  exit 1
+fi
+
 # --- installing -------------------------------------------------------------
 
 failures=0
@@ -157,38 +221,84 @@ failures=0
 # Claude gets a line in a file it already owns, so this appends rather than
 # links: the file is the user's, and may hold their own rules.
 install_claude_import() {
-  if claude_imported; then
-    printf '  = claude: %s (already imported)\n' "${CLAUDE_CONFIG}"
-    return 0
-  fi
+  append_once "${CLAUDE_CONFIG}" "${CLAUDE_IMPORT}" "claude: ${CLAUDE_CONFIG}"
+}
 
-  if [[ ${DRY_RUN} -eq 1 ]]; then
-    printf '  + %s -> %s (dry run)\n' "${CLAUDE_CONFIG}" "${CLAUDE_IMPORT}"
-    return 0
+install_base_set() {
+  local agent="$1" target rule_target
+  if [[ "${agent}" == "claude" ]]; then
+    install_claude_import
+    return
   fi
+  target="$(rules_target "${agent}")"
+  if link_to "${AGENTS_MD}" "${target}" "${agent}: ${target}"; then
+    rule_target="$(rule_set_target "${agent}")"
+    link_to "${RULE_SET}" "${rule_target}" "${agent}: ${rule_target}"
+  fi
+}
 
-  mkdir -p "$(dirname "${CLAUDE_CONFIG}")"
-  if [[ -s "${CLAUDE_CONFIG}" ]]; then
-    # Keep whatever is there; a blank line so the import cannot join a paragraph.
-    printf '\n%s\n' "${CLAUDE_IMPORT}" >> "${CLAUDE_CONFIG}"
-  else
-    printf '%s\n' "${CLAUDE_IMPORT}" > "${CLAUDE_CONFIG}"
-  fi
-  printf '  + claude: %s\n' "${CLAUDE_CONFIG}"
+# A layered set goes into a repo that already has its own AGENTS.md and
+# CLAUDE.md, written by somebody else. So it is linked in beside them and
+# *pointed at* from them — never over them.
+install_layered_set() {
+  local agent="$1" target import pointer
+  case "${agent}" in
+    claude)
+      import="@$(native_path "${REPO}")/rule-sets/${SET_NAME}.md"
+      append_once "${PROJECT}/CLAUDE.md" "${import}" \
+        "claude: ${PROJECT}/CLAUDE.md"
+      ;;
+    codex|opencode)
+      target="$(set_target "${agent}")"
+      if link_to "${SET_FILE}" "${target}" "${agent}: ${target}"; then
+        # AGENTS.md has no import syntax, so the pointer is a sentence an agent
+        # reading the file will follow.
+        pointer="Read and follow the rules in [rule-sets/${SET_NAME}.md](rule-sets/${SET_NAME}.md)."
+        append_once "${PROJECT}/AGENTS.md" "${pointer}" \
+          "${agent}: ${PROJECT}/AGENTS.md"
+      fi
+      ;;
+    *)
+      target="$(set_target "${agent}")"
+      link_to "${SET_FILE}" "${target}" "${agent}: ${target}"
+      ;;
+  esac
+}
+
+# The skills a set claims are part of it: rules that name a skill the project
+# does not have are rules an agent cannot follow. install-skill.sh does the
+# linking, so there is one implementation of what a skill install *is*.
+install_set_skills() {
+  local skills=() args=() joined skill
+  while IFS= read -r skill; do
+    [[ -n "${skill}" ]] && skills+=("${skill}")
+  done < <(field "${MANIFEST}" skill)
+  [[ ${#skills[@]} -gt 0 ]] || return 0
+
+  joined="$(printf '%s,' "${TARGET_AGENTS[@]}")"
+  args=(--project "${PROJECT}" --agent "${joined%,}")
+  [[ ${DRY_RUN} -eq 1 ]] && args+=(--dry-run)
+  [[ ${FORCE} -eq 1 ]] && args+=(--force)
+
+  echo ""
+  echo "skills shipped with ${SET_NAME}"
+  "${REPO}/scripts/install-skill.sh" "${args[@]}" "${skills[@]}" ||
+    failures=$((failures + 1))
 }
 
 echo "rules from ${REPO}"
+if [[ -n "${LAYER}" ]]; then
+  echo "  set: ${SET_NAME} (layers on ${LAYER}) -> ${PROJECT}"
+fi
 for agent in "${TARGET_AGENTS[@]}"; do
-  if [[ "${agent}" == "claude" ]]; then
-    install_claude_import
+  if [[ -n "${LAYER}" ]]; then
+    install_layered_set "${agent}"
   else
-    target="$(rules_target "${agent}")"
-    if link_to "${AGENTS_MD}" "${target}" "${agent}: ${target}"; then
-      rule_target="$(rule_set_target "${agent}")"
-      link_to "${RULE_SET}" "${rule_target}" "${agent}: ${rule_target}"
-    fi
+    install_base_set "${agent}"
   fi
 done
+
+[[ -n "${LAYER}" ]] && install_set_skills
 
 echo ""
 if [[ ${failures} -gt 0 ]]; then

@@ -13,6 +13,11 @@ export MSYS="${MSYS:-} winsymlinks:nativestrict"
 
 KNOWN_AGENTS="claude codex opencode cursor cline"
 
+# The repo project-scoped things install into. Both installers overwrite this
+# from --project; it defaults to wherever the command was run, which is what
+# "install into this project" has always meant.
+PROJECT="${PROJECT:-${PWD}}"
+
 config_home() { printf '%s' "${XDG_CONFIG_HOME:-${HOME}/.config}"; }
 
 # Presence of this path means the agent is installed, and is what --agent-less
@@ -22,8 +27,8 @@ agent_root() {
     claude)   printf '%s' "${HOME}/.claude" ;;
     codex)    printf '%s' "${HOME}/.codex" ;;
     opencode) printf '%s' "$(config_home)/opencode" ;;
-    cursor)   printf '%s' "${PWD}/.cursor" ;;
-    cline)    printf '%s' "${PWD}/.clinerules" ;;
+    cursor)   printf '%s' "${PROJECT}/.cursor" ;;
+    cline)    printf '%s' "${PROJECT}/.clinerules" ;;
   esac
 }
 
@@ -73,6 +78,39 @@ native_path() {
 }
 
 err() { printf 'error: %s\n' "$*" >&2; }
+
+# append_once <file> <line> <label>
+# Adds one line to a file somebody else owns — a project's AGENTS.md, a user's
+# CLAUDE.md — keeping whatever is already there. Linking is not an option for
+# those: the file holds their own words as well as ours.
+#
+# Once, because installing again is how anyone re-runs this after a change, and
+# a second identical line is invisible in an editor while being re-read into
+# the agent's context every session afterwards.
+#
+# Callers set DRY_RUN.
+append_once() {
+  local file="$1" line="$2" label="$3"
+
+  if [[ -f "${file}" ]] && grep -qF "${line}" "${file}"; then
+    printf '  = %s (already there)\n' "${label}"
+    return 0
+  fi
+
+  if [[ ${DRY_RUN} -eq 1 ]]; then
+    printf '  + %s -> %s (dry run)\n' "${file}" "${line}"
+    return 0
+  fi
+
+  mkdir -p "$(dirname "${file}")"
+  if [[ -s "${file}" ]]; then
+    # A blank line first, so the addition cannot join the paragraph above it.
+    printf '\n%s\n' "${line}" >> "${file}"
+  else
+    printf '%s\n' "${line}" > "${file}"
+  fi
+  printf '  + %s\n' "${label}"
+}
 
 # link_to <source> <target> <label>
 # Callers set FORCE, DRY_RUN and failures; this increments failures on refusal.

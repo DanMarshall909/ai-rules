@@ -142,6 +142,40 @@ links_to "project agent installs under cwd" \
   "${project}/.cursor/rules/reflect.mdc" "${REPO}/skills/reflect/SKILL.md"
 absent "project agent does not touch HOME" "${HOME}/.cursor"
 
+# --- --project -------------------------------------------------------------
+# A skill that belongs to one kind of repo has no business loading in every
+# session on the machine. --project puts it in the repo that wants it, and the
+# user-scoped agents are the ones that have to move for that to mean anything.
+
+echo "--project"
+sandbox
+project="${PWD}"
+"${INSTALL}" --project "${project}" --agent claude reflect >/dev/null 2>&1
+links_to "claude reads a skills directory inside the project" \
+  "${project}/.claude/skills/reflect" "${REPO}/skills/reflect"
+absent "installs nothing into the profile" "${HOME}/.claude/skills/reflect"
+
+sandbox
+project="${PWD}"
+"${INSTALL}" --project "${project}" --agent codex reflect >/dev/null 2>&1
+links_to "codex gets the skill under .agents/" \
+  "${project}/.agents/skills/reflect/SKILL.md" "${REPO}/skills/reflect/SKILL.md"
+absent "leaves the codex prompts directory alone" "${HOME}/.codex/prompts/reflect.md"
+
+sandbox
+mkdir -p "${SANDBOX_ELSEWHERE:=${PWD}/../elsewhere}"
+"${INSTALL}" --project "${PWD}/../elsewhere" --agent cursor reflect >/dev/null 2>&1
+links_to "a project agent follows --project too" \
+  "${PWD}/../elsewhere/.cursor/rules/reflect.mdc" "${REPO}/skills/reflect/SKILL.md"
+absent "leaves the working directory alone" "${PWD}/.cursor/rules/reflect.mdc"
+
+sandbox
+if "${INSTALL}" --project "${PWD}/nowhere" --agent claude reflect >/dev/null 2>&1; then
+  no "refuses a project directory that does not exist" "expected non-zero exit"
+else
+  ok "refuses a project directory that does not exist"
+fi
+
 # --- all / autodetect ------------------------------------------------------
 
 echo "--agent all"

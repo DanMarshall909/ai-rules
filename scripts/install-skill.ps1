@@ -21,6 +21,8 @@
   scripts\install-skill.ps1 -Agent codex,claude reflect
 .EXAMPLE
   scripts\install-skill.ps1 -Agent all reflect
+.EXAMPLE
+  scripts\install-skill.ps1 -Project ..\some-tool refresh-tool-surface
 #>
 [CmdletBinding()]
 param(
@@ -29,6 +31,9 @@ param(
   # bare argument to whichever parameter is declared first instead.
   [Parameter(Position = 0, ValueFromRemainingArguments = $true)][string[]]$Skill,
   [string[]]$Agent,
+  # Install into one repo instead of the profile, for a skill that is about
+  # one kind of project rather than about this machine.
+  [string]$Project,
   [switch]$List,
   [switch]$Force,
   [switch]$DryRun
@@ -53,27 +58,40 @@ function Get-ConfigHome {
   return (Join-Path $env:USERPROFILE '.config')
 }
 
+function Get-ProjectRoot {
+  if ($Project) { return $Project }
+  return (Get-Location).Path
+}
+
 function Get-AgentSpec {
   param([string]$Name, [string]$SkillName)
 
   $home_ = $env:USERPROFILE
-  $cwd = (Get-Location).Path
+  $cwd = Get-ProjectRoot
+
+  # -Project moves the user-scoped agents into the repo. Claude Code reads a
+  # skills directory there too; the AGENTS.md-reading agents look under
+  # .agents\skills, which is where projects already keep their own skills.
+  $inProject = [bool]$Project
 
   switch ($Name) {
     'claude' { @{
         Root   = Join-Path $home_ '.claude'
-        Target = Join-Path $home_ (Join-Path '.claude\skills' $SkillName)
-        Kind   = 'Dir'; Scope = 'User'
+        Target = if ($inProject) { Join-Path $cwd (Join-Path '.claude\skills' $SkillName) }
+                 else { Join-Path $home_ (Join-Path '.claude\skills' $SkillName) }
+        Kind   = 'Dir'; Scope = if ($inProject) { 'Project' } else { 'User' }
       } }
     'codex' { @{
         Root   = Join-Path $home_ '.codex'
-        Target = Join-Path $home_ (Join-Path '.codex\prompts' "$SkillName.md")
-        Kind   = 'File'; Scope = 'User'
+        Target = if ($inProject) { Join-Path $cwd (Join-Path '.agents\skills' (Join-Path $SkillName 'SKILL.md')) }
+                 else { Join-Path $home_ (Join-Path '.codex\prompts' "$SkillName.md") }
+        Kind   = 'File'; Scope = if ($inProject) { 'Project' } else { 'User' }
       } }
     'opencode' { @{
         Root   = Join-Path (Get-ConfigHome) 'opencode'
-        Target = Join-Path (Get-ConfigHome) (Join-Path 'opencode\command' "$SkillName.md")
-        Kind   = 'File'; Scope = 'User'
+        Target = if ($inProject) { Join-Path $cwd (Join-Path '.agents\skills' (Join-Path $SkillName 'SKILL.md')) }
+                 else { Join-Path (Get-ConfigHome) (Join-Path 'opencode\command' "$SkillName.md") }
+        Kind   = 'File'; Scope = if ($inProject) { 'Project' } else { 'User' }
       } }
     'cursor' { @{
         Root   = Join-Path $cwd '.cursor'
@@ -175,6 +193,11 @@ foreach ($s in $Skill) {
     Write-Error "no such skill: $s`navailable: $((Get-AvailableSkills) -join ' ')"
     exit 2
   }
+}
+
+if ($Project -and -not (Test-Path -LiteralPath $Project)) {
+  Write-Error "no such project directory: $Project"
+  exit 2
 }
 
 if ($targetAgents.Count -eq 0) {

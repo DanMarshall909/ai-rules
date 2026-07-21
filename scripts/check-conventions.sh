@@ -86,9 +86,14 @@ else
   # Every agent needs a root to be autodetected by, and a target in each
   # installer. They live in different files: the root is shared, the targets are
   # specific to what is being installed.
+  # A skill and a rule set each install two ways — into the profile, or into
+  # one project — and an agent missing from either table installs nothing on
+  # that path while looking fully supported on the other.
   TABLES="scripts/agents.sh:agent_root
-scripts/install-skill.sh:agent_target
-scripts/install-rules.sh:rules_target"
+scripts/install-skill.sh:user_target
+scripts/install-skill.sh:project_target
+scripts/install-rules.sh:rules_target
+scripts/install-rules.sh:set_target"
 
   while IFS= read -r agent; do
     [[ -z "${agent}" ]] && continue

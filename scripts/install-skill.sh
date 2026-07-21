@@ -27,14 +27,39 @@ SKILLS_DIR="${REPO}/skills"
 # Where a skill has to appear for each agent to see it. Claude Code reads a
 # skill directory; the rest read a single markdown file, so they link SKILL.md
 # directly. Roots and scopes live in agents.sh.
-agent_target() { # <agent> <skill>
+user_target() { # <agent> <skill>
   case "$1" in
     claude)   printf '%s' "${HOME}/.claude/skills/$2" ;;
     codex)    printf '%s' "${HOME}/.codex/prompts/$2.md" ;;
     opencode) printf '%s' "$(config_home)/opencode/command/$2.md" ;;
-    cursor)   printf '%s' "${PWD}/.cursor/rules/$2.mdc" ;;
-    cline)    printf '%s' "${PWD}/.clinerules/$2.md" ;;
+    cursor)   printf '%s' "${PROJECT}/.cursor/rules/$2.mdc" ;;
+    cline)    printf '%s' "${PROJECT}/.clinerules/$2.md" ;;
   esac
+}
+
+# Where it goes when the skill belongs to one repo rather than to the machine —
+# a skill shipped by a rule set for one kind of project. Loading it in every
+# session everywhere would be worse than not having it: it is advice about a
+# repo you are not in.
+#
+# `.agents/skills/<name>/SKILL.md` is where agents that read AGENTS.md already
+# look for a project's own skills, so this follows their convention rather than
+# inventing a directory.
+project_target() { # <agent> <skill>
+  case "$1" in
+    claude)         printf '%s' "${PROJECT}/.claude/skills/$2" ;;
+    codex|opencode) printf '%s' "${PROJECT}/.agents/skills/$2/SKILL.md" ;;
+    cursor)         printf '%s' "${PROJECT}/.cursor/rules/$2.mdc" ;;
+    cline)          printf '%s' "${PROJECT}/.clinerules/$2.md" ;;
+  esac
+}
+
+agent_target() { # <agent> <skill>
+  if [[ ${PROJECT_SCOPED} -eq 1 ]]; then
+    project_target "$1" "$2"
+  else
+    user_target "$1" "$2"
+  fi
 }
 
 agent_source() { # <agent> <skill>
@@ -57,6 +82,8 @@ usage: install-skill.sh [options] <skill>...
 
   --agent <a>[,<a>...]  install for these agents, or 'all'
                         (default: every agent detected on this machine)
+  --project <dir>       install into that repo instead of your profile,
+                        for a skill that is about one kind of project
   --list                show available skills and detected agents
   --force               replace a target that is a real file, not a symlink
   --dry-run             print what would happen, change nothing
@@ -73,12 +100,15 @@ AGENT_ARG=""
 FORCE=0
 DRY_RUN=0
 LIST=0
+PROJECT_SCOPED=0
 SKILLS=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --agent)   AGENT_ARG="${2:-}"; shift 2 || { err "--agent needs a value"; exit 2; } ;;
     --agent=*) AGENT_ARG="${1#*=}"; shift ;;
+    --project)   PROJECT="${2:-}"; PROJECT_SCOPED=1; shift 2 || { err "--project needs a value"; exit 2; } ;;
+    --project=*) PROJECT="${1#*=}"; PROJECT_SCOPED=1; shift ;;
     --list)    LIST=1; shift ;;
     --force)   FORCE=1; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
@@ -150,6 +180,14 @@ for skill in "${SKILLS[@]}"; do
     exit 2
   fi
 done
+
+# A project that is not there means a typo or a repo not yet cloned, and
+# creating it would scatter .claude/skills into an empty directory nobody
+# looks at again.
+if [[ ${PROJECT_SCOPED} -eq 1 && ! -d "${PROJECT}" ]]; then
+  err "no such project directory: ${PROJECT}"
+  exit 2
+fi
 
 if [[ ${#TARGET_AGENTS[@]} -eq 0 ]]; then
   err "no supported agent found on this machine"

@@ -164,7 +164,11 @@ run_check
 reports "catches an agent with no root" \
   "scripts/agents.sh: agent_root() has no case for 'ghost'"
 reports "catches an agent with no skill target" \
-  "scripts/install-skill.sh: agent_target() has no case for 'ghost'"
+  "scripts/install-skill.sh: user_target() has no case for 'ghost'"
+reports "catches an agent that cannot take a project-scoped skill" \
+  "scripts/install-skill.sh: project_target() has no case for 'ghost'"
+reports "catches an agent that cannot take a layered rule set" \
+  "scripts/install-rules.sh: set_target() has no case for 'ghost'"
 reports "catches an agent with no rules target" \
   "scripts/install-rules.sh: rules_target() has no case for 'ghost'"
 reports "catches an agent with no PowerShell branch" \

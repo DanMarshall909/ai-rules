@@ -182,6 +182,116 @@ else
   ok "writes one separator style, not two"
 fi
 
+# --- a layered rule set into a project -------------------------------------
+# A layered set is an addition for one kind of repo, so it installs into that
+# repo rather than into the profile — and into a repo that already has its own
+# AGENTS.md and CLAUDE.md, written by someone else, which it must not replace.
+
+set_import_line() { # <set>
+  if command -v cygpath >/dev/null 2>&1; then
+    printf '@%s/rule-sets/%s.md' "$(cygpath -m "${REPO}")" "$1"
+  else
+    printf '@%s/rule-sets/%s.md' "${REPO}" "$1"
+  fi
+}
+
+count_of() { grep -cF "$2" "$1" 2>/dev/null || printf '0'; }
+
+echo "a layered set"
+sandbox
+"${INSTALL}" --rule-set tool-repos --agent claude >/dev/null 2>&1
+if grep -qF "$(set_import_line tool-repos)" "${PWD}/CLAUDE.md" 2>/dev/null; then
+  ok "imports the set from the project's own CLAUDE.md"
+else
+  no "imports the set from the project's own CLAUDE.md" \
+     "got: $(cat "${PWD}/CLAUDE.md" 2>&1 | head -3)"
+fi
+absent "leaves the machine-wide Claude config alone" "${HOME}/.claude/CLAUDE.md"
+
+# The base set is the one that belongs to the profile; asking for a layered set
+# must not quietly install the base as well.
+if grep -qF "rule-sets/ai-rules.md" "${PWD}/CLAUDE.md" 2>/dev/null; then
+  no "installs only the set asked for" "the base set's import was written too"
+else
+  ok "installs only the set asked for"
+fi
+
+sandbox
+printf '# Our project\n\nOur own guidance.\n' > "${PWD}/AGENTS.md"
+printf '# Our project\n\n@AGENTS.md\n' > "${PWD}/CLAUDE.md"
+"${INSTALL}" --rule-set tool-repos --agent codex >/dev/null 2>&1
+links_to "links the set beside the project's AGENTS.md" \
+  "${PWD}/rule-sets/tool-repos.md" "${REPO}/rule-sets/tool-repos.md"
+if grep -q "Our own guidance." "${PWD}/AGENTS.md"; then
+  ok "keeps the project's own AGENTS.md"
+else
+  no "keeps the project's own AGENTS.md" "$(cat "${PWD}/AGENTS.md")"
+fi
+if grep -qF "rule-sets/tool-repos.md" "${PWD}/AGENTS.md"; then
+  ok "points the project's AGENTS.md at the set"
+else
+  no "points the project's AGENTS.md at the set" "$(cat "${PWD}/AGENTS.md")"
+fi
+
+# Installing twice is how anyone re-runs this after a rule changes. A second
+# pointer line would be invisible in an editor and duplicated in the agent's
+# context every session after.
+sandbox
+"${INSTALL}" --rule-set tool-repos --agent codex >/dev/null 2>&1
+"${INSTALL}" --rule-set tool-repos --agent codex >/dev/null 2>&1
+n="$(count_of "${PWD}/AGENTS.md" "rule-sets/tool-repos.md")"
+if [[ "${n}" == "1" ]]; then
+  ok "does not point at the set twice"
+else
+  no "does not point at the set twice" "found ${n} pointers"
+fi
+
+sandbox
+"${INSTALL}" --rule-set tool-repos --agent cursor >/dev/null 2>&1
+links_to "cursor gets the set as its own rule file" \
+  "${PWD}/.cursor/rules/tool-repos.mdc" "${REPO}/rule-sets/tool-repos.md"
+
+sandbox
+"${INSTALL}" --rule-set tool-repos --agent cline >/dev/null 2>&1
+links_to "cline gets the set as its own rule file" \
+  "${PWD}/.clinerules/tool-repos.md" "${REPO}/rule-sets/tool-repos.md"
+
+# The skills a set claims are part of the set: installing one without them
+# leaves the rules referring to a skill the project does not have.
+sandbox
+"${INSTALL}" --rule-set tool-repos --agent claude >/dev/null 2>&1
+links_to "installs the set's skills into the project" \
+  "${PWD}/.claude/skills/refresh-tool-surface" "${REPO}/skills/refresh-tool-surface"
+absent "installs no skill into the profile" "${HOME}/.claude/skills/refresh-tool-surface"
+
+# --- --project --------------------------------------------------------------
+
+echo "--project"
+sandbox
+mkdir -p "${SANDBOX}/elsewhere"
+"${INSTALL}" --rule-set tool-repos --project "${SANDBOX}/elsewhere" --agent codex >/dev/null 2>&1
+links_to "installs into the named directory" \
+  "${SANDBOX}/elsewhere/rule-sets/tool-repos.md" "${REPO}/rule-sets/tool-repos.md"
+absent "leaves the working directory alone" "${PWD}/rule-sets/tool-repos.md"
+
+sandbox
+exits_nonzero "refuses a project directory that does not exist" \
+  "${INSTALL}" --rule-set tool-repos --project "${SANDBOX}/nowhere" --agent codex
+
+# --- naming a set that does not exist ---------------------------------------
+
+echo "bad rule set"
+sandbox
+out="$("${INSTALL}" --rule-set nosuchset --agent codex 2>&1)"
+if [[ $? -eq 0 ]]; then
+  no "refuses an unknown rule set" "expected non-zero exit"
+elif grep -qF "nosuchset" <<<"${out}"; then
+  ok "refuses an unknown rule set"
+else
+  no "refuses an unknown rule set" "message did not name it: ${out}"
+fi
+absent "installs nothing for an unknown set" "${PWD}/AGENTS.md"
+
 # --- listing ---------------------------------------------------------------
 
 echo "--list"
@@ -189,6 +299,14 @@ sandbox
 out="$("${INSTALL}" --list 2>&1)"
 if [[ $? -eq 0 ]]; then ok "exits 0"; else no "exits 0" "${out}"; fi
 if grep -q "claude" <<<"${out}"; then ok "names the agents"; else no "names the agents"; fi
+
+# A set nobody can discover is one nobody installs, so --list is where the
+# second set has to show up.
+if grep -q "tool-repos" <<<"${out}"; then
+  ok "names the sets available"
+else
+  no "names the sets available" "${out}"
+fi
 
 # Capture first, then match: `cmd | grep -q` closes the pipe on the first hit,
 # and under `set -o pipefail` the producer's SIGPIPE fails the whole pipeline —
