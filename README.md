@@ -88,17 +88,39 @@ scripts/build-agents.sh --check   # fail if AGENTS.md is stale (runs in CI)
 
 Never edit `AGENTS.md` by hand — it is overwritten. CI rejects a stale copy.
 
-The installer has its own tests. Run them after touching either script:
+## Writing a skill
 
 ```bash
-scripts/test-install-skill.sh    # CI runs this one
+scripts/new-skill.sh --description "Use when ..." my-skill
+```
+
+Writes `skills/my-skill/SKILL.md` with the YAML frontmatter that makes a skill
+discoverable. Don't hand-create the directory — an agent finds a skill by its
+frontmatter `name` and `description`, so a `SKILL.md` without them installs
+cleanly, reads fine, and never loads.
+
+**Working on this repo?** Install the `ai-rules` skill and invoke it — it covers
+what's generated vs authored, the four places a new rule has to be registered,
+and the checks to run before committing:
+
+```bash
+scripts/install-skill.sh ai-rules
+```
+
+## Checks
+
+```bash
+scripts/build-agents.sh --check    # AGENTS.md matches rules/
+scripts/test-install-skill.sh      # the installer's behaviour
+scripts/test-new-skill.sh          # the scaffold's behaviour
+scripts/check-conventions.sh       # skills discoverable, installers agree
 ```
 ```powershell
 scripts\test-install-skill.ps1
 ```
 
-They install into a throwaway `HOME` and project directory, so they never touch
-your real config.
+All four run in CI. The tests install into a throwaway `HOME` and project
+directory, so they never touch your real config.
 
 ## Structure
 
@@ -115,15 +137,17 @@ rules/
   issues.md
   reflection.md
 skills/
+  ai-rules/SKILL.md             ← how to work on this repo itself
   break-reminders/SKILL.md      ← auto-schedules break reminders
   behavior-first-tdd/SKILL.md   ← behaviour-first TDD
   reflect/SKILL.md              ← capture lessons when work lands
 scripts/
   build-agents.sh               ← regenerates AGENTS.md from rules/*.md
+  new-skill.sh                  ← scaffolds skills/<name>/SKILL.md
   install-skill.sh              ← installs a skill into any agent (macOS/Linux/Git Bash)
   install-skill.ps1             ← the same, for Windows PowerShell
-  test-install-skill.sh         ← behaviour tests for the installer
-  test-install-skill.ps1        ← behaviour tests for the PowerShell installer
+  check-conventions.sh          ← skills are discoverable; the installers agree
+  test-*.sh / test-*.ps1        ← behaviour tests for the above
 .gitattributes                   ← forces LF on *.sh; CRLF breaks them silently
 ```
 
