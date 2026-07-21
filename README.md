@@ -19,6 +19,7 @@ read alongside the base rather than instead of it.
 | Set | For | Layers on |
 |-----|-----|-----------|
 | `rule-sets/ai-rules.md` | every project | — |
+| `rule-sets/tool-repos.md` | For repos whose product is a tool an agent drives. | ai-rules |
 
 ```bash
 scripts/new-rule-set.sh --title "Tool Repo Rules" \

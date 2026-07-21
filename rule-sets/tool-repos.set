@@ -1,0 +1,14 @@
+# tool-repos — rules for one kind of repo, layered on the base set.
+#
+# Order is reading order. Every fragment listed here ships in
+# rule-sets/tool-repos.md; one that is not listed ships nowhere, and the build says so.
+
+title: Tool Repo Rules
+blurb: For repos whose product is a tool an agent drives.
+layer: ai-rules
+
+rule: tool-repos/agent-contract
+rule: tool-repos/thin-hosts
+rule: tool-repos/parallel-safety
+rule: tool-repos/dogfooding
+skill: refresh-tool-surface
