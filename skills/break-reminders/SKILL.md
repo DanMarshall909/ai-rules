@@ -1,3 +1,8 @@
+---
+name: break-reminders
+description: Schedule recurring break reminders for a working session — a short break every 30 minutes and a longer break plus goal check-in every 2 hours, each with a cross-project memory scan. Use when the user says "/break-reminders", asks to set up break reminders, or starts a session they want paced.
+---
+
 # Break Reminders Skill
 
 Sets up two recurring break reminders for working hours (9am–5pm). Invoke with `/break-reminders` at the start of a session.
