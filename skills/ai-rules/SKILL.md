@@ -19,37 +19,51 @@ something silently broke.
 
 | Path | Status |
 |------|--------|
-| `rules/*.md` | **authored** — the single source of truth |
+| `rules/**/*.md` | **authored** — the rule fragments |
+| `rule-sets/*.set` | **authored** — which set ships which fragments, in order |
 | `skills/*/SKILL.md` | **authored** |
 | `scripts/*` | **authored** |
-| `rule-sets/ai-rules.md` | **generated** complete rule set — never edit |
+| `rule-sets/*.md` | **generated** rule sets — never edit |
 | `AGENTS.md` | **generated** minimal entrypoint — never edit |
-| `CLAUDE.md` | authored, but should import the rule set |
+| `CLAUDE.md` | authored, but should import the base rule set |
 
 `AGENTS.md` exists because Codex, OpenCode, Cursor and Cline look for that
 filename. It should stay small and point at `rule-sets/ai-rules.md`. `CLAUDE.md`
-imports that same rule set. The rule set is the policy; the agent files are
-entrypoints.
+imports that same set. The sets are the policy; the agent files are entrypoints.
 
-If asked to change a rule, change `rules/<name>.md` and regenerate. If you find
-yourself editing `AGENTS.md` or `rule-sets/ai-rules.md`, stop — the change will
-be overwritten.
+If asked to change a rule, change `rules/<...>.md` and regenerate. If you find
+yourself editing `AGENTS.md` or a `rule-sets/*.md`, stop — the change will be
+overwritten.
 
 ---
 
-## Step 2 — Adding a rule touches four places
+## Step 2 — A rule belongs to a set
 
-1. `rules/<name>.md` — write it
-2. `RULES=(...)` in `scripts/build-agents.sh` — add it, in reading order
-3. the rules table in `README.md`
+`ai-rules` is the base set: rules for every project, kept at the top of
+`rules/`. A **layered** set — `tool-repos` is the first — is rules for one kind
+of repo, kept in `rules/<set>/`, and read alongside the base rather than
+instead of it.
 
-Then run `scripts/build-agents.sh` to regenerate `AGENTS.md` and
-`rule-sets/ai-rules.md`, and commit the generated files alongside the rule.
+Choosing between them is the judgment call. A rule that would make a reader in
+an unrelated project think "not my repo" belongs in a layered set; if it is
+only true of *one* repo it is not a rule at all, and belongs in that repo's own
+`AGENTS.md` (`rules/reflection.md` has the routing table).
 
-Miss any of them and a check will say so — `build-agents.sh` guards step 2, and
-`check-conventions.sh` guards the README table. That was not always true:
-`guardrails.md` was absent from the README table for its whole life, which is why
-the check exists.
+Use the scaffolds — they write every place a rule has to be registered:
+
+```bash
+scripts/new-rule.sh --title "Caching" caching                 # base set
+scripts/new-rule.sh --set tool-repos --title "..." some-rule  # layered set
+scripts/new-rule-set.sh --title "..." --blurb "..." --layer ai-rules <name>
+scripts/new-skill.sh --set tool-repos --description "..." <name>
+```
+
+By hand it is: the fragment, a `rule:` line in the manifest, a README row for a
+base-set rule or a sets-table row for a whole set, then
+`scripts/build-agents.sh`. Miss one and a check names it — the build refuses a
+fragment no manifest lists, and `check-conventions.sh` guards the README. That
+was not always true: `guardrails.md` was absent from the README table for its
+whole life, which is why the check exists.
 
 ---
 
@@ -84,36 +98,47 @@ shell; `install-skill.ps1` names the setting when it cannot link.
 
 ## Step 4 — Changing the installers
 
-`scripts/agents.sh` holds the one agent table: roots, scopes, and the `link_to`
-that refuses to leave a copy where a symlink was meant. Both bash installers
-source it. `install-skill.ps1` keeps its own copy for want of a shell it can
-source, so it is the one that can drift.
+`scripts/agents.sh` holds the one agent table: roots, scopes, `link_to` (which
+refuses to leave a copy where a symlink was meant) and `append_once` (for the
+files a project owns and we may only add a line to). `scripts/rule-sets.sh`
+holds the manifest layout. Both bash installers source both.
+`install-skill.ps1` keeps its own copy for want of a shell it can source, so it
+is the one that can drift.
 
-Adding an agent means: the list and root in `agents.sh`, a target in
-`install-skill.sh` and in `install-rules.sh`, and the whole lot again in
+Adding an agent means: the list and root in `agents.sh`, a target in each of
+`user_target`, `project_target` (install-skill.sh), `rules_target` and
+`set_target` (install-rules.sh), and the whole lot again in
 `install-skill.ps1`. `check-conventions.sh` names whichever you forget — it
-reads all four.
+reads all of them.
 
 Rules and skills install differently, and the difference is the point:
 
-- **Skills** are symlinked, so an edit is live at once.
+- **Skills** are symlinked, so an edit is live at once. `--project <dir>` puts
+  one in a single repo (`.claude/skills/`, `.agents/skills/`) instead of the
+  profile, which is how a set's skills travel with it.
 - **Rules** reach Claude Code through an `@` import, also live at once — but
-  reach every other agent through a minimal `AGENTS.md` plus a symlinked
-  `rule-sets/ai-rules.md`. An edit to `rules/` does not reach them until
-  `build-agents.sh` runs. Enable the hook (`git config core.hooksPath
-  scripts/hooks`) so a commit cannot leave it stale.
+  reach every other agent through a symlinked rule-set file. An edit to
+  `rules/` does not reach them until `build-agents.sh` runs. Enable the hook
+  (`git config core.hooksPath scripts/hooks`) so a commit cannot leave it
+  stale.
+- **A layered set** installs into one repo:
+  `install-rules.sh --rule-set <name> --project <dir>`. It appends to that
+  repo's `AGENTS.md` and `CLAUDE.md` and replaces neither, because both are
+  usually already written. Dry-run it first.
 
 ---
 
 ## Step 5 — Run the checks before committing
 
 ```bash
-scripts/build-agents.sh --check    # generated rule entrypoints match rules/
+scripts/build-agents.sh --check    # every rule set matches its manifest
+scripts/test-build-agents.sh       # the generator's behaviour
 scripts/test-install-skill.sh      # the skill installer's behaviour
 scripts/test-install-rules.sh      # the rules installer's behaviour
-scripts/test-new-skill.sh          # the scaffold's behaviour
+scripts/test-new-skill.sh          # the skill scaffold's behaviour
+scripts/test-new-rule-set.sh       # the rule and rule-set scaffolds
 scripts/test-check-conventions.sh  # the conventions check's own behaviour
-scripts/check-conventions.sh       # skills load, installers agree, rules registered
+scripts/check-conventions.sh       # skills load, installers agree, sets registered
 ```
 
 On Windows, also:

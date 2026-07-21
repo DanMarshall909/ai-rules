@@ -19,7 +19,9 @@ read alongside the base rather than instead of it.
 | Set | For | Layers on |
 |-----|-----|-----------|
 | `rule-sets/ai-rules.md` | every project | — |
-| `rule-sets/tool-repos.md` | For repos whose product is a tool an agent drives. | ai-rules |
+| `rule-sets/tool-repos.md` | repos whose product is a tool an agent drives | `ai-rules` |
+
+Making one:
 
 ```bash
 scripts/new-rule-set.sh --title "Tool Repo Rules" \
@@ -28,7 +30,28 @@ scripts/new-rule-set.sh --title "Tool Repo Rules" \
 
 scripts/new-rule.sh --set tool-repos --title "Agent Contract" agent-contract
 scripts/new-rule.sh --title "Caching" caching     # into the base set
+
+scripts/new-skill.sh --set tool-repos --description "Use when ..." my-skill
 ```
+
+A skill a set claims travels with it: installing the set into a repo installs
+that skill there too, project-scoped, so it does not load in every session on
+the machine. Installing a layered set into the repo that wants it:
+
+```bash
+scripts/install-rules.sh --rule-set tool-repos --project ../some-tool --dry-run
+scripts/install-rules.sh --rule-set tool-repos --project ../some-tool
+```
+
+| Agent | Gets |
+|-------|------|
+| `claude` | `@` import of the set appended to the project's `CLAUDE.md` |
+| `codex`, `opencode` | `<project>/rule-sets/<set>.md`, plus one pointer line in the project's `AGENTS.md` |
+| `cursor` | `.cursor/rules/<set>.mdc` |
+| `cline` | `.clinerules/<set>.md` |
+
+The project's own `AGENTS.md` and `CLAUDE.md` are appended to, never replaced,
+and never twice — a layered set arrives in repos that already have both.
 
 ## Rules
 
@@ -124,16 +147,17 @@ then you've pushed.
 
 ## Editing the rules
 
-`rules/*.md` is the source used to build the complete rule set in
-`rule-sets/ai-rules.md`. After changing one, regenerate:
+`rules/*.md` holds the fragments; `rule-sets/*.set` says which set ships which
+of them, in what order. After changing either, regenerate:
 
 ```bash
-scripts/build-agents.sh           # rewrite AGENTS.md and rule-sets/ai-rules.md
-scripts/build-agents.sh --check   # fail if either generated file is stale
+scripts/build-agents.sh           # rewrite AGENTS.md and every rule set
+scripts/build-agents.sh --check   # fail if any generated file is stale
 ```
 
-Never edit `AGENTS.md` or `rule-sets/ai-rules.md` by hand — they are
-overwritten. CI rejects stale generated files.
+Never edit `AGENTS.md` or `rule-sets/*.md` by hand — they are overwritten. CI
+rejects stale generated files, and the build refuses a rule fragment no manifest
+lists, since that rule would otherwise ship to nobody.
 
 ## Writing a skill
 
@@ -157,10 +181,13 @@ scripts/install-skill.sh ai-rules
 ## Checks
 
 ```bash
-scripts/build-agents.sh --check    # generated rule entrypoints match rules/
+scripts/build-agents.sh --check    # every rule set matches its manifest
+scripts/test-build-agents.sh       # the generator's behaviour
 scripts/test-install-skill.sh      # the skill installer's behaviour
 scripts/test-install-rules.sh      # the rules installer's behaviour
-scripts/test-new-skill.sh          # the scaffold's behaviour
+scripts/test-new-skill.sh          # the skill scaffold's behaviour
+scripts/test-new-rule-set.sh       # the rule and rule-set scaffolds
+scripts/test-check-conventions.sh  # the conventions check's own behaviour
 scripts/check-conventions.sh       # skills load, installers agree, rules registered
 ```
 ```powershell
@@ -173,32 +200,36 @@ directory, so they never touch your real config.
 ## Structure
 
 ```
-rules/*.md                       ← authored rule fragments
-rule-sets/ai-rules.md            ← GENERATED: complete shared rule set
 AGENTS.md                        ← GENERATED: minimal entrypoint
-CLAUDE.md                        ← Claude Code entry point (@ imports the rule set)
+CLAUDE.md                        ← Claude Code entry point (@ imports the base set)
+rule-sets/
+  ai-rules.set                  ← authored manifest: the base set
+  ai-rules.md                   ← GENERATED from it
+  tool-repos.set                ← authored manifest: layers on ai-rules
+  tool-repos.md                 ← GENERATED from it
 rules/
-  breaks.md
-  tdd.md
-  coverage.md
-  guardrails.md
-  git.md
-  issues.md
-  reflection.md
+  breaks.md  tdd.md  coverage.md  guardrails.md
+  git.md  issues.md  reflection.md     ← fragments of the base set
+  tool-repos/*.md                      ← fragments of the tool-repos set
 skills/
   ai-rules/SKILL.md             ← how to work on this repo itself
   break-reminders/SKILL.md      ← auto-schedules break reminders
   behavior-first-tdd/SKILL.md   ← behaviour-first TDD
   reflect/SKILL.md              ← capture lessons when work lands
+  refresh-tool-surface/SKILL.md ← shipped with the tool-repos set
 scripts/
-  build-agents.sh               ← regenerates AGENTS.md and the rule set
+  build-agents.sh               ← regenerates AGENTS.md and every rule set
+  new-rule-set.sh               ← scaffolds a rule set and its first rule
+  new-rule.sh                   ← scaffolds a rule and registers it
   new-skill.sh                  ← scaffolds skills/<name>/SKILL.md
+  rule-sets.sh                  ← manifest layout + field reading (sourced)
+  readme.sh                     ← README table editing (sourced)
   agents.sh                     ← shared agent table + linking (sourced)
   install-skill.sh              ← installs a skill into any agent
   install-skill.ps1             ← the same, for Windows PowerShell
-  install-rules.sh              ← points an agent at these rules
+  install-rules.sh              ← points an agent at a rule set
   hooks/pre-commit              ← refuses stale generated rule files
-  check-conventions.sh          ← skills load; installers agree; rules registered
+  check-conventions.sh          ← skills load; installers agree; sets registered
   test-*.sh / test-*.ps1        ← behaviour tests for the above
 .gitattributes                   ← forces LF on *.sh; CRLF breaks them silently
 ```
