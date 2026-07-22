@@ -98,6 +98,34 @@ was already correct — or worse, "fixing" working code to make the phantom
 reproduce. Diff the mutated file, or print the changed line, before you believe
 the result.
 
+**A mutant no test ran against is not a survivor either.** The mirror image of the
+one above, and the one the rule above will not catch: the fault applies cleanly,
+and the *tests* are what never arrive. Mutation tools map tests to mutants from an
+instrumented baseline run so they can run only the covering subset; when that
+mapping comes back empty — a runner the tool half-supports, a coverage collector
+that failed to load, tests it discovered but could not attribute — every unmapped
+mutant is filed "no coverage" and scored as unkilled without a single test being
+run against it. Nothing errors. You get a plausible, terrible score.
+
+Read the **status breakdown, not the score**. Killed-versus-survived is the number
+that means something; a large "no coverage" bucket is a broken harness reporting
+as a bare patch of code, and the two are indistinguishable from the headline
+figure. The tell is a survivor in a file you have *watched* a hand-injected fault
+die in. When the score contradicts something you observed directly, the score is
+what is wrong.
+
+Disabling per-test coverage mapping removes the failure by running the whole suite
+against every mutant. Correct, and much slower — check what that costs before
+launching it, especially where each run spawns a visible process.
+
+**Coverage first, then mutation.** They answer questions in order — coverage asks
+whether a line ever ran, mutation asks whether anything checked it — and the second
+question is meaningless while the first is unanswered. A mutation score computed
+over code the suite never reaches is measuring the harness. So establish coverage,
+and confirm the mutation tool can kill a fault you planted yourself, before reading
+any score it produces. Hand-injection is not the crude approximation of mutation
+testing; it is what calibrates it.
+
 ## Two tests that kill the same mutant are one test
 
 Aim for **fewer tests, each closer to something a user actually does, covering
