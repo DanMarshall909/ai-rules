@@ -98,6 +98,32 @@ was already correct — or worse, "fixing" working code to make the phantom
 reproduce. Diff the mutated file, or print the changed line, before you believe
 the result.
 
+## Two tests that kill the same mutant are one test
+
+Aim for **fewer tests, each closer to something a user actually does, covering
+more.** Those three pull together rather than against each other: a test that
+walks a real scenario crosses several decisions at once, so it kills more mutants
+than the same effort spent on one narrow case per branch — and it is one thing to
+update when the spec moves, not five.
+
+So check it as you write, rather than assuming it and finding out at review. For
+each test, ask which mutant it kills that nothing else kills — then confirm by
+injecting that mutant and watching *this* test go red.
+
+- None: it is duplication. Fold it into the scenario that already covers it.
+- One, uniquely: keep the case, but prefer a `[Theory]`/parameterised case over a
+  second test method. Two tests differing only in their input are one rule with
+  two examples.
+- Never delete on resemblance alone. Tests that read alike may drive different
+  construction paths; the mutant question decides, appearance does not.
+
+Beware the reverse failure. Collapsing tests by weakening what they assert also
+drives the count down while coverage holds — and pins nothing. Fewer tests must
+be the result of each one doing more, never of each one checking less.
+
+This is "write the test against the rule, not the instance" applied while
+writing.
+
 ## A surviving mutant may be the code talking
 
 A survivor is not automatically a missing test. Before writing one — and *well*
