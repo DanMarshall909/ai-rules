@@ -179,12 +179,13 @@ any score it produces. Hand-injection is not the crude approximation of mutation
 testing; it is what calibrates it.
 
 Which cuts both ways. Everything above is a false *survivor* — a test that never
-ran. But a reported *kill* can be as false: a test that never checked, credited to
-the same mapping that elsewhere came back empty. Hand-injection is the ground truth
-the tool only approximates, so a `Killed` is a claim until you have watched a named
-test go red for that fault — reproduce the kills you rely on, not only the
-survivors. The false kill is the worse one: a green survivor sends you to look,
-while a green kill tells you to stop.
+ran. But a reported *kill* can be as hollow: a test that failed without checking the
+mutated behaviour — a timeout or a crash the tool scores as a kill — or a runner
+that cannot say which test did the killing and attributes it anyway. Hand-injection
+is the ground truth the tool only approximates, so a `Killed` is a claim until you
+have watched a named test go red for that fault — reproduce the kills you rely on,
+not only the survivors. The false kill is the worse one: a green survivor sends you
+to look, while a green kill tells you to stop.
 
 ### Two tests that kill the same mutant are one test
 
