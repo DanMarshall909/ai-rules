@@ -17,7 +17,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 # Order in which rules appear in AGENTS.md and CLAUDE.md. Keep the two in step.
-RULES=(breaks tdd coverage guardrails git issues reflection)
+RULES=(breaks tdd coverage guardrails security git issues reflection)
 
 OUTPUT="AGENTS.md"
 

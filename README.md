@@ -10,6 +10,7 @@ Lean, agent-agnostic AI coding rules. Works with Claude Code, Cursor, Windsurf, 
 | `rules/tdd.md` | Red → Green → Refactor → Coverage, one AC at a time |
 | `rules/coverage.md` | Code must justify itself; never call a branch unreachable |
 | `rules/guardrails.md` | Turn a repeatable mistake into a test that fails at build time |
+| `rules/security.md` | Concentrate security decisions behind one narrow, intent-named boundary |
 | `rules/git.md` | pull --rebase, backup before force-push, staged diff review |
 | `rules/issues.md` | `docs/issues/[open\|resolved]/[area]/` structured tracking |
 | `rules/reflection.md` | Capture durable lessons when work lands; route them to the right scope |
