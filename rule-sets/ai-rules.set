@@ -10,6 +10,7 @@ rule: breaks
 rule: tdd
 rule: coverage
 rule: guardrails
+rule: security
 rule: git
 rule: issues
 rule: reflection

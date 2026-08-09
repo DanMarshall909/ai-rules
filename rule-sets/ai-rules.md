@@ -40,7 +40,11 @@ Every 2 hours, pause and run this check-in:
 - Work one acceptance criterion at a time — no batching
 - Commit at each phase: `test(red)`, `feat(...)`, `refactor(...)`
 - After implementation: check coverage, run mutation testing if available
-- End of session: offer to squash TDD commits into one
+- End of session: offer to squash the *green* commits into one. Never fold a
+  `test(red)` commit into the `feat` that makes it pass: the failing test
+  standing alone is the evidence that the test can fail, and squashing it away
+  destroys exactly that. A red commit that does not compile is expected. It is
+  not a broken trunk, and git.md's "trunk stays green" does not override this.
 
 > Claude Code users: use the `/tdd` skill.
 
@@ -145,6 +149,69 @@ false one is the more expensive, because it sends you strengthening a test that
 was already correct — or worse, "fixing" working code to make the phantom
 reproduce. Diff the mutated file, or print the changed line, before you believe
 the result.
+
+**A mutant no test ran against is not a survivor either.** The mirror image of the
+one above, and the one the rule above will not catch: the fault applies cleanly,
+and the *tests* are what never arrive. Mutation tools map tests to mutants from an
+instrumented baseline run so they can run only the covering subset; when that
+mapping comes back empty — a runner the tool half-supports, a coverage collector
+that failed to load, tests it discovered but could not attribute — every unmapped
+mutant is filed "no coverage" and scored as unkilled without a single test being
+run against it. Nothing errors. You get a plausible, terrible score.
+
+Read the **status breakdown, not the score**. Killed-versus-survived is the number
+that means something; a large "no coverage" bucket is a broken harness reporting
+as a bare patch of code, and the two are indistinguishable from the headline
+figure. The tell is a survivor in a file you have *watched* a hand-injected fault
+die in. When the score contradicts something you observed directly, the score is
+what is wrong.
+
+Disabling per-test coverage mapping removes the failure by running the whole suite
+against every mutant. Correct, and much slower — check what that costs before
+launching it, especially where each run spawns a visible process.
+
+**Coverage first, then mutation.** They answer questions in order — coverage asks
+whether a line ever ran, mutation asks whether anything checked it — and the second
+question is meaningless while the first is unanswered. A mutation score computed
+over code the suite never reaches is measuring the harness. So establish coverage,
+and confirm the mutation tool can kill a fault you planted yourself, before reading
+any score it produces. Hand-injection is not the crude approximation of mutation
+testing; it is what calibrates it.
+
+Which cuts both ways. Everything above is a false *survivor* — a test that never
+ran. But a reported *kill* can be as hollow: a test that failed without checking the
+mutated behaviour — a timeout or a crash the tool scores as a kill — or a runner
+that cannot say which test did the killing and attributes it anyway. Hand-injection
+is the ground truth the tool only approximates, so a `Killed` is a claim until you
+have watched a named test go red for that fault — reproduce the kills you rely on,
+not only the survivors. The false kill is the worse one: a green survivor sends you
+to look, while a green kill tells you to stop.
+
+### Two tests that kill the same mutant are one test
+
+Aim for **fewer tests, each closer to something a user actually does, covering
+more.** Those three pull together rather than against each other: a test that
+walks a real scenario crosses several decisions at once, so it kills more mutants
+than the same effort spent on one narrow case per branch — and it is one thing to
+update when the spec moves, not five.
+
+So check it as you write, rather than assuming it and finding out at review. For
+each test, ask which mutant it kills that nothing else kills — then confirm by
+injecting that mutant and watching *this* test go red.
+
+- None: it is duplication. Fold it into the scenario that already covers it.
+- One, uniquely: keep the case, but prefer a `[Theory]`/parameterised case over a
+  second test method. Two tests differing only in their input are one rule with
+  two examples.
+- Never delete on resemblance alone. Tests that read alike may drive different
+  construction paths; the mutant question decides, appearance does not.
+
+Beware the reverse failure. Collapsing tests by weakening what they assert also
+drives the count down while coverage holds — and pins nothing. Fewer tests must
+be the result of each one doing more, never of each one checking less.
+
+This is "write the test against the rule, not the instance" applied while
+writing.
 
 ### A surviving mutant may be the code talking
 
@@ -254,6 +321,158 @@ it fail on bad input, for the stated reason" (see [[coverage]]).
 all — speculative generality, wrong abstraction, premature migration paths —
 cannot be a test. Don't propose one; route that lesson to a rules file instead
 (see [[reflection]]).
+
+---
+
+## Security by Design
+
+Secure code is not a checklist of secure methods bolted onto an insecure shape.
+It is a property of the design: **the fewer places that make a security decision,
+the fewer places that can make it wrong.** Good primitives used badly are still a
+breach. So the goal is to make the secure path the easy path — concentrate the
+decisions, expose intent rather than machinery, and let the type system and the
+module boundary carry the rules a reviewer would otherwise have to remember.
+
+This is an API-design problem before it is a cryptography problem.
+
+### Concentrate security decisions behind one boundary
+
+Security-relevant behaviour — encryption, signing, token handling, secret
+management — belongs in one small module with a clear responsibility and a narrow
+API, not scattered across the call sites that happen to need it, and not dumped in
+a miscellaneous `Security` grab-bag either.
+
+Code outside that boundary asks for an **outcome**:
+
+```
+protected = protector.Protect(customerReference)
+```
+
+It must never assemble that outcome from primitives:
+
+```
+nonce = randomBytes(12); key = keys.get("customer"); ct = encrypt(pt, key, nonce); out = nonce + ct
+```
+
+The second shape lets every caller omit a step, pick the wrong key, reuse a nonce,
+or invent an incompatible payload format — and there are as many chances to get it
+wrong as there are call sites. One boundary gives a reviewer a single place to
+inspect the policy, makes a dependency change visible, and lets the whole
+operation be tested. This is the one place tight coupling is a feature.
+
+### Expose intent, not primitives
+
+Most of that module should be **private/internal** — the most underused
+visibility in most languages. Cipher choices, key resolvers, nonce generators, and
+serialisation helpers are machinery the rest of the system has no business
+naming. The public surface should describe only the permitted operations, named
+after what they *do*: `ProtectCustomerData`, `SignPaymentInstruction`,
+`SealOcrText` — never a general `Encrypt(data, algorithm, mode, padding, key,
+nonce)` that hands every caller authority over choices they should never make.
+
+The operation owns its security policy: algorithm, key, nonce, content role,
+payload version, associated data, and failure handling all live inside it, so the
+implementation and the versioned format can change without editing a single
+caller. Do not make a dangerous choice configurable merely because it can be.
+
+Visibility here is a **design** boundary, not a barrier against malicious code in
+the same process — reflection bypasses it. It reduces *accidental* misuse, which
+is most misuse. Enforce it the way [[guardrails]] describes: a build-time check
+that sweeps the module's public surface and fails when it widens beyond the
+intended operations catches the next well-meaning `public` before review does.
+
+### Give sensitive values their own types
+
+Primitive obsession — a bare `string`, `int`, or byte array standing in for a
+specific concept — is a security flaw, not only a smell. A `string` can be a
+customer reference, a password, an access token, or a ciphertext; a byte array can
+be plaintext, ciphertext, a key, or a nonce. When an API accepts the primitive,
+the compiler cannot stop a caller passing the wrong one.
+
+Give each security-sensitive value an immutable type that validates its whole
+state at construction and exposes only the operations consumers need. Then the API
+that takes a `CustomerReference` and returns `ProtectedData` cannot be handed a
+raw token that merely shares the same underlying representation.
+
+- Validate the complete value in a constructor or factory before exposing it.
+- Make it immutable: no public setters, no partial initialisation, no collection a
+  caller can mutate after validation. A read-only *view* over a caller-owned
+  collection is not immutable — copy the input at the ownership boundary.
+- Seal it so a subclass cannot change its behaviour; accept a read-only span/view
+  when you only need to read a caller's buffer.
+
+The one deliberate exception is a mutable buffer holding a plaintext secret, kept
+so it can be overwritten — see below. It stays locally owned and never becomes a
+domain object.
+
+### Keep secrets alive for as little time as possible
+
+Decrypt as late as possible, use the plaintext for one purpose, discard it at
+once. Keep plaintext out of logs, exceptions, tracing tags, long-lived objects,
+caches, queues, events, temporary files, diagnostic snapshots, and strings made
+only to format or convert it. Every one of those is a copy in memory, a crash
+dump, or a telemetry pipeline you did not mean to write a secret to.
+
+For binary secrets, prefer a short-lived mutable buffer and zero it in a `finally`
+(or the language's equivalent guaranteed cleanup), rather than waiting for the
+garbage collector — which may have copied it and cannot be told to erase it. This
+does not prove a secret was never copied; it is strictly better than not trying.
+Do not hand out a view over a live secret buffer or leave it in a pool with its
+contents intact.
+
+### Minimise dependencies, not proven safety
+
+Every dependency inside the trust boundary is more code to understand, patch, and
+monitor, and a door to a vulnerable transitive package or an unsafe default. Keep
+that graph small; prefer the platform's own facilities where they meet the
+requirement.
+
+But "fewer libraries" is not "rewrite everything". Replacing a mature, maintained
+library with a bespoke version usually *adds* risk — hand-rolled SQL invites
+injection, and a home-grown cipher is the classic disaster. The question is
+whether a dependency needs to exist inside the boundary, what it drags in, whether
+it is maintained, and whether a smaller established API would do — not whether you
+can achieve aesthetic purity by deleting it. Remove unnecessary **capability**,
+never a well-tested safety mechanism.
+
+### Do not build your own cryptography
+
+Use established primitives and protocols. Your job is to *compose* them well:
+centralise algorithm selection, key identifiers, payload versions, associated
+data, rotation, and failure handling in the one boundary, and expose an operation
+that makes none of those a caller's problem.
+
+Two failure rules are absolute, and both echo [[guardrails]] and [[coverage]]:
+
+- **An authentication failure returns no partial plaintext.** Verify, then
+  release — never the other way round.
+- **Errors reveal nothing about validity.** Do not let a message, a status code,
+  or a timing difference disclose whether a key, an account, or a field was valid.
+- **Reject insecure input rather than silently recovering from it.** Silent
+  recovery is the fail-open that reads as success — the same trap as a guardrail
+  that cannot fail.
+
+### Treat the module boundary as a review boundary
+
+A cohesive security module earns its keep only if changes to it get the scrutiny
+its blast radius deserves:
+
+- test invalid, truncated, and tampered payloads — not just the happy path;
+- confirm secrets never reach logs or telemetry;
+- scan direct **and** transitive dependencies;
+- record *why* an algorithm or protocol was chosen;
+- version payload formats, so the on-disk shape can evolve without a caller edit;
+- design and test key rotation *before* it is urgent;
+- reject insecure defaults instead of quietly repairing them.
+
+Test the permitted public operations, the way a real caller uses them. Internal
+primitives may have their own focused tests, but the question that matters is
+whether ordinary application code can use the boundary *safely* — and, per
+[[coverage]], whether the tests would go red if it could not.
+
+None of these is a complete boundary on its own. Together they shrink the number
+of places a security decision is made, and make the ones that remain easy to find,
+review, and get right.
 
 ---
 
