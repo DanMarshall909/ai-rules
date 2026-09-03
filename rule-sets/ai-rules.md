@@ -178,6 +178,12 @@ and confirm the mutation tool can kill a fault you planted yourself, before read
 any score it produces. Hand-injection is not the crude approximation of mutation
 testing; it is what calibrates it.
 
+That ordering is between the two *questions*, not a schedule. It does not mean
+mutation belongs at the end, after the feature is finished and the design has set.
+Run it as soon as a slice is green and its lines are covered — the report's design
+signal is worth the most while the design is still soft enough to act on. See
+"Read the whole report early" below.
+
 Which cuts both ways. Everything above is a false *survivor* — a test that never
 ran. But a reported *kill* can be as hollow: a test that failed without checking the
 mutated behaviour — a timeout or a crash the tool scores as a kill — or a runner
@@ -251,6 +257,52 @@ Excluding a mutant class is legitimate only where killing it would assert
 something you have decided not to own: the wording of an exception message, or a
 guard whose behaviour belongs to the standard library. Say so where the exclusion
 lives, or the next reader will read it as a lowered bar.
+
+### Read the whole report early — it is a design review
+
+This is one of the main reasons to run mutation testing **first**, rather than as a
+release gate. The report's most valuable output is not the score. It is a map of
+which code nothing can distinguish — and that is a finding about the design, worth
+having while the design is still cheap to change. A report read after the feature is
+finished can only produce tests; a report read while the slice is still warm can
+produce a better shape.
+
+**Read it by clustering survivors across files, not file by file.** One survivor is a
+question about one test. The *same survivor shape* in seven types is a question about
+the code. That cluster is invisible if you only inspect the survivors your own diff
+introduced, which is the natural and the wrong way to read a report.
+
+Three things a cluster means, each with a different fix:
+
+- **Repeated surface beyond the contract.** The same pattern hand-rolled across many
+  types — a canonical-order `GetHashCode` and a hand-written `Equals` over a backing
+  collection — produces permanently unkillable mutants everywhere it appears, because
+  the only contract is "equal objects hash alike" and every mutation preserves it. The
+  finding here is **duplication to consolidate**, not code to delete: each copy is
+  load-bearing, so deleting one breaks its type. Extract the shape into one primitive
+  and the whole cluster retires at once — dozens of survivors answered by one edit
+  rather than by dozens of assertions that could never have been written.
+- **Genuinely equivalent.** A comparison whose branches agree at the boundary is dead
+  branching. Delete it, as above.
+- **Never executed.** The richest bucket, and the one the headline score hides by
+  folding it in with survivors. A line nothing has run is behaviour nobody has ever
+  had. Check each against what the spec, the task list, or the commit message that
+  introduced it *claims* — a claim with an unexecuted line under it is the gap to
+  close first, because someone has already written down that the behaviour exists.
+
+**A survivor can lie about which bucket it is in**, and it lies toward "equivalent",
+the one bucket whose verdict is "do nothing". A mutant that flips *both* sides of the
+comparison a test makes leaves the two still agreeing: the test stays green, the
+mutant looks like it cannot change the answer, and nothing is pinned. Symmetry
+assertions are the usual shape — `f(a, b)` equals `f(b, a)` holds just as well when
+the operands are swapped inside. Before filing a survivor as equivalent, ask what
+downstream depends on the value the test declined to name: a persisted format, a
+serialised order, an on-the-wire shape. The mutant is equivalent only if the answer
+is nothing.
+
+That last one is "Covered is not checked" arriving by a different road — consistency
+among outputs is not correctness — found by reading the report rather than by reading
+the test.
 
 ### Never call a branch unreachable
 
