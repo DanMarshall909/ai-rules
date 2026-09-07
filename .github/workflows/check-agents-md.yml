@@ -27,3 +27,11 @@ jobs:
         run: scripts/test-check-conventions.sh
       - name: conventions hold
         run: scripts/check-conventions.sh
+
+  windows-installer:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: PowerShell installer behaves
+        shell: pwsh
+        run: scripts/test-install-skill.ps1

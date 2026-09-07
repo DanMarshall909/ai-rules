@@ -155,7 +155,7 @@ WORKFLOWS=".github/workflows"
 if [[ ! -d "${WORKFLOWS}" ]]; then
   printf '  skipped (no %s here)\n' "${WORKFLOWS}"
 else
-  for path in scripts/test-*.sh; do
+  for path in scripts/test-*.sh scripts/test-*.ps1; do
     [[ -f "${path}" ]] || continue
 
     if ! grep -qrF "${path}" "${WORKFLOWS}"; then
