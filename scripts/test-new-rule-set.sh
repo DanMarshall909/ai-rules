@@ -226,6 +226,17 @@ else
   ok "creates nothing outside rules/"
 fi
 
+sandbox
+perl -i -pe 's/^## Rules$/## Renamed Rules/' README.md
+fails_with "refuses when the README rule table is unavailable" "has no '## Rules'" \
+  "${NEW_RULE}" --title "Naming" naming
+if [[ ! -e rules/naming.md ]] && ! grep -q '^rule: naming$' rule-sets/ai-rules.set; then
+  ok "changes nothing when the README rule table is unavailable"
+else
+  no "changes nothing when the README rule table is unavailable" \
+    "the fragment or manifest entry was written"
+fi
+
 echo ""
 echo "${pass} passed, ${fail} failed"
 [[ ${fail} -eq 0 ]]
