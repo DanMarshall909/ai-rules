@@ -59,8 +59,16 @@ known_set "${SET}"   || die "no such rule set: ${SET} (known: $(set_names | tr '
 FRAGMENT="$(rules_dir_of "${SET}")/${NAME}.md"
 ENTRY="$(rule_entry "${SET}" "${NAME}")"
 MANIFEST="$(manifest_of "${SET}")"
+README_ROW="| \`${RULES_DIR}/${NAME}.md\` | TODO: one line on what it does |"
 
 [[ ! -e "${FRAGMENT}" ]] || die "${FRAGMENT} already exists"
+
+# Refuse before writing the fragment or manifest if the registration target is
+# unavailable. A scaffold that reports a README error after changing both has
+# already left the repository in the broken state it exists to prevent.
+if [[ "${SET}" == "${BASE_SET}" ]]; then
+  readme_require_section "${README_RULES_HEADING}" "${README_ROW}" || exit 1
+fi
 
 mkdir -p "$(dirname "${FRAGMENT}")"
 cat > "${FRAGMENT}" <<EOF
@@ -78,8 +86,8 @@ printf 'rule: %s\n' "${ENTRY}" >> "${MANIFEST}"
 # Only the base set's rules have their own README row; a layered set is
 # documented by its own row, which lists the set rather than each of its rules.
 if [[ "${SET}" == "${BASE_SET}" ]]; then
-  readme_add_row "${README_RULES_HEADING}" \
-    "| \`${RULES_DIR}/${NAME}.md\` | TODO: one line on what it does |"
+  readme_add_row "${README_RULES_HEADING}" "${README_ROW}" ||
+    die "the rule was not registered in ${README}"
 fi
 
 scripts/build-agents.sh >/dev/null || die "the scaffolded rule does not build"

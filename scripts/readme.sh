@@ -8,11 +8,8 @@ README="README.md"
 README_RULES_HEADING="## Rules"
 README_SETS_HEADING="## Rule sets"
 
-# readme_add_row <section heading> <row>
-# Appends a row to the last table under the given heading. Idempotent: a row
-# already present is left alone rather than duplicated.
-readme_add_row() {
-  local heading="$1" row="$2" tmp
+readme_require_section() { # <section heading> <row being added>
+  local heading="$1" row="$2"
 
   if [[ ! -f "${README}" ]]; then
     echo "error: ${README} does not exist, so '${row}' was not recorded" >&2
@@ -26,6 +23,15 @@ readme_add_row() {
     echo "error: ${README} has no '${heading}' section, so '${row}' was not recorded" >&2
     return 1
   fi
+}
+
+# readme_add_row <section heading> <row>
+# Appends a row to the last table under the given heading. Idempotent: a row
+# already present is left alone rather than duplicated.
+readme_add_row() {
+  local heading="$1" row="$2" tmp
+
+  readme_require_section "${heading}" "${row}" || return 1
 
   grep -qF "${row}" "${README}" && return 0
 
