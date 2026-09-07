@@ -74,6 +74,20 @@ exits_nonzero() {
   else ok "${label}"; fi
 }
 
+fails_with() {
+  local label="$1" pattern="$2"; shift 2
+  local out status
+  out="$("$@" 2>&1)"
+  status=$?
+  if [[ ${status} -eq 0 ]]; then
+    no "${label}" "expected non-zero exit, got 0"
+  elif ! grep -qF "${pattern}" <<<"${out}"; then
+    no "${label}" "message did not mention '${pattern}': ${out}"
+  else
+    ok "${label}"
+  fi
+}
+
 # The line install-rules writes into a Claude config, in whatever path form
 # this platform needs.
 import_line() {
@@ -159,6 +173,11 @@ if [[ "${count}" == "1" ]]; then
 else
   no "does not add the import twice" "found ${count} copies"
 fi
+
+sandbox
+mkdir -p "${HOME}/.claude/CLAUDE.md"
+fails_with "fails when the import cannot be written" "could not write" \
+  "${INSTALL}" --agent claude
 
 # Git Bash resolves the repo to /d/code/..., which Claude Code on Windows
 # cannot open. Whatever goes into the config must be a path the agent can read.
