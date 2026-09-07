@@ -91,7 +91,7 @@ scripts\install-skill.ps1 -Agent codex reflect
 | Agent | Skill lands at | Scope |
 |-------|----------------|-------|
 | `claude` | `~/.claude/skills/<skill>/` | user |
-| `codex` | `~/.codex/prompts/<skill>.md` | user |
+| `codex` | `~/.codex/skills/<skill>/` | user |
 | `opencode` | `~/.config/opencode/command/<skill>.md` | user |
 | `cursor` | `.cursor/rules/<skill>.mdc` | project |
 | `cline` | `.clinerules/<skill>.md` | project |

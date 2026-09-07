@@ -83,9 +83,9 @@ function Get-AgentSpec {
       } }
     'codex' { @{
         Root   = Join-Path $home_ '.codex'
-        Target = if ($inProject) { Join-Path $cwd (Join-Path '.agents\skills' (Join-Path $SkillName 'SKILL.md')) }
-                 else { Join-Path $home_ (Join-Path '.codex\prompts' "$SkillName.md") }
-        Kind   = 'File'; Scope = if ($inProject) { 'Project' } else { 'User' }
+        Target = if ($inProject) { Join-Path $cwd (Join-Path '.agents\skills' $SkillName) }
+                 else { Join-Path $home_ (Join-Path '.codex\skills' $SkillName) }
+        Kind   = 'Dir'; Scope = if ($inProject) { 'Project' } else { 'User' }
       } }
     'opencode' { @{
         Root   = Join-Path (Get-ConfigHome) 'opencode'
