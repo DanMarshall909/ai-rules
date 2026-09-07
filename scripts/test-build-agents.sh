@@ -166,6 +166,28 @@ printf 'title: Extra Rules\nblurb: For repos that need the extra thing.\nrule: e
 printf '\nan edit nobody regenerated\n' >> rule-sets/extra.md
 fails_with "names the stale set among several" "rule-sets/extra.md" "${BUILD}" --check
 
+# The pre-commit hook guards the snapshot Git will commit, not whichever
+# unstaged files happen to be in the working tree. Otherwise staging only a
+# regenerated file while leaving its authored rule unstaged produces a commit
+# that immediately fails --check, even though the hook passed before it.
+echo "pre-commit"
+sandbox
+mkdir -p scripts/hooks skills .github
+cp "${REPO}/scripts/hooks/pre-commit" scripts/hooks/
+cp "${REPO}/scripts/install-skill.ps1" scripts/
+cp -R "${REPO}"/skills/. skills/
+cp -R "${REPO}"/.github/. .github/
+git init -q
+git config user.name "Build test"
+git config user.email "build-test@example.invalid"
+git add .
+git commit -qm "baseline"
+printf '\nan unstaged authored change\n' >> rules/breaks.md
+"${BUILD}" >/dev/null 2>&1
+git add rule-sets/ai-rules.md
+fails_with "checks the staged snapshot" "generated rule files are stale" \
+  scripts/hooks/pre-commit
+
 # --- manifests that cannot be honoured --------------------------------------
 
 echo "broken manifests"
