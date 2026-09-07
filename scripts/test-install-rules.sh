@@ -175,6 +175,18 @@ else
 fi
 
 sandbox
+mkdir -p "${HOME}/.claude"
+printf '# disabled: %s\n' "$(import_line)" > "${HOME}/.claude/CLAUDE.md"
+"${INSTALL}" --agent claude >/dev/null 2>&1
+count="$(grep -cxF "$(import_line)" "${HOME}/.claude/CLAUDE.md" 2>/dev/null || true)"
+if [[ "${count}" == "1" ]]; then
+  ok "does not mistake a commented import for an active one"
+else
+  no "does not mistake a commented import for an active one" \
+    "found ${count} active imports"
+fi
+
+sandbox
 mkdir -p "${HOME}/.claude/CLAUDE.md"
 fails_with "fails when the import cannot be written" "could not write" \
   "${INSTALL}" --agent claude
