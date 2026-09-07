@@ -318,6 +318,11 @@ holds "still passes without an index"
 
 echo "test suites run in CI"
 sandbox_git
+run_check
+reports "catches the PowerShell suite missing from CI" \
+  "scripts/test-install-skill.ps1 is not run by any workflow"
+
+sandbox_git
 printf '#!/usr/bin/env bash\nexit 0\n' > scripts/test-ghost.sh
 run_check
 reports "catches a suite no workflow runs" \
