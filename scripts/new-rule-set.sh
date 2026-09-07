@@ -79,8 +79,14 @@ fi
 MANIFEST="$(manifest_of "${NAME}")"
 RULES_SUBDIR="$(rules_dir_of "${NAME}")"
 FRAGMENT="${RULES_SUBDIR}/${FIRST_RULE}.md"
+README_ROW="| \`$(generated_of "${NAME}")\` | ${BLURB} | ${LAYER:-—} |"
 
 [[ ! -e "${FRAGMENT}" ]] || die "${FRAGMENT} already exists"
+
+# The set is not usable unless it is discoverable. Check the README target
+# before creating either source file so a renamed table cannot leave a partial
+# scaffold behind.
+readme_require_section "${README_SETS_HEADING}" "${README_ROW}" || exit 1
 
 # --- write it ---------------------------------------------------------------
 
@@ -106,8 +112,8 @@ Rules here apply to every repo that installs the ${NAME} set, so keep project
 specifics — paths, project names, command lines — out of them.
 EOF
 
-readme_add_row "${README_SETS_HEADING}" \
-  "| \`$(generated_of "${NAME}")\` | ${BLURB} | ${LAYER:-—} |"
+readme_add_row "${README_SETS_HEADING}" "${README_ROW}" ||
+  die "the rule set was not registered in ${README}"
 
 scripts/build-agents.sh >/dev/null || die "the scaffolded set does not build"
 
