@@ -12,4 +12,4 @@
   destroys exactly that. A red commit that does not compile is expected. It is
   not a broken trunk, and git.md's "trunk stays green" does not override this.
 
-> Claude Code users: use the `/tdd` skill.
+> Claude Code users: use the `/behavior-first-tdd` skill.
