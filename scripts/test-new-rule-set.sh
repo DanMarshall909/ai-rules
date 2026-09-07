@@ -162,6 +162,17 @@ fi
 sandbox
 fails_with "refuses a set with no title" "title" "${NEW_SET}" --blurb "b" widgets
 
+sandbox
+perl -i -pe 's/^## Rule sets$/## Renamed Rule sets/' README.md
+fails_with "refuses when the README set table is unavailable" "has no '## Rule sets'" \
+  "${NEW_SET}" --title "Widget Rules" --blurb "For widget repos." widgets
+if [[ ! -e rule-sets/widgets.set ]] && [[ ! -e rules/widgets ]]; then
+  ok "changes nothing when the README set table is unavailable"
+else
+  no "changes nothing when the README set table is unavailable" \
+    "the manifest or rule directory was written"
+fi
+
 echo ""
 echo "new-rule.sh"
 
