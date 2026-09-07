@@ -126,6 +126,8 @@ for rule in breaks tdd coverage guardrails git issues reflection; do
   title="$(head -n 1 "rules/${rule}.md" | sed 's/^# //')"
   contains "ships ${rule}" rule-sets/ai-rules.md "## ${title}"
 done
+contains "the TDD rule names its supplied skill" rule-sets/ai-rules.md \
+  "/behavior-first-tdd"
 
 # Reading order is policy: breaks and TDD frame everything after them, and
 # reflection closes. A manifest that silently reordered would read as a rewrite.
