@@ -13,16 +13,36 @@ set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
 status=0
+git_dir="$(git rev-parse --absolute-git-dir)" || exit 1
+staged="$(mktemp -d)" || exit 1
+cleanup() { rm -rf "${staged}"; }
+trap cleanup EXIT HUP INT TERM
 
-if ! scripts/build-agents.sh --check >/dev/null 2>&1; then
+# Hooks run beside the working tree, but Git commits the index. Export that
+# exact snapshot so an unstaged authored change cannot make a staged generated
+# file look current. Point Git-aware convention checks back at the real index
+# while they read file contents from the exported tree.
+if ! git checkout-index --all --prefix="${staged}/"; then
+  echo "pre-commit: could not inspect the staged snapshot." >&2
+  exit 1
+fi
+
+staged_check() {
+  (
+    cd "${staged}" || exit 1
+    GIT_DIR="${git_dir}" GIT_WORK_TREE="${staged}" "$@"
+  )
+}
+
+if ! staged_check scripts/build-agents.sh --check >/dev/null 2>&1; then
   echo "pre-commit: generated rule files are stale." >&2
   echo "  run scripts/build-agents.sh and stage the result" >&2
   status=1
 fi
 
-if ! scripts/check-conventions.sh >/dev/null 2>&1; then
+if ! staged_check scripts/check-conventions.sh >/dev/null 2>&1; then
   echo "pre-commit: a repo convention is broken." >&2
-  scripts/check-conventions.sh 2>&1 >/dev/null | sed 's/^/  /' >&2
+  staged_check scripts/check-conventions.sh 2>&1 >/dev/null | sed 's/^/  /' >&2
   status=1
 fi
 
