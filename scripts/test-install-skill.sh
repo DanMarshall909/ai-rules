@@ -114,8 +114,8 @@ links_to "claude installs a skill directory" \
 
 sandbox
 "${INSTALL}" --agent codex reflect >/dev/null 2>&1
-links_to "codex installs SKILL.md as a prompt" \
-  "${HOME}/.codex/prompts/reflect.md" "${REPO}/skills/reflect/SKILL.md"
+links_to "codex installs a discoverable skill directory" \
+  "${HOME}/.codex/skills/reflect" "${REPO}/skills/reflect"
 
 sandbox
 "${INSTALL}" --agent opencode reflect >/dev/null 2>&1
@@ -159,8 +159,8 @@ sandbox
 project="${PWD}"
 "${INSTALL}" --project "${project}" --agent codex reflect >/dev/null 2>&1
 links_to "codex gets the skill under .agents/" \
-  "${project}/.agents/skills/reflect/SKILL.md" "${REPO}/skills/reflect/SKILL.md"
-absent "leaves the codex prompts directory alone" "${HOME}/.codex/prompts/reflect.md"
+  "${project}/.agents/skills/reflect" "${REPO}/skills/reflect"
+absent "leaves the codex profile alone" "${HOME}/.codex/skills/reflect"
 
 sandbox
 mkdir -p "${SANDBOX_ELSEWHERE:=${PWD}/../elsewhere}"
@@ -182,7 +182,7 @@ echo "--agent all"
 sandbox
 "${INSTALL}" --agent all reflect >/dev/null 2>&1
 links_to "all: claude"   "${HOME}/.claude/skills/reflect"                 "${REPO}/skills/reflect"
-links_to "all: codex"    "${HOME}/.codex/prompts/reflect.md"              "${REPO}/skills/reflect/SKILL.md"
+links_to "all: codex"    "${HOME}/.codex/skills/reflect"                  "${REPO}/skills/reflect"
 links_to "all: opencode" "${XDG_CONFIG_HOME}/opencode/command/reflect.md" "${REPO}/skills/reflect/SKILL.md"
 links_to "all: cursor"   "${PWD}/.cursor/rules/reflect.mdc"               "${REPO}/skills/reflect/SKILL.md"
 links_to "all: cline"    "${PWD}/.clinerules/reflect.md"                  "${REPO}/skills/reflect/SKILL.md"
@@ -192,7 +192,7 @@ sandbox
 mkdir -p "${HOME}/.codex"
 "${INSTALL}" reflect >/dev/null 2>&1
 links_to "installs for the agent that is present" \
-  "${HOME}/.codex/prompts/reflect.md" "${REPO}/skills/reflect/SKILL.md"
+  "${HOME}/.codex/skills/reflect" "${REPO}/skills/reflect"
 absent "skips the agent that is absent" "${HOME}/.claude/skills/reflect"
 
 sandbox
@@ -212,29 +212,29 @@ links_to "second run leaves the link intact" \
 
 echo "existing files"
 sandbox
-mkdir -p "${HOME}/.codex/prompts"
-echo "hand written" > "${HOME}/.codex/prompts/reflect.md"
+mkdir -p "${HOME}/.codex/skills/reflect"
+echo "hand written" > "${HOME}/.codex/skills/reflect/notes.md"
 exits_nonzero "refuses to replace a real file" \
   "${INSTALL}" --agent codex reflect
-if [[ "$(cat "${HOME}/.codex/prompts/reflect.md")" == "hand written" ]]; then
+if [[ "$(cat "${HOME}/.codex/skills/reflect/notes.md")" == "hand written" ]]; then
   ok "leaves the real file untouched"
 else
   no "leaves the real file untouched" "contents changed"
 fi
 
 sandbox
-mkdir -p "${HOME}/.codex/prompts"
-echo "hand written" > "${HOME}/.codex/prompts/reflect.md"
+mkdir -p "${HOME}/.codex/skills/reflect"
+echo "hand written" > "${HOME}/.codex/skills/reflect/notes.md"
 "${INSTALL}" --force --agent codex reflect >/dev/null 2>&1
 links_to "--force replaces a real file" \
-  "${HOME}/.codex/prompts/reflect.md" "${REPO}/skills/reflect/SKILL.md"
+  "${HOME}/.codex/skills/reflect" "${REPO}/skills/reflect"
 
 sandbox
-mkdir -p "${HOME}/.codex/prompts"
-ln -s /nowhere/else.md "${HOME}/.codex/prompts/reflect.md" 2>/dev/null
+mkdir -p "${HOME}/.codex/skills"
+ln -s /nowhere/else "${HOME}/.codex/skills/reflect" 2>/dev/null
 "${INSTALL}" --agent codex reflect >/dev/null 2>&1
 links_to "repoints a stale symlink without --force" \
-  "${HOME}/.codex/prompts/reflect.md" "${REPO}/skills/reflect/SKILL.md"
+  "${HOME}/.codex/skills/reflect" "${REPO}/skills/reflect"
 
 # --- bad input -------------------------------------------------------------
 

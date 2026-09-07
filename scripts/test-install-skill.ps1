@@ -104,7 +104,7 @@ try {
 
   $s = New-Sandbox
   Invoke-Install -Agent codex reflect | Out-Null
-  Assert-LinksTo "codex installs SKILL.md as a prompt" "$s\home\.codex\prompts\reflect.md" "$repo\skills\reflect\SKILL.md"
+  Assert-LinksTo "codex installs a discoverable skill directory" "$s\home\.codex\skills\reflect" "$repo\skills\reflect"
 
   $s = New-Sandbox
   Invoke-Install -Agent opencode reflect | Out-Null
@@ -139,8 +139,8 @@ try {
   $s = New-Sandbox
   Invoke-Install -Project "$s\project" -Agent codex reflect | Out-Null
   Assert-LinksTo "codex gets the skill under .agents" `
-    "$s\project\.agents\skills\reflect\SKILL.md" "$repo\skills\reflect\SKILL.md"
-  Assert-Absent "leaves the codex prompts directory alone" "$s\home\.codex\prompts\reflect.md"
+    "$s\project\.agents\skills\reflect" "$repo\skills\reflect"
+  Assert-Absent "leaves the codex profile alone" "$s\home\.codex\skills\reflect"
 
   $s = New-Sandbox
   New-Item -ItemType Directory -Force -Path "$s\elsewhere" | Out-Null
@@ -158,7 +158,7 @@ try {
   $s = New-Sandbox
   Invoke-Install -Agent all reflect | Out-Null
   Assert-LinksTo "all: claude"   "$s\home\.claude\skills\reflect"              "$repo\skills\reflect"
-  Assert-LinksTo "all: codex"    "$s\home\.codex\prompts\reflect.md"           "$repo\skills\reflect\SKILL.md"
+  Assert-LinksTo "all: codex"    "$s\home\.codex\skills\reflect"               "$repo\skills\reflect"
   Assert-LinksTo "all: opencode" "$s\home\.config\opencode\command\reflect.md" "$repo\skills\reflect\SKILL.md"
   Assert-LinksTo "all: cursor"   "$s\project\.cursor\rules\reflect.mdc"        "$repo\skills\reflect\SKILL.md"
   Assert-LinksTo "all: cline"    "$s\project\.clinerules\reflect.md"           "$repo\skills\reflect\SKILL.md"
@@ -167,7 +167,7 @@ try {
   $s = New-Sandbox
   New-Item -ItemType Directory -Force -Path "$s\home\.codex" | Out-Null
   Invoke-Install reflect | Out-Null
-  Assert-LinksTo "installs for the agent that is present" "$s\home\.codex\prompts\reflect.md" "$repo\skills\reflect\SKILL.md"
+  Assert-LinksTo "installs for the agent that is present" "$s\home\.codex\skills\reflect" "$repo\skills\reflect"
   Assert-Absent "skips the agent that is absent" "$s\home\.claude\skills\reflect"
 
   New-Sandbox | Out-Null
@@ -184,25 +184,25 @@ try {
   # --- never clobber -------------------------------------------------------
   Write-Host "existing files"
   $s = New-Sandbox
-  New-Item -ItemType Directory -Force -Path "$s\home\.codex\prompts" | Out-Null
-  Set-Content "$s\home\.codex\prompts\reflect.md" "hand written"
+  New-Item -ItemType Directory -Force -Path "$s\home\.codex\skills\reflect" | Out-Null
+  Set-Content "$s\home\.codex\skills\reflect\notes.md" "hand written"
   Assert-Fails "refuses to replace a real file" -Agent codex reflect
-  if ((Get-Content "$s\home\.codex\prompts\reflect.md" -Raw).Trim() -eq "hand written") {
+  if ((Get-Content "$s\home\.codex\skills\reflect\notes.md" -Raw).Trim() -eq "hand written") {
     Ok "leaves the real file untouched"
   } else { No "leaves the real file untouched" "contents changed" }
 
   $s = New-Sandbox
-  New-Item -ItemType Directory -Force -Path "$s\home\.codex\prompts" | Out-Null
-  Set-Content "$s\home\.codex\prompts\reflect.md" "hand written"
+  New-Item -ItemType Directory -Force -Path "$s\home\.codex\skills\reflect" | Out-Null
+  Set-Content "$s\home\.codex\skills\reflect\notes.md" "hand written"
   Invoke-Install -Force -Agent codex reflect | Out-Null
-  Assert-LinksTo "-Force replaces a real file" "$s\home\.codex\prompts\reflect.md" "$repo\skills\reflect\SKILL.md"
+  Assert-LinksTo "-Force replaces a real file" "$s\home\.codex\skills\reflect" "$repo\skills\reflect"
 
   $s = New-Sandbox
-  New-Item -ItemType Directory -Force -Path "$s\home\.codex\prompts" | Out-Null
-  New-Item -ItemType SymbolicLink -Path "$s\home\.codex\prompts\reflect.md" `
-           -Target (Join-Path $repo 'skills\break-reminders\SKILL.md') | Out-Null
+  New-Item -ItemType Directory -Force -Path "$s\home\.codex\skills" | Out-Null
+  New-Item -ItemType SymbolicLink -Path "$s\home\.codex\skills\reflect" `
+           -Target (Join-Path $repo 'skills\break-reminders') | Out-Null
   Invoke-Install -Agent codex reflect | Out-Null
-  Assert-LinksTo "repoints a stale link without -Force" "$s\home\.codex\prompts\reflect.md" "$repo\skills\reflect\SKILL.md"
+  Assert-LinksTo "repoints a stale link without -Force" "$s\home\.codex\skills\reflect" "$repo\skills\reflect"
 
   # --- bad input -----------------------------------------------------------
   Write-Host "bad input"
