@@ -102,12 +102,24 @@ append_once() {
     return 0
   fi
 
-  mkdir -p "$(dirname "${file}")"
+  if ! mkdir -p "$(dirname "${file}")"; then
+    err "${label}: could not write ${file}"
+    failures=$((failures + 1))
+    return 1
+  fi
   if [[ -s "${file}" ]]; then
     # A blank line first, so the addition cannot join the paragraph above it.
-    printf '\n%s\n' "${line}" >> "${file}"
+    if ! printf '\n%s\n' "${line}" >> "${file}"; then
+      err "${label}: could not write ${file}"
+      failures=$((failures + 1))
+      return 1
+    fi
   else
-    printf '%s\n' "${line}" > "${file}"
+    if ! printf '%s\n' "${line}" > "${file}"; then
+      err "${label}: could not write ${file}"
+      failures=$((failures + 1))
+      return 1
+    fi
   fi
   printf '  + %s\n' "${label}"
 }
