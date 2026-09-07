@@ -156,7 +156,7 @@ fi
 # --- --list -----------------------------------------------------------------
 
 claude_imported() {
-  [[ -f "${CLAUDE_CONFIG}" ]] && grep -qF "${CLAUDE_IMPORT}" "${CLAUDE_CONFIG}"
+  [[ -f "${CLAUDE_CONFIG}" ]] && grep -qxF "${CLAUDE_IMPORT}" "${CLAUDE_CONFIG}"
 }
 
 if [[ ${LIST} -eq 1 ]]; then

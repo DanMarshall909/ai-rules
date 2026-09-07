@@ -92,7 +92,7 @@ err() { printf 'error: %s\n' "$*" >&2; }
 append_once() {
   local file="$1" line="$2" label="$3"
 
-  if [[ -f "${file}" ]] && grep -qF "${line}" "${file}"; then
+  if [[ -f "${file}" ]] && grep -qxF "${line}" "${file}"; then
     printf '  = %s (already there)\n' "${label}"
     return 0
   fi
