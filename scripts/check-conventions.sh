@@ -194,6 +194,18 @@ for path in rules/*.md; do
   printf '  %s\n' "${name}"
 done
 
+# The authored rules are the common policy. Product names, provider commands,
+# and operating-system instructions belong in thin adapters and documentation.
+# This cannot prove that prose is portable; it prevents the known mechanical
+# failure mode of copying adapter-specific wording into the canonical layer.
+echo "canonical rules are portable"
+coupling_pattern='Claude|Codex|OpenAI|Anthropic|Cursor|Cline|OpenCode|Windows|WSL|PowerShell|GitHub|GitLab|macOS|Linux'
+coupling="$(grep -RniE "${coupling_pattern}" rules --include='*.md' || true)"
+if [[ -n "${coupling}" ]]; then
+  fail "canonical rules must be repository, platform, and AI-provider independent"
+  printf '%s\n' "${coupling}" | sed 's/^/       /' >&2
+fi
+
 # --- every rule set is registered, and every one is generated --------------
 # build-agents.sh guards what goes *into* a set. These are the two things it
 # cannot see: whether anyone can find the set, and whether a generated file

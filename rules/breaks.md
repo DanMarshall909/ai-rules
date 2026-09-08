@@ -16,5 +16,3 @@ Every 2 hours, pause and run this check-in:
    - End session
 
 3. Before the check-in, briefly scan all project memory/context files to surface anything relevant from other active work.
-
-> Claude Code users: run `/break-reminders` at session start to automate this.

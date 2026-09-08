@@ -12,5 +12,3 @@ docs/issues/
 - `area` = business domain (api, auth, payments, pii, booking, database, …)
 - Discover existing areas from the folder structure — don't hardcode them
 - On resolution: update `status: Resolved`, add decision log entry, move to `resolved/[area]/`
-
-> Claude Code users: use `/issue` and `/security-finding` skills.

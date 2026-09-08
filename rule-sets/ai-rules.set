@@ -7,10 +7,12 @@ title: AI Rules
 blurb: Lean, agent-agnostic rules for any coding assistant.
 
 rule: breaks
+rule: collaboration
 rule: tdd
 rule: coverage
 rule: guardrails
 rule: security
+rule: active-work
 rule: git
 rule: issues
 rule: reflection

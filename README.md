@@ -58,10 +58,12 @@ and never twice — a layered set arrives in repos that already have both.
 | Rule | What it does |
 |------|-------------|
 | `rules/breaks.md` | 30-min + 2-hour break reminders with cross-project check-in |
+| `rules/collaboration.md` | Concise, evidence-led communication with useful links and examples |
 | `rules/tdd.md` | Red → Green → Refactor → Coverage, one AC at a time |
 | `rules/coverage.md` | Code must justify itself; never call a branch unreachable |
 | `rules/guardrails.md` | Turn a repeatable mistake into a test that fails at build time |
 | `rules/security.md` | Concentrate security decisions behind one narrow, intent-named boundary |
+| `rules/active-work.md` | Fail closed on active or deferred work before repository mutations |
 | `rules/git.md` | pull --rebase, backup before force-push, staged diff review |
 | `rules/issues.md` | `docs/issues/[open\|resolved]/[area]/` structured tracking |
 | `rules/reflection.md` | Capture durable lessons when work lands; route them to the right scope |
@@ -178,6 +180,23 @@ and the checks to run before committing:
 scripts/install-skill.sh ai-rules
 ```
 
+## Summarize active work
+
+The read-only audit helper reports registered worktrees, dirty state, branch
+divergence and patch identity, stashes, shared deferred-work entries, and
+optionally live pull requests. It takes two snapshots so concurrent changes are
+visible:
+
+```powershell
+scripts\get-worktree-summary.ps1 -Root D:\code
+scripts\get-worktree-summary.ps1 -Root . -IncludePullRequests
+scripts\get-worktree-summary.ps1 -Root . -Format Json -FailOnBlockers
+```
+
+`-FailOnBlockers` returns exit code 2 when the active-work gate is blocked. The
+script never fetches or changes Git state; refresh remotes separately when a
+current remote comparison is required.
+
 ## Checks
 
 ```bash
@@ -208,8 +227,9 @@ rule-sets/
   tool-repos.set                ← authored manifest: layers on ai-rules
   tool-repos.md                 ← GENERATED from it
 rules/
-  breaks.md  tdd.md  coverage.md  guardrails.md
-  git.md  issues.md  reflection.md     ← fragments of the base set
+  breaks.md  collaboration.md  tdd.md  coverage.md  guardrails.md
+  security.md  active-work.md  git.md  issues.md  reflection.md
+                                        ← fragments of the base set
   tool-repos/*.md                      ← fragments of the tool-repos set
 skills/
   ai-rules/SKILL.md             ← how to work on this repo itself
@@ -228,6 +248,7 @@ scripts/
   install-skill.sh              ← installs a skill into any agent
   install-skill.ps1             ← the same, for Windows PowerShell
   install-rules.sh              ← points an agent at a rule set
+  get-worktree-summary.ps1      ← read-only active-work summary and gate evidence
   hooks/pre-commit              ← refuses stale generated rule files
   check-conventions.sh          ← skills load; installers agree; sets registered
   test-*.sh / test-*.ps1        ← behaviour tests for the above

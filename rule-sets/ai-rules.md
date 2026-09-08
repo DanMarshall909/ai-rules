@@ -28,7 +28,22 @@ Every 2 hours, pause and run this check-in:
 
 3. Before the check-in, briefly scan all project memory/context files to surface anything relevant from other active work.
 
-> Claude Code users: run `/break-reminders` at session start to automate this.
+---
+
+## Collaboration
+
+Lead with the outcome. Keep responses concise but complete enough that the
+reader can verify the conclusion without reconstructing the investigation.
+
+- Prefer plain language and short examples over unexplained jargon.
+- Use a diagram or other visualization only when it makes an important
+  relationship materially easier to understand.
+- Link directly to relevant source, using the repository's canonical web link
+  when one is available and a precise local file link otherwise.
+- Separate confirmed evidence, inference, and unverified or stale information.
+- State side effects and authorization boundaries clearly.
+- Do not call a plan, partial implementation, focused check, pushed branch, or
+  green pipeline the completed outcome it has not yet become.
 
 ---
 
@@ -45,8 +60,6 @@ Every 2 hours, pause and run this check-in:
   standing alone is the evidence that the test can fail, and squashing it away
   destroys exactly that. A red commit that does not compile is expected. It is
   not a broken trunk, and git.md's "trunk stays green" does not override this.
-
-> Claude Code users: use the `/tdd` skill.
 
 ---
 
@@ -178,12 +191,6 @@ and confirm the mutation tool can kill a fault you planted yourself, before read
 any score it produces. Hand-injection is not the crude approximation of mutation
 testing; it is what calibrates it.
 
-That ordering is between the two *questions*, not a schedule. It does not mean
-mutation belongs at the end, after the feature is finished and the design has set.
-Run it as soon as a slice is green and its lines are covered — the report's design
-signal is worth the most while the design is still soft enough to act on. See
-"Read the whole report early" below.
-
 Which cuts both ways. Everything above is a false *survivor* — a test that never
 ran. But a reported *kill* can be as hollow: a test that failed without checking the
 mutated behaviour — a timeout or a crash the tool scores as a kill — or a runner
@@ -257,52 +264,6 @@ Excluding a mutant class is legitimate only where killing it would assert
 something you have decided not to own: the wording of an exception message, or a
 guard whose behaviour belongs to the standard library. Say so where the exclusion
 lives, or the next reader will read it as a lowered bar.
-
-### Read the whole report early — it is a design review
-
-This is one of the main reasons to run mutation testing **first**, rather than as a
-release gate. The report's most valuable output is not the score. It is a map of
-which code nothing can distinguish — and that is a finding about the design, worth
-having while the design is still cheap to change. A report read after the feature is
-finished can only produce tests; a report read while the slice is still warm can
-produce a better shape.
-
-**Read it by clustering survivors across files, not file by file.** One survivor is a
-question about one test. The *same survivor shape* in seven types is a question about
-the code. That cluster is invisible if you only inspect the survivors your own diff
-introduced, which is the natural and the wrong way to read a report.
-
-Three things a cluster means, each with a different fix:
-
-- **Repeated surface beyond the contract.** The same pattern hand-rolled across many
-  types — a canonical-order `GetHashCode` and a hand-written `Equals` over a backing
-  collection — produces permanently unkillable mutants everywhere it appears, because
-  the only contract is "equal objects hash alike" and every mutation preserves it. The
-  finding here is **duplication to consolidate**, not code to delete: each copy is
-  load-bearing, so deleting one breaks its type. Extract the shape into one primitive
-  and the whole cluster retires at once — dozens of survivors answered by one edit
-  rather than by dozens of assertions that could never have been written.
-- **Genuinely equivalent.** A comparison whose branches agree at the boundary is dead
-  branching. Delete it, as above.
-- **Never executed.** The richest bucket, and the one the headline score hides by
-  folding it in with survivors. A line nothing has run is behaviour nobody has ever
-  had. Check each against what the spec, the task list, or the commit message that
-  introduced it *claims* — a claim with an unexecuted line under it is the gap to
-  close first, because someone has already written down that the behaviour exists.
-
-**A survivor can lie about which bucket it is in**, and it lies toward "equivalent",
-the one bucket whose verdict is "do nothing". A mutant that flips *both* sides of the
-comparison a test makes leaves the two still agreeing: the test stays green, the
-mutant looks like it cannot change the answer, and nothing is pinned. Symmetry
-assertions are the usual shape — `f(a, b)` equals `f(b, a)` holds just as well when
-the operands are swapped inside. Before filing a survivor as equivalent, ask what
-downstream depends on the value the test declined to name: a persisted format, a
-serialised order, an on-the-wire shape. The mutant is equivalent only if the answer
-is nothing.
-
-That last one is "Covered is not checked" arriving by a different road — consistency
-among outputs is not correctness — found by reading the report rather than by reading
-the test.
 
 ### Never call a branch unreachable
 
@@ -528,6 +489,107 @@ review, and get right.
 
 ---
 
+## Active Work Gate
+
+Fail closed before changing a repository. Read-only inspection needed to run
+this gate is allowed; repository mutations are not.
+
+The gate covers every worktree that shares the target repository's Git common
+directory. A workspace-wide maintenance task covers every repository in its
+stated scope.
+
+### Inspect before mutation
+
+1. Resolve the repository root, Git common directory, remotes, and intended
+   base branch. Read `<git-common-dir>/agent-work/deferred-work.md` when it
+   exists.
+2. List every registered worktree. For each one, record its absolute path,
+   branch or detached commit, upstream, and complete staged, unstaged, and
+   untracked state. Also inspect local branches, tracking and divergence,
+   stashes, ancestry and patch identity against a current base, and relevant
+   open code reviews when available.
+3. Repeat the worktree list and complete status snapshot immediately before
+   the first mutation. If anything changed between snapshots, assume another
+   user, agent, editor, hook, or process is active and stop.
+4. Repeat the check before destructive actions, integration, publication, and
+   handoff. A snapshot is evidence about one moment, not a lock.
+
+Use `scripts/get-worktree-summary.ps1` when available to gather the mechanical
+part of this evidence. Its report assists judgment; it does not decide whether
+work is valuable or safe to discard.
+
+### What blocks work
+
+Treat all of the following as active or unresolved:
+
+- staged, unstaged, or untracked files;
+- commits not integrated or verified patch-equivalent to the intended base;
+- ahead, divergent, local-only, or missing-upstream branches;
+- open or draft code reviews;
+- stashes;
+- detached work not proven contained;
+- locked, missing, or inaccessible worktrees;
+- state that changes during inspection; and
+- every open deferred-work ledger entry.
+
+If any item exists, block unrelated implementation, new worktrees, branch
+switching, integration, publication, and cleanup. While blocked, proceed only
+with read-only investigation or actions the user explicitly authorizes to
+preserve or resolve the identified item.
+
+Report the exact path, branch or commit, dirty/divergence summary, owner or
+session when known, and preservation risk. Never infer that generated files,
+archives, old branches, or another session's work are disposable.
+
+Work may continue only after the user explicitly chooses how each blocker is
+addressed:
+
+- finish and integrate it;
+- preserve it with a commit and appropriate upstream or archive branch;
+- discard it with explicit authorization; or
+- defer it.
+
+Silence, a generic cleanup request, an earlier handoff, or an archive-like name
+is not authorization.
+
+### Durable deferral ledger
+
+Deferral does not resolve active work. Before proceeding after an explicit
+deferral, create or update
+`<git-common-dir>/agent-work/deferred-work.md`. Keeping the ledger under the Git
+common directory makes it visible from every linked worktree without adding it
+to a product repository.
+
+Keep one durable entry per item containing:
+
+- a stable identifier and `OPEN` or `RESOLVED` status;
+- first-seen and last-reviewed timestamps;
+- repository common directory and worktree path;
+- branch or detached commit;
+- staged, unstaged, and untracked summary;
+- upstream, divergence, related review, and stash;
+- known owner or session and preservation risk;
+- the user's explicit decision and reason for deferral; and
+- the exact next action required.
+
+Never delete entries. Mark an item `RESOLVED` only after recording evidence
+that it was integrated, pushed or otherwise durably preserved, or discarded
+with explicit user authorization. An archive branch alone is not proof of
+preservation; verify commit reachability and the intended remote state.
+
+At the start of every later session, every `OPEN` item is a mandatory blocker
+again. Reconcile it with current repository state and require an explicit user
+decision to resolve it or continue the deferral. Continuing a deferral must
+update its last-reviewed time, current evidence, and new explicit decision; it
+must never roll forward silently.
+
+If work is known or reported to have been deferred but its entry is missing,
+unreadable, stale, inconsistent with repository state, or cannot be updated,
+fail closed. A repository in which no deferral has ever been identified does
+not need an empty ledger.
+
+---
+
 ## Git Workflow
 
 - `git pull --rebase` before every push — **except when pushing a merge commit**:
@@ -537,7 +599,10 @@ review, and get right.
   `git pull --rebase=merges`, and verify with `git log --graph` before pushing
 - Before force-push: create `backup/<branch>-<timestamp>` first
 - Never commit without reviewing the staged diff first
-- Commit messages: present tense, imperative, explain *why* not *what*
+- Commit messages use a short, specific, imperative subject and a body that
+  records why the change was needed, what changed, how it was verified, and
+  important constraints or follow-up. Do not create a subject-only commit
+  unless the user explicitly requests one
 - Never skip hooks (`--no-verify`) unless explicitly asked
 
 ### Trunk-Based Development
@@ -577,8 +642,6 @@ docs/issues/
 - Discover existing areas from the folder structure — don't hardcode them
 - On resolution: update `status: Resolved`, add decision log entry, move to `resolved/[area]/`
 
-> Claude Code users: use `/issue` and `/security-finding` skills.
-
 ---
 
 ## Reflection
@@ -599,11 +662,9 @@ Route each lesson to the scope it pertains to:
 
 | | Any project | This repo only |
 |---|---|---|
-| **Must obey** | global rules file | repo `AGENTS.md` / `CLAUDE.md` |
+| **Must obey** | global rules file | repository rules file |
 | **Should recall** | global skill | project memory |
 
 Do not leave a globally useful lesson in a project's memory just because that is
 where you learned it. If an existing rule is what let you go wrong, amend that
 rule rather than adding a contradictory one beside it.
-
-> Claude Code users: use the `/reflect` skill.

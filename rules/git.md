@@ -7,7 +7,10 @@
   `git pull --rebase=merges`, and verify with `git log --graph` before pushing
 - Before force-push: create `backup/<branch>-<timestamp>` first
 - Never commit without reviewing the staged diff first
-- Commit messages: present tense, imperative, explain *why* not *what*
+- Commit messages use a short, specific, imperative subject and a body that
+  records why the change was needed, what changed, how it was verified, and
+  important constraints or follow-up. Do not create a subject-only commit
+  unless the user explicitly requests one
 - Never skip hooks (`--no-verify`) unless explicitly asked
 
 ## Trunk-Based Development

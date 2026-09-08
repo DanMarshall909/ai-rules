@@ -16,11 +16,9 @@ Route each lesson to the scope it pertains to:
 
 | | Any project | This repo only |
 |---|---|---|
-| **Must obey** | global rules file | repo `AGENTS.md` / `CLAUDE.md` |
+| **Must obey** | global rules file | repository rules file |
 | **Should recall** | global skill | project memory |
 
 Do not leave a globally useful lesson in a project's memory just because that is
 where you learned it. If an existing rule is what let you go wrong, amend that
 rule rather than adding a contradictory one beside it.
-
-> Claude Code users: use the `/reflect` skill.
