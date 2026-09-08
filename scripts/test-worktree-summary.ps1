@@ -70,6 +70,7 @@ try {
     $report = Read-Report $clean
     Assert-True 'finds one repository' ($report.Summary.RepositoryCount -eq 1)
     Assert-True 'finds the primary worktree' ($report.Summary.WorktreeCount -eq 1)
+    Assert-True 'does not invent empty stash entries' ($report.Summary.StashCount -eq 0)
     Assert-True 'reports a clean repository as clear' (-not $report.Summary.Blocked)
 
     $active = New-TestRepository 'active'

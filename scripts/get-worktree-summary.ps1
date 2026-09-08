@@ -591,20 +591,28 @@ foreach ($seed in $seeds) {
     $key = if ($IsWindows) { $common.ToUpperInvariant() } else { $common }
     if (-not $repoByCommon.ContainsKey($key)) {
         $topResult = Invoke-Git $seed @('rev-parse', '--show-toplevel')
-        $repoByCommon[$key] = Get-NormalizedPath $topResult.Output[0]
+        $repoByCommon[$key] = [pscustomobject]@{
+            Repository = Get-NormalizedPath $topResult.Output[0]
+            CommonDirectory = $common
+        }
     }
 }
 
 $repositories = [System.Collections.Generic.List[object]]::new()
-foreach ($entry in $repoByCommon.GetEnumerator() | Sort-Object Value) {
-    $repositories.Add((Get-RepositoryAudit $entry.Value (Get-NormalizedPath $entry.Key)))
+foreach ($entry in $repoByCommon.GetEnumerator() | Sort-Object { $_.Value.Repository }) {
+    $repositories.Add((Get-RepositoryAudit `
+        $entry.Value.Repository $entry.Value.CommonDirectory))
 }
 
 $allWorktrees = @($repositories | ForEach-Object { $_.Worktrees })
 $allBranches = @($repositories | ForEach-Object { $_.Branches })
 $openDeferralTotal = 0
+$stashTotal = 0
+$pullRequestTotal = 0
 foreach ($repositoryAudit in $repositories) {
     $openDeferralTotal += $repositoryAudit.DeferredWork.OpenCount
+    $stashTotal += @($repositoryAudit.Stashes | Where-Object { $null -ne $_ }).Count
+    $pullRequestTotal += @($repositoryAudit.PullRequests.Items | Where-Object { $null -ne $_ }).Count
 }
 
 $summary = [pscustomobject]@{
@@ -614,9 +622,9 @@ $summary = [pscustomobject]@{
     ChangingWorktreeCount = @($allWorktrees | Where-Object { $_.ChangedDuringAudit }).Count
     BranchCount = $allBranches.Count
     BranchAttentionCount = @($allBranches | Where-Object { $_.NeedsAttention }).Count
-    StashCount = @($repositories | ForEach-Object { $_.Stashes }).Count
+    StashCount = $stashTotal
     OpenDeferralCount = $openDeferralTotal
-    OpenPullRequestCount = @($repositories | ForEach-Object { $_.PullRequests.Items }).Count
+    OpenPullRequestCount = $pullRequestTotal
     Blocked = @($repositories | Where-Object { $_.Blocked }).Count -gt 0
 }
 
