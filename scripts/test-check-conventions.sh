@@ -259,6 +259,15 @@ run_check
 reports "still reports it as undocumented" \
   "README.md's rules table does not list rules/ghost.md"
 
+# Canonical policy is shared by every supported agent and environment. Adapter
+# names and platform instructions belong in entrypoints, installers, or the
+# README, not in rules shipped to everyone.
+sandbox_git
+printf '\nClaude users should run this on Windows.\n' >> rules/git.md
+run_check
+reports "catches provider or platform coupling in canonical rules" \
+  "canonical rules must be repository, platform, and AI-provider independent"
+
 # --- rule sets are registered ----------------------------------------------
 # A set nobody can find is a set nobody installs. The README table is the only
 # place a reader learns a second set exists at all, and nothing else checks it.

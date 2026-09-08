@@ -138,6 +138,8 @@ else
 fi
 
 contains "AGENTS.md still points at the base set" AGENTS.md "rule-sets/ai-rules.md"
+contains "AGENTS.md states the rule-testing boundary" AGENTS.md \
+  "Automated tests cannot prove that an AI understands or follows a rule."
 
 # --- --check ----------------------------------------------------------------
 
