@@ -4,11 +4,10 @@
 #
 #   scripts/test-install-rules.sh
 #
-# Rules reach agents by two different mechanisms and the tests are split the
-# same way: AGENTS.md is linked into a project, while Claude Code is given an
-# `@` import line in a file it already owns. The second is the awkward one —
-# it edits a file the user wrote, so most of these tests are about not
-# damaging it.
+# Rules reach agents by two different mechanisms: the base set is installed
+# into user profiles, while layered sets are linked into one project. Claude
+# receives an `@` import in a file it owns; Codex receives a linked AGENTS.md
+# and linked generated set under its profile.
 
 set -uo pipefail
 
@@ -86,15 +85,16 @@ import_line() {
 
 echo "install-rules.sh"
 
-# --- AGENTS.md into a project ----------------------------------------------
+# --- base AGENTS.md into the Codex profile ---------------------------------
 
 echo "AGENTS.md"
 sandbox
 "${INSTALL}" --agent codex >/dev/null 2>&1
-links_to "codex links AGENTS.md into the project" \
-  "${PWD}/AGENTS.md" "${REPO}/AGENTS.md"
-links_to "codex links the rule set beside AGENTS.md" \
-  "${PWD}/rule-sets/ai-rules.md" "${REPO}/rule-sets/ai-rules.md"
+links_to "codex links AGENTS.md into its profile" \
+  "${HOME}/.codex/AGENTS.md" "${REPO}/AGENTS.md"
+links_to "codex links the rule set beside its profile AGENTS.md" \
+  "${HOME}/.codex/rule-sets/ai-rules.md" "${REPO}/rule-sets/ai-rules.md"
+absent "base codex install leaves the project alone" "${PWD}/AGENTS.md"
 
 sandbox
 "${INSTALL}" --agent cursor >/dev/null 2>&1
@@ -109,14 +109,14 @@ links_to "cline links AGENTS.md into .clinerules" \
 sandbox
 project="${PWD}"
 "${INSTALL}" --agent codex >/dev/null 2>&1
-links_to "installs into the given directory" "${project}/AGENTS.md" "${REPO}/AGENTS.md"
-absent "does not touch HOME for a project agent" "${HOME}/AGENTS.md"
+links_to "base install is profile-wide" "${HOME}/.codex/AGENTS.md" "${REPO}/AGENTS.md"
+absent "base install does not use the project" "${project}/AGENTS.md"
 
 # A link means an edit to rules/ reaches the project as soon as generated rule
 # files are regenerated. A copy would not, which is the whole point.
 sandbox
 "${INSTALL}" --agent codex >/dev/null 2>&1
-if [[ -L "${PWD}/AGENTS.md" ]]; then
+if [[ -L "${HOME}/.codex/AGENTS.md" ]]; then
   ok "AGENTS.md is a link, not a copy"
 else
   no "AGENTS.md is a link, not a copy"
@@ -326,7 +326,7 @@ echo "autodetect"
 sandbox
 mkdir -p "${HOME}/.codex"
 "${INSTALL}" >/dev/null 2>&1
-links_to "installs for the agent that is present" "${PWD}/AGENTS.md" "${REPO}/AGENTS.md"
+links_to "installs for the agent that is present" "${HOME}/.codex/AGENTS.md" "${REPO}/AGENTS.md"
 absent "skips the agent that is absent" "${HOME}/.claude/CLAUDE.md"
 
 sandbox
@@ -336,19 +336,21 @@ exits_nonzero "fails when no agent is detected" "${INSTALL}"
 
 echo "existing files"
 sandbox
-echo "a project's own AGENTS.md" > "${PWD}/AGENTS.md"
+mkdir -p "${HOME}/.codex"
+echo "a user's own AGENTS.md" > "${HOME}/.codex/AGENTS.md"
 exits_nonzero "refuses to replace a real AGENTS.md" "${INSTALL}" --agent codex
-if [[ "$(cat "${PWD}/AGENTS.md")" == "a project's own AGENTS.md" ]]; then
+if [[ "$(cat "${HOME}/.codex/AGENTS.md")" == "a user's own AGENTS.md" ]]; then
   ok "leaves the real file untouched"
 else
   no "leaves the real file untouched" "contents changed"
 fi
-absent "does not half-install the rule set" "${PWD}/rule-sets/ai-rules.md"
+absent "does not half-install the rule set" "${HOME}/.codex/rule-sets/ai-rules.md"
 
 sandbox
-echo "a project's own AGENTS.md" > "${PWD}/AGENTS.md"
+mkdir -p "${HOME}/.codex"
+echo "a user's own AGENTS.md" > "${HOME}/.codex/AGENTS.md"
 "${INSTALL}" --force --agent codex >/dev/null 2>&1
-links_to "--force replaces it" "${PWD}/AGENTS.md" "${REPO}/AGENTS.md"
+links_to "--force replaces it" "${HOME}/.codex/AGENTS.md" "${REPO}/AGENTS.md"
 
 # --- dry run ---------------------------------------------------------------
 
@@ -356,8 +358,9 @@ echo "--dry-run"
 sandbox
 mkdir -p "${HOME}/.codex" "${HOME}/.claude"
 "${INSTALL}" --dry-run >/dev/null 2>&1
-absent "links nothing" "${PWD}/AGENTS.md"
-absent "links no rule set" "${PWD}/rule-sets/ai-rules.md"
+absent "links nothing" "${HOME}/.codex/AGENTS.md"
+absent "links no rule set" "${HOME}/.codex/rule-sets/ai-rules.md"
+absent "touches no project" "${PWD}/AGENTS.md"
 absent "writes no import" "${HOME}/.claude/CLAUDE.md"
 
 # --- bad input -------------------------------------------------------------
