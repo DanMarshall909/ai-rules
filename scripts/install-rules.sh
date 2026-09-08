@@ -13,9 +13,9 @@
 #   Claude Code resolves `@` imports at read time, so it gets a one-line import
 #   written into a CLAUDE.md. Nothing is copied and nothing can go stale.
 #
-#   Everyone else reads AGENTS.md, so they get a minimal symlinked entrypoint
-#   plus the rule-set file it points at. `build-agents.sh` still has to run
-#   after a rule changes. The pre-commit hook in scripts/hooks catches that.
+#   Agents that read AGENTS.md get a minimal symlinked entrypoint plus the
+#   rule-set file it points at. `build-agents.sh` still has to run after a rule
+#   changes. The pre-commit hook in scripts/hooks catches that.
 #
 # And two kinds of rule set, which install to different places:
 #
@@ -47,12 +47,13 @@ RULE_SET_DIR="${REPO}/rule-sets"
 CLAUDE_IMPORT="@$(native_path "${REPO}")/CLAUDE.md"
 CLAUDE_CONFIG="${HOME}/.claude/CLAUDE.md"
 
-# Where AGENTS.md has to appear for each agent to read it. Claude is absent by
-# design: it takes the import instead, handled separately below.
+# Where the base AGENTS.md has to appear for each agent to read it. Claude is
+# absent by design: it takes the import instead, handled separately below.
 rules_target() { # <agent>
   case "$1" in
     claude)            printf '%s' "${CLAUDE_CONFIG}" ;;
-    codex|opencode)    printf '%s' "${PROJECT}/AGENTS.md" ;;
+    codex)             printf '%s' "${HOME}/.codex/AGENTS.md" ;;
+    opencode)          printf '%s' "${PROJECT}/AGENTS.md" ;;
     cursor)            printf '%s' "${PROJECT}/.cursor/rules/${BASE_SET}.mdc" ;;
     cline)             printf '%s' "${PROJECT}/.clinerules/${BASE_SET}.md" ;;
   esac

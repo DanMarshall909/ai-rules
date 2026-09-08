@@ -113,7 +113,7 @@ Then run `/break-reminders` at the start of any Claude Code session.
 
 ## Adopt the rules
 
-From the project you want the rules in:
+From the `ai-rules` checkout:
 
 ```bash
 ~/code/ai-rules/scripts/install-rules.sh --list   # what each agent would get
@@ -124,15 +124,18 @@ From the project you want the rules in:
 | Agent | Gets | Where |
 |-------|------|-------|
 | `claude` | an `@` import of this repo's `CLAUDE.md` | `~/.claude/CLAUDE.md` (user) |
-| `codex`, `opencode` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `./AGENTS.md` and `./rule-sets/ai-rules.md` |
+| `codex` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `~/.codex/AGENTS.md` and `~/.codex/rule-sets/ai-rules.md` |
+| `opencode` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `./AGENTS.md` and `./rule-sets/ai-rules.md` |
 | `cursor` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `.cursor/rules/ai-rules.mdc` and `.cursor/rules/rule-sets/ai-rules.md` |
 | `cline` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `.clinerules/ai-rules.md` and `.clinerules/rule-sets/ai-rules.md` |
 
 Claude Code resolves `@` imports at read time, so it imports
-`rule-sets/ai-rules.md`. Everyone else reads a small `AGENTS.md` entrypoint that
-points at the same generated rule set. An edit to a rule reaches installed
-projects once `scripts/build-agents.sh` has run. The links mean you never have
-to reinstall; the hook below means you never forget to regenerate.
+`rule-sets/ai-rules.md`. Agents with AGENTS.md support read a small entrypoint
+that points at the same generated rule set. Codex receives that entrypoint in
+its user profile; project-scoped agents receive it in the project. An edit to a
+rule reaches installed targets once `scripts/build-agents.sh` has run. The links
+mean you never have to reinstall; the hook below means you never forget to
+regenerate.
 
 For Claude the installer appends one line to `~/.claude/CLAUDE.md`, keeping
 whatever is already there, and won't add it twice.
