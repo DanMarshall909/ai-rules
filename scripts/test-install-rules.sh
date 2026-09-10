@@ -100,15 +100,16 @@ import_line() {
 
 echo "install-rules.sh"
 
-# --- AGENTS.md into a project ----------------------------------------------
+# --- base AGENTS.md into a profile -----------------------------------------
 
 echo "AGENTS.md"
 sandbox
 "${INSTALL}" --agent codex >/dev/null 2>&1
-links_to "codex links AGENTS.md into the project" \
-  "${PWD}/AGENTS.md" "${REPO}/AGENTS.md"
+links_to "codex links AGENTS.md into its profile" \
+  "${HOME}/.codex/AGENTS.md" "${REPO}/AGENTS.md"
 links_to "codex links the rule set beside AGENTS.md" \
-  "${PWD}/rule-sets/ai-rules.md" "${REPO}/rule-sets/ai-rules.md"
+  "${HOME}/.codex/rule-sets/ai-rules.md" "${REPO}/rule-sets/ai-rules.md"
+absent "codex leaves the project's AGENTS.md alone" "${PWD}/AGENTS.md"
 
 sandbox
 "${INSTALL}" --agent cursor >/dev/null 2>&1
@@ -123,14 +124,15 @@ links_to "cline links AGENTS.md into .clinerules" \
 sandbox
 project="${PWD}"
 "${INSTALL}" --agent codex >/dev/null 2>&1
-links_to "installs into the given directory" "${project}/AGENTS.md" "${REPO}/AGENTS.md"
-absent "does not touch HOME for a project agent" "${HOME}/AGENTS.md"
+links_to "installs independently of the current directory" \
+  "${HOME}/.codex/AGENTS.md" "${REPO}/AGENTS.md"
+absent "does not treat the current directory as a profile" "${project}/AGENTS.md"
 
 # A link means an edit to rules/ reaches the project as soon as generated rule
 # files are regenerated. A copy would not, which is the whole point.
 sandbox
 "${INSTALL}" --agent codex >/dev/null 2>&1
-if [[ -L "${PWD}/AGENTS.md" ]]; then
+if [[ -L "${HOME}/.codex/AGENTS.md" ]]; then
   ok "AGENTS.md is a link, not a copy"
 else
   no "AGENTS.md is a link, not a copy"
@@ -357,7 +359,8 @@ echo "autodetect"
 sandbox
 mkdir -p "${HOME}/.codex"
 "${INSTALL}" >/dev/null 2>&1
-links_to "installs for the agent that is present" "${PWD}/AGENTS.md" "${REPO}/AGENTS.md"
+links_to "installs for the agent that is present" \
+  "${HOME}/.codex/AGENTS.md" "${REPO}/AGENTS.md"
 absent "skips the agent that is absent" "${HOME}/.claude/CLAUDE.md"
 
 sandbox
@@ -367,19 +370,33 @@ exits_nonzero "fails when no agent is detected" "${INSTALL}"
 
 echo "existing files"
 sandbox
-echo "a project's own AGENTS.md" > "${PWD}/AGENTS.md"
+mkdir -p "${HOME}/.codex"
+echo "my own Codex defaults" > "${HOME}/.codex/AGENTS.md"
 exits_nonzero "refuses to replace a real AGENTS.md" "${INSTALL}" --agent codex
-if [[ "$(cat "${PWD}/AGENTS.md")" == "a project's own AGENTS.md" ]]; then
+if [[ "$(cat "${HOME}/.codex/AGENTS.md")" == "my own Codex defaults" ]]; then
   ok "leaves the real file untouched"
 else
   no "leaves the real file untouched" "contents changed"
 fi
-absent "does not half-install the rule set" "${PWD}/rule-sets/ai-rules.md"
+absent "does not half-install the rule set" \
+  "${HOME}/.codex/rule-sets/ai-rules.md"
+
+sandbox
+mkdir -p "${HOME}/.codex"
+echo "my own Codex defaults" > "${HOME}/.codex/AGENTS.md"
+"${INSTALL}" --force --agent codex >/dev/null 2>&1
+links_to "--force replaces it" "${HOME}/.codex/AGENTS.md" "${REPO}/AGENTS.md"
 
 sandbox
 echo "a project's own AGENTS.md" > "${PWD}/AGENTS.md"
-"${INSTALL}" --force --agent codex >/dev/null 2>&1
-links_to "--force replaces it" "${PWD}/AGENTS.md" "${REPO}/AGENTS.md"
+"${INSTALL}" --agent codex >/dev/null 2>&1
+if [[ "$(cat "${PWD}/AGENTS.md")" == "a project's own AGENTS.md" ]]; then
+  ok "never replaces a project's root AGENTS.md"
+else
+  no "never replaces a project's root AGENTS.md" "contents changed"
+fi
+links_to "still installs the profile defaults" \
+  "${HOME}/.codex/AGENTS.md" "${REPO}/AGENTS.md"
 
 # --- dry run ---------------------------------------------------------------
 
@@ -387,8 +404,8 @@ echo "--dry-run"
 sandbox
 mkdir -p "${HOME}/.codex" "${HOME}/.claude"
 "${INSTALL}" --dry-run >/dev/null 2>&1
-absent "links nothing" "${PWD}/AGENTS.md"
-absent "links no rule set" "${PWD}/rule-sets/ai-rules.md"
+absent "links nothing" "${HOME}/.codex/AGENTS.md"
+absent "links no rule set" "${HOME}/.codex/rule-sets/ai-rules.md"
 absent "writes no import" "${HOME}/.claude/CLAUDE.md"
 
 # --- bad input -------------------------------------------------------------
