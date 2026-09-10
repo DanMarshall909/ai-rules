@@ -24,6 +24,14 @@ source "$(dirname "${BASH_SOURCE[0]}")/agents.sh"
 REPO="$(repo_root "${BASH_SOURCE[0]}")"
 SKILLS_DIR="${REPO}/skills"
 
+canonical_target() { # <skill>
+  if [[ ${PROJECT_SCOPED} -eq 1 ]]; then
+    printf '%s' "${PROJECT}/.agents/skills/$1"
+  else
+    printf '%s' "${HOME}/.agents/skills/$1"
+  fi
+}
+
 # Where a skill has to appear for each agent to see it. Claude Code, Codex, and
 # OpenCode read a skill directory, preserving any resources beside SKILL.md.
 # The rest read a single markdown file directly. Roots and scopes live in
@@ -205,6 +213,13 @@ failures=0
 for skill in "${SKILLS[@]}"; do
   echo "${skill}"
   for agent in "${TARGET_AGENTS[@]}"; do
+    if [[ "${agent}" == "claude" ]]; then
+      if ! link_to "${SKILLS_DIR}/${skill}" \
+                   "$(canonical_target "${skill}")" \
+                   "portable: $(canonical_target "${skill}")"; then
+        continue
+      fi
+    fi
     link_to "$(agent_source "${agent}" "${skill}")" \
             "$(agent_target "${agent}" "${skill}")" \
             "${agent}: $(agent_target "${agent}" "${skill}")"
