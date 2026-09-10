@@ -252,7 +252,7 @@ install_layered_set() {
       append_once "${PROJECT}/CLAUDE.md" "${import}" \
         "claude: ${PROJECT}/CLAUDE.md"
       ;;
-    codex|opencode|copilot)
+    codex|opencode)
       target="$(set_target "${agent}")"
       if link_to "${SET_FILE}" "${target}" "${agent}: ${target}"; then
         # AGENTS.md has no import syntax, so the pointer is a sentence an agent
@@ -260,6 +260,17 @@ install_layered_set() {
         pointer="Read and follow the rules in [rule-sets/${SET_NAME}.md](rule-sets/${SET_NAME}.md)."
         append_once "${PROJECT}/AGENTS.md" "${pointer}" \
           "${agent}: ${PROJECT}/AGENTS.md"
+      fi
+      ;;
+    copilot)
+      target="$(set_target "${agent}")"
+      if link_to "${SET_FILE}" "${target}" "${agent}: ${target}"; then
+        pointer="Read and follow the rules in [rule-sets/${SET_NAME}.md](rule-sets/${SET_NAME}.md)."
+        append_once "${PROJECT}/AGENTS.md" "${pointer}" \
+          "${agent}: ${PROJECT}/AGENTS.md"
+        pointer="Read and follow the project instructions in [../AGENTS.md](../AGENTS.md)."
+        append_once "${PROJECT}/.github/copilot-instructions.md" "${pointer}" \
+          "${agent}: ${PROJECT}/.github/copilot-instructions.md"
       fi
       ;;
     *)
