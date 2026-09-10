@@ -112,6 +112,15 @@ links_to "codex links the rule set beside AGENTS.md" \
 absent "codex leaves the project's AGENTS.md alone" "${PWD}/AGENTS.md"
 
 sandbox
+"${INSTALL}" --agent opencode >/dev/null 2>&1
+links_to "OpenCode links AGENTS.md into its profile" \
+  "${XDG_CONFIG_HOME}/opencode/AGENTS.md" "${REPO}/AGENTS.md"
+links_to "OpenCode links the rule set beside AGENTS.md" \
+  "${XDG_CONFIG_HOME}/opencode/rule-sets/ai-rules.md" \
+  "${REPO}/rule-sets/ai-rules.md"
+absent "OpenCode leaves the project's AGENTS.md alone" "${PWD}/AGENTS.md"
+
+sandbox
 "${INSTALL}" --agent cursor >/dev/null 2>&1
 links_to "cursor links AGENTS.md as an .mdc rule" \
   "${PWD}/.cursor/rules/ai-rules.mdc" "${REPO}/AGENTS.md"
@@ -397,6 +406,17 @@ else
 fi
 links_to "still installs the profile defaults" \
   "${HOME}/.codex/AGENTS.md" "${REPO}/AGENTS.md"
+
+sandbox
+echo "a project's own AGENTS.md" > "${PWD}/AGENTS.md"
+"${INSTALL}" --agent opencode >/dev/null 2>&1
+if [[ "$(cat "${PWD}/AGENTS.md")" == "a project's own AGENTS.md" ]]; then
+  ok "OpenCode preserves a project's root AGENTS.md"
+else
+  no "OpenCode preserves a project's root AGENTS.md" "contents changed"
+fi
+links_to "OpenCode still installs the profile defaults" \
+  "${XDG_CONFIG_HOME}/opencode/AGENTS.md" "${REPO}/AGENTS.md"
 
 # --- dry run ---------------------------------------------------------------
 
