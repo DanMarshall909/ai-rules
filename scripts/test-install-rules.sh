@@ -121,6 +121,15 @@ links_to "OpenCode links the rule set beside AGENTS.md" \
 absent "OpenCode leaves the project's AGENTS.md alone" "${PWD}/AGENTS.md"
 
 sandbox
+"${INSTALL}" --agent copilot >/dev/null 2>&1
+links_to "Copilot links instructions into its profile" \
+  "${HOME}/.copilot/copilot-instructions.md" "${REPO}/AGENTS.md"
+links_to "Copilot links the rule set beside its instructions" \
+  "${HOME}/.copilot/rule-sets/ai-rules.md" \
+  "${REPO}/rule-sets/ai-rules.md"
+absent "Copilot leaves the project's AGENTS.md alone" "${PWD}/AGENTS.md"
+
+sandbox
 "${INSTALL}" --agent cursor >/dev/null 2>&1
 links_to "cursor links AGENTS.md as an .mdc rule" \
   "${PWD}/.cursor/rules/ai-rules.mdc" "${REPO}/AGENTS.md"
@@ -289,6 +298,16 @@ else
 fi
 
 sandbox
+"${INSTALL}" --rule-set tool-repos --agent copilot >/dev/null 2>&1
+links_to "Copilot links a layered set beside the project's AGENTS.md" \
+  "${PWD}/rule-sets/tool-repos.md" "${REPO}/rule-sets/tool-repos.md"
+if grep -qF "rule-sets/tool-repos.md" "${PWD}/AGENTS.md" 2>/dev/null; then
+  ok "Copilot points the project's AGENTS.md at a layered set"
+else
+  no "Copilot points the project's AGENTS.md at a layered set"
+fi
+
+sandbox
 "${INSTALL}" --rule-set tool-repos --agent cursor >/dev/null 2>&1
 links_to "cursor gets the set as its own rule file" \
   "${PWD}/.cursor/rules/tool-repos.mdc" "${REPO}/rule-sets/tool-repos.md"
@@ -340,7 +359,11 @@ echo "--list"
 sandbox
 out="$("${INSTALL}" --list 2>&1)"
 if [[ $? -eq 0 ]]; then ok "exits 0"; else no "exits 0" "${out}"; fi
-if grep -q "claude" <<<"${out}"; then ok "names the agents"; else no "names the agents"; fi
+if grep -q "claude" <<<"${out}" && grep -q "copilot" <<<"${out}"; then
+  ok "names the agents"
+else
+  no "names the agents" "Copilot was absent from the list"
+fi
 
 # A set nobody can discover is one nobody installs, so --list is where the
 # second set has to show up.
@@ -371,6 +394,12 @@ mkdir -p "${HOME}/.codex"
 links_to "installs for the agent that is present" \
   "${HOME}/.codex/AGENTS.md" "${REPO}/AGENTS.md"
 absent "skips the agent that is absent" "${HOME}/.claude/CLAUDE.md"
+
+sandbox
+mkdir -p "${HOME}/.copilot"
+"${INSTALL}" >/dev/null 2>&1
+links_to "autodetects Copilot" \
+  "${HOME}/.copilot/copilot-instructions.md" "${REPO}/AGENTS.md"
 
 sandbox
 exits_nonzero "fails when no agent is detected" "${INSTALL}"

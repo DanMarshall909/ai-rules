@@ -114,6 +114,10 @@ try {
   Assert-Absent "opencode does not create a command-file adapter" "$s\home\.config\opencode\command\reflect.md"
 
   $s = New-Sandbox
+  Invoke-Install -Agent copilot reflect | Out-Null
+  Assert-LinksTo "copilot installs a discoverable skill directory" "$s\home\.agents\skills\reflect" "$repo\skills\reflect"
+
+  $s = New-Sandbox
   Invoke-Install -Agent cursor reflect | Out-Null
   Assert-LinksTo "cursor installs SKILL.md as an .mdc rule" "$s\project\.cursor\rules\reflect.mdc" "$repo\skills\reflect\SKILL.md"
 
@@ -154,6 +158,11 @@ try {
   Assert-Absent "leaves the OpenCode profile alone" "$s\home\.config\opencode\command\reflect.md"
 
   $s = New-Sandbox
+  Invoke-Install -Project "$s\project" -Agent copilot reflect | Out-Null
+  Assert-LinksTo "copilot gets the skill package under .agents" `
+    "$s\project\.agents\skills\reflect" "$repo\skills\reflect"
+
+  $s = New-Sandbox
   New-Item -ItemType Directory -Force -Path "$s\elsewhere" | Out-Null
   Invoke-Install -Project "$s\elsewhere" -Agent cursor reflect | Out-Null
   Assert-LinksTo "a project agent follows -Project too" `
@@ -167,13 +176,16 @@ try {
   # --- all / autodetect ----------------------------------------------------
   Write-Host "-Agent all"
   $s = New-Sandbox
-  Invoke-Install -Agent all reflect | Out-Null
+  $r = Invoke-Install -Agent all reflect
   Assert-LinksTo "all: claude"   "$s\home\.claude\skills\reflect"              "$repo\skills\reflect"
   Assert-LinksTo "all: codex"    "$s\home\.agents\skills\reflect"              "$repo\skills\reflect"
   Assert-LinksTo "all: opencode" "$s\home\.agents\skills\reflect"              "$repo\skills\reflect"
+  Assert-LinksTo "all: copilot"  "$s\home\.agents\skills\reflect"              "$repo\skills\reflect"
   Assert-Absent "all: no OpenCode command adapter" "$s\home\.config\opencode\command\reflect.md"
   Assert-LinksTo "all: cursor"   "$s\project\.cursor\rules\reflect.mdc"        "$repo\skills\reflect\SKILL.md"
   Assert-LinksTo "all: cline"    "$s\project\.clinerules\reflect.md"           "$repo\skills\reflect\SKILL.md"
+  if ($r.Out -match 'copilot:') { Ok "all selects Copilot" }
+  else { No "all selects Copilot" "Copilot was absent from installer output" }
 
   Write-Host "autodetect"
   $s = New-Sandbox
@@ -181,6 +193,11 @@ try {
   Invoke-Install reflect | Out-Null
   Assert-LinksTo "installs for the agent that is present" "$s\home\.agents\skills\reflect" "$repo\skills\reflect"
   Assert-Absent "skips the agent that is absent" "$s\home\.claude\skills\reflect"
+
+  $s = New-Sandbox
+  New-Item -ItemType Directory -Force -Path "$s\home\.copilot" | Out-Null
+  Invoke-Install reflect | Out-Null
+  Assert-LinksTo "autodetects Copilot" "$s\home\.agents\skills\reflect" "$repo\skills\reflect"
 
   New-Sandbox | Out-Null
   Assert-Fails "fails when no agent is detected" reflect

@@ -129,6 +129,11 @@ absent "opencode does not create a command-file adapter" \
   "${XDG_CONFIG_HOME}/opencode/command/reflect.md"
 
 sandbox
+"${INSTALL}" --agent copilot reflect >/dev/null 2>&1
+links_to "copilot installs a discoverable skill directory" \
+  "${HOME}/.agents/skills/reflect" "${REPO}/skills/reflect"
+
+sandbox
 "${INSTALL}" --agent cursor reflect >/dev/null 2>&1
 links_to "cursor installs SKILL.md as an .mdc rule" \
   "${PWD}/.cursor/rules/reflect.mdc" "${REPO}/skills/reflect/SKILL.md"
@@ -179,6 +184,12 @@ absent "leaves the OpenCode profile alone" \
   "${XDG_CONFIG_HOME}/opencode/command/reflect.md"
 
 sandbox
+project="${PWD}"
+"${INSTALL}" --project "${project}" --agent copilot reflect >/dev/null 2>&1
+links_to "copilot gets the skill package under .agents/" \
+  "${project}/.agents/skills/reflect" "${REPO}/skills/reflect"
+
+sandbox
 mkdir -p "${SANDBOX_ELSEWHERE:=${PWD}/../elsewhere}"
 "${INSTALL}" --project "${PWD}/../elsewhere" --agent cursor reflect >/dev/null 2>&1
 links_to "a project agent follows --project too" \
@@ -196,14 +207,20 @@ fi
 
 echo "--agent all"
 sandbox
-"${INSTALL}" --agent all reflect >/dev/null 2>&1
+out="$("${INSTALL}" --agent all reflect 2>&1)"
 links_to "all: claude"   "${HOME}/.claude/skills/reflect"                 "${REPO}/skills/reflect"
 links_to "all: codex"    "${HOME}/.agents/skills/reflect"                 "${REPO}/skills/reflect"
 links_to "all: opencode" "${HOME}/.agents/skills/reflect"                 "${REPO}/skills/reflect"
+links_to "all: copilot"  "${HOME}/.agents/skills/reflect"                 "${REPO}/skills/reflect"
 absent "all: no OpenCode command adapter" \
   "${XDG_CONFIG_HOME}/opencode/command/reflect.md"
 links_to "all: cursor"   "${PWD}/.cursor/rules/reflect.mdc"               "${REPO}/skills/reflect/SKILL.md"
 links_to "all: cline"    "${PWD}/.clinerules/reflect.md"                  "${REPO}/skills/reflect/SKILL.md"
+if grep -qF "copilot:" <<<"${out}"; then
+  ok "all selects Copilot"
+else
+  no "all selects Copilot" "Copilot was absent from installer output"
+fi
 
 echo "autodetect"
 sandbox
@@ -212,6 +229,12 @@ mkdir -p "${HOME}/.codex"
 links_to "installs for the agent that is present" \
   "${HOME}/.agents/skills/reflect" "${REPO}/skills/reflect"
 absent "skips the agent that is absent" "${HOME}/.claude/skills/reflect"
+
+sandbox
+mkdir -p "${HOME}/.copilot"
+"${INSTALL}" reflect >/dev/null 2>&1
+links_to "autodetects Copilot" \
+  "${HOME}/.agents/skills/reflect" "${REPO}/skills/reflect"
 
 sandbox
 exits_nonzero "fails when no agent is detected" "${INSTALL}" reflect
