@@ -121,8 +121,10 @@ absent "codex does not create a vendor-specific skill link" \
 
 sandbox
 "${INSTALL}" --agent opencode reflect >/dev/null 2>&1
-links_to "opencode installs SKILL.md as a command" \
-  "${XDG_CONFIG_HOME}/opencode/command/reflect.md" "${REPO}/skills/reflect/SKILL.md"
+links_to "opencode installs a discoverable skill directory" \
+  "${HOME}/.agents/skills/reflect" "${REPO}/skills/reflect"
+absent "opencode does not create a command-file adapter" \
+  "${XDG_CONFIG_HOME}/opencode/command/reflect.md"
 
 sandbox
 "${INSTALL}" --agent cursor reflect >/dev/null 2>&1
@@ -165,6 +167,14 @@ links_to "codex gets the skill under .agents/" \
 absent "leaves the codex profile alone" "${HOME}/.codex/skills/reflect"
 
 sandbox
+project="${PWD}"
+"${INSTALL}" --project "${project}" --agent opencode reflect >/dev/null 2>&1
+links_to "opencode gets the skill package under .agents/" \
+  "${project}/.agents/skills/reflect" "${REPO}/skills/reflect"
+absent "leaves the OpenCode profile alone" \
+  "${XDG_CONFIG_HOME}/opencode/command/reflect.md"
+
+sandbox
 mkdir -p "${SANDBOX_ELSEWHERE:=${PWD}/../elsewhere}"
 "${INSTALL}" --project "${PWD}/../elsewhere" --agent cursor reflect >/dev/null 2>&1
 links_to "a project agent follows --project too" \
@@ -185,7 +195,9 @@ sandbox
 "${INSTALL}" --agent all reflect >/dev/null 2>&1
 links_to "all: claude"   "${HOME}/.claude/skills/reflect"                 "${REPO}/skills/reflect"
 links_to "all: codex"    "${HOME}/.agents/skills/reflect"                 "${REPO}/skills/reflect"
-links_to "all: opencode" "${XDG_CONFIG_HOME}/opencode/command/reflect.md" "${REPO}/skills/reflect/SKILL.md"
+links_to "all: opencode" "${HOME}/.agents/skills/reflect"                 "${REPO}/skills/reflect"
+absent "all: no OpenCode command adapter" \
+  "${XDG_CONFIG_HOME}/opencode/command/reflect.md"
 links_to "all: cursor"   "${PWD}/.cursor/rules/reflect.mdc"               "${REPO}/skills/reflect/SKILL.md"
 links_to "all: cline"    "${PWD}/.clinerules/reflect.md"                  "${REPO}/skills/reflect/SKILL.md"
 
