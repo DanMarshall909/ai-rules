@@ -168,6 +168,15 @@ links_to "installs the Claude compatibility link for a base skill" \
   "${REPO}/skills/behavior-first-tdd"
 links_to "installs every workflow declared by the base set" \
   "${HOME}/.agents/skills/reflect" "${REPO}/skills/reflect"
+links_to "installs the base coverage workflow" \
+  "${HOME}/.agents/skills/coverage-and-mutation" \
+  "${REPO}/skills/coverage-and-mutation"
+links_to "installs the base security workflow" \
+  "${HOME}/.agents/skills/security-by-design" \
+  "${REPO}/skills/security-by-design"
+links_to "installs the base break workflow" \
+  "${HOME}/.agents/skills/break-reminders" \
+  "${REPO}/skills/break-reminders"
 absent "does not put base skills in the current project" \
   "${PWD}/.agents/skills/behavior-first-tdd"
 

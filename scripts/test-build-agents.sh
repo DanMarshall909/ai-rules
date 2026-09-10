@@ -129,6 +129,19 @@ done
 contains "the TDD rule names its supplied skill" rule-sets/ai-rules.md \
   "/behavior-first-tdd"
 
+lines="$(wc -l < rule-sets/ai-rules.md)"
+if [[ ${lines} -lt 200 ]]; then
+  ok "keeps the always-loaded base policy below 200 lines"
+else
+  no "keeps the always-loaded base policy below 200 lines" \
+    "generated ${lines} lines"
+fi
+for skill in behavior-first-tdd coverage-and-mutation security-by-design \
+             break-reminders reflect; do
+  contains "routes detailed work to ${skill}" rule-sets/ai-rules.md \
+    "the \`${skill}\` skill"
+done
+
 # Reading order is policy: breaks and TDD frame everything after them, and
 # reflection closes. A manifest that silently reordered would read as a rewrite.
 first="$(line_of rule-sets/ai-rules.md "## Break Reminders")"
