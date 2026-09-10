@@ -9,6 +9,10 @@ rule-sets/ai-rules.md
 `AGENTS.md` is intentionally minimal. It points agents at the rule set instead
 of carrying the full policy itself.
 
+The cross-agent distribution strategy, native discovery paths, and migration
+work are documented in
+[`docs/cross-agent-rules-and-skills.md`](docs/cross-agent-rules-and-skills.md).
+
 ## Rule sets
 
 A rule set is a manifest (`rule-sets/<name>.set`) naming the rule fragments it
