@@ -52,7 +52,8 @@ CLAUDE_CONFIG="${HOME}/.claude/CLAUDE.md"
 rules_target() { # <agent>
   case "$1" in
     claude)            printf '%s' "${CLAUDE_CONFIG}" ;;
-    codex|opencode)    printf '%s' "${PROJECT}/AGENTS.md" ;;
+    codex)             printf '%s' "${HOME}/.codex/AGENTS.md" ;;
+    opencode)          printf '%s' "${PROJECT}/AGENTS.md" ;;
     cursor)            printf '%s' "${PROJECT}/.cursor/rules/${BASE_SET}.mdc" ;;
     cline)             printf '%s' "${PROJECT}/.clinerules/${BASE_SET}.md" ;;
   esac
