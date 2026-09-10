@@ -156,6 +156,21 @@ else
   no "AGENTS.md is a link, not a copy"
 fi
 
+# Detailed procedures can leave the always-loaded base policy only if its
+# declared skills travel with the base installation into the profile.
+sandbox
+"${INSTALL}" --agent claude,codex >/dev/null 2>&1
+links_to "installs a base skill in the canonical profile location" \
+  "${HOME}/.agents/skills/behavior-first-tdd" \
+  "${REPO}/skills/behavior-first-tdd"
+links_to "installs the Claude compatibility link for a base skill" \
+  "${HOME}/.claude/skills/behavior-first-tdd" \
+  "${REPO}/skills/behavior-first-tdd"
+links_to "installs every workflow declared by the base set" \
+  "${HOME}/.agents/skills/reflect" "${REPO}/skills/reflect"
+absent "does not put base skills in the current project" \
+  "${PWD}/.agents/skills/behavior-first-tdd"
+
 # --- the Claude @ import ---------------------------------------------------
 
 echo "claude @import"
