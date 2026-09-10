@@ -100,15 +100,18 @@ try {
   Write-Host "per-agent targets"
   $s = New-Sandbox
   Invoke-Install -Agent claude reflect | Out-Null
+  Assert-LinksTo "claude installs the canonical skill package" "$s\home\.agents\skills\reflect" "$repo\skills\reflect"
   Assert-LinksTo "claude installs a skill directory" "$s\home\.claude\skills\reflect" "$repo\skills\reflect"
 
   $s = New-Sandbox
   Invoke-Install -Agent codex reflect | Out-Null
-  Assert-LinksTo "codex installs a discoverable skill directory" "$s\home\.codex\skills\reflect" "$repo\skills\reflect"
+  Assert-LinksTo "codex installs a discoverable skill directory" "$s\home\.agents\skills\reflect" "$repo\skills\reflect"
+  Assert-Absent "codex does not create a vendor-specific skill link" "$s\home\.codex\skills\reflect"
 
   $s = New-Sandbox
   Invoke-Install -Agent opencode reflect | Out-Null
-  Assert-LinksTo "opencode installs SKILL.md as a command" "$s\home\.config\opencode\command\reflect.md" "$repo\skills\reflect\SKILL.md"
+  Assert-LinksTo "opencode installs a discoverable skill directory" "$s\home\.agents\skills\reflect" "$repo\skills\reflect"
+  Assert-Absent "opencode does not create a command-file adapter" "$s\home\.config\opencode\command\reflect.md"
 
   $s = New-Sandbox
   Invoke-Install -Agent cursor reflect | Out-Null
@@ -132,6 +135,8 @@ try {
   Write-Host "-Project"
   $s = New-Sandbox
   Invoke-Install -Project "$s\project" -Agent claude reflect | Out-Null
+  Assert-LinksTo "claude installs the canonical project skill package" `
+    "$s\project\.agents\skills\reflect" "$repo\skills\reflect"
   Assert-LinksTo "claude reads a skills directory inside the project" `
     "$s\project\.claude\skills\reflect" "$repo\skills\reflect"
   Assert-Absent "installs nothing into the profile" "$s\home\.claude\skills\reflect"
@@ -141,6 +146,12 @@ try {
   Assert-LinksTo "codex gets the skill under .agents" `
     "$s\project\.agents\skills\reflect" "$repo\skills\reflect"
   Assert-Absent "leaves the codex profile alone" "$s\home\.codex\skills\reflect"
+
+  $s = New-Sandbox
+  Invoke-Install -Project "$s\project" -Agent opencode reflect | Out-Null
+  Assert-LinksTo "opencode gets the skill package under .agents" `
+    "$s\project\.agents\skills\reflect" "$repo\skills\reflect"
+  Assert-Absent "leaves the OpenCode profile alone" "$s\home\.config\opencode\command\reflect.md"
 
   $s = New-Sandbox
   New-Item -ItemType Directory -Force -Path "$s\elsewhere" | Out-Null
@@ -158,8 +169,9 @@ try {
   $s = New-Sandbox
   Invoke-Install -Agent all reflect | Out-Null
   Assert-LinksTo "all: claude"   "$s\home\.claude\skills\reflect"              "$repo\skills\reflect"
-  Assert-LinksTo "all: codex"    "$s\home\.codex\skills\reflect"               "$repo\skills\reflect"
-  Assert-LinksTo "all: opencode" "$s\home\.config\opencode\command\reflect.md" "$repo\skills\reflect\SKILL.md"
+  Assert-LinksTo "all: codex"    "$s\home\.agents\skills\reflect"              "$repo\skills\reflect"
+  Assert-LinksTo "all: opencode" "$s\home\.agents\skills\reflect"              "$repo\skills\reflect"
+  Assert-Absent "all: no OpenCode command adapter" "$s\home\.config\opencode\command\reflect.md"
   Assert-LinksTo "all: cursor"   "$s\project\.cursor\rules\reflect.mdc"        "$repo\skills\reflect\SKILL.md"
   Assert-LinksTo "all: cline"    "$s\project\.clinerules\reflect.md"           "$repo\skills\reflect\SKILL.md"
 
@@ -167,7 +179,7 @@ try {
   $s = New-Sandbox
   New-Item -ItemType Directory -Force -Path "$s\home\.codex" | Out-Null
   Invoke-Install reflect | Out-Null
-  Assert-LinksTo "installs for the agent that is present" "$s\home\.codex\skills\reflect" "$repo\skills\reflect"
+  Assert-LinksTo "installs for the agent that is present" "$s\home\.agents\skills\reflect" "$repo\skills\reflect"
   Assert-Absent "skips the agent that is absent" "$s\home\.claude\skills\reflect"
 
   New-Sandbox | Out-Null
@@ -180,29 +192,30 @@ try {
   $r = Invoke-Install -Agent claude reflect
   if ($r.Code -eq 0) { Ok "second run exits 0" } else { No "second run exits 0" $r.Out }
   Assert-LinksTo "second run leaves the link intact" "$s\home\.claude\skills\reflect" "$repo\skills\reflect"
+  Assert-LinksTo "second run leaves the canonical link intact" "$s\home\.agents\skills\reflect" "$repo\skills\reflect"
 
   # --- never clobber -------------------------------------------------------
   Write-Host "existing files"
   $s = New-Sandbox
-  New-Item -ItemType Directory -Force -Path "$s\home\.codex\skills\reflect" | Out-Null
-  Set-Content "$s\home\.codex\skills\reflect\notes.md" "hand written"
+  New-Item -ItemType Directory -Force -Path "$s\home\.agents\skills\reflect" | Out-Null
+  Set-Content "$s\home\.agents\skills\reflect\notes.md" "hand written"
   Assert-Fails "refuses to replace a real file" -Agent codex reflect
-  if ((Get-Content "$s\home\.codex\skills\reflect\notes.md" -Raw).Trim() -eq "hand written") {
+  if ((Get-Content "$s\home\.agents\skills\reflect\notes.md" -Raw).Trim() -eq "hand written") {
     Ok "leaves the real file untouched"
   } else { No "leaves the real file untouched" "contents changed" }
 
   $s = New-Sandbox
-  New-Item -ItemType Directory -Force -Path "$s\home\.codex\skills\reflect" | Out-Null
-  Set-Content "$s\home\.codex\skills\reflect\notes.md" "hand written"
+  New-Item -ItemType Directory -Force -Path "$s\home\.agents\skills\reflect" | Out-Null
+  Set-Content "$s\home\.agents\skills\reflect\notes.md" "hand written"
   Invoke-Install -Force -Agent codex reflect | Out-Null
-  Assert-LinksTo "-Force replaces a real file" "$s\home\.codex\skills\reflect" "$repo\skills\reflect"
+  Assert-LinksTo "-Force replaces a real file" "$s\home\.agents\skills\reflect" "$repo\skills\reflect"
 
   $s = New-Sandbox
-  New-Item -ItemType Directory -Force -Path "$s\home\.codex\skills" | Out-Null
-  New-Item -ItemType SymbolicLink -Path "$s\home\.codex\skills\reflect" `
+  New-Item -ItemType Directory -Force -Path "$s\home\.agents\skills" | Out-Null
+  New-Item -ItemType SymbolicLink -Path "$s\home\.agents\skills\reflect" `
            -Target (Join-Path $repo 'skills\break-reminders') | Out-Null
   Invoke-Install -Agent codex reflect | Out-Null
-  Assert-LinksTo "repoints a stale link without -Force" "$s\home\.codex\skills\reflect" "$repo\skills\reflect"
+  Assert-LinksTo "repoints a stale link without -Force" "$s\home\.agents\skills\reflect" "$repo\skills\reflect"
 
   # --- bad input -----------------------------------------------------------
   Write-Host "bad input"
@@ -228,12 +241,15 @@ try {
   $s = New-Sandbox
   New-Item -ItemType Directory -Force -Path "$s\home\.claude" | Out-Null
   Invoke-Install -DryRun -Agent claude reflect | Out-Null
+  Assert-Absent "creates no canonical link" "$s\home\.agents\skills\reflect"
   Assert-Absent "creates nothing" "$s\home\.claude\skills\reflect"
 
   # --- several skills ------------------------------------------------------
   Write-Host "multiple skills"
   $s = New-Sandbox
   Invoke-Install -Agent claude reflect break-reminders | Out-Null
+  Assert-LinksTo "installs the first canonically" "$s\home\.agents\skills\reflect" "$repo\skills\reflect"
+  Assert-LinksTo "installs the second canonically" "$s\home\.agents\skills\break-reminders" "$repo\skills\break-reminders"
   Assert-LinksTo "installs the first"  "$s\home\.claude\skills\reflect"         "$repo\skills\reflect"
   Assert-LinksTo "installs the second" "$s\home\.claude\skills\break-reminders" "$repo\skills\break-reminders"
 
