@@ -280,7 +280,8 @@ install_set_skills() {
   [[ ${#skills[@]} -gt 0 ]] || return 0
 
   joined="$(printf '%s,' "${TARGET_AGENTS[@]}")"
-  args=(--project "${PROJECT}" --agent "${joined%,}")
+  args=(--agent "${joined%,}")
+  [[ -n "${LAYER}" ]] && args=(--project "${PROJECT}" "${args[@]}")
   [[ ${DRY_RUN} -eq 1 ]] && args+=(--dry-run)
   [[ ${FORCE} -eq 1 ]] && args+=(--force)
 
@@ -302,7 +303,7 @@ for agent in "${TARGET_AGENTS[@]}"; do
   fi
 done
 
-[[ -n "${LAYER}" ]] && install_set_skills
+install_set_skills
 
 echo ""
 if [[ ${failures} -gt 0 ]]; then
