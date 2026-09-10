@@ -330,6 +330,31 @@ if grep -qF "rule-sets/tool-repos.md" "${PWD}/AGENTS.md" 2>/dev/null; then
 else
   no "Copilot points the project's AGENTS.md at a layered set"
 fi
+if grep -qF "../rule-sets/tool-repos.md" \
+     "${PWD}/.github/copilot-instructions.md" 2>/dev/null; then
+  ok "Copilot writes its project adapter for a layered set"
+else
+  no "Copilot writes its project adapter for a layered set"
+fi
+
+sandbox
+mkdir -p "${PWD}/.github"
+printf '# Project Copilot guidance\n\nKeep this.\n' \
+  > "${PWD}/.github/copilot-instructions.md"
+"${INSTALL}" --rule-set tool-repos --agent copilot >/dev/null 2>&1
+"${INSTALL}" --rule-set tool-repos --agent copilot >/dev/null 2>&1
+if grep -qF "Keep this." "${PWD}/.github/copilot-instructions.md"; then
+  ok "Copilot preserves an existing project adapter"
+else
+  no "Copilot preserves an existing project adapter"
+fi
+n="$(count_of "${PWD}/.github/copilot-instructions.md" \
+  "../rule-sets/tool-repos.md")"
+if [[ "${n}" == "1" ]]; then
+  ok "Copilot does not add its project pointer twice"
+else
+  no "Copilot does not add its project pointer twice" "found ${n} pointers"
+fi
 
 sandbox
 "${INSTALL}" --rule-set tool-repos --agent cursor >/dev/null 2>&1
