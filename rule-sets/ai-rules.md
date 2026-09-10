@@ -11,24 +11,12 @@ Lean, agent-agnostic rules for any coding assistant.
 
 ## Break Reminders
 
-Remind the user to take a short break every 30 minutes during working hours (9am–5pm).
+During working hours (9am–5pm), remind the user to take a short break every 30
+minutes. Every 2 hours, pause for a goal-and-focus check-in after briefly
+scanning relevant project context.
 
-Every 2 hours, pause and run this check-in:
-
-1. Ask: *"How is the session tracking against the goal?"*
-   - On track
-   - Slightly off — recoverable
-   - Need to pivot
-
-2. Ask: *"What's the focus after the break?"*
-   - Continue current work
-   - Start a new task
-   - Review open issues
-   - End session
-
-3. Before the check-in, briefly scan all project memory/context files to surface anything relevant from other active work.
-
-> Claude Code users: run `/break-reminders` at session start to automate this.
+Use the `break-reminders` skill when the user wants a working session paced or
+scheduled reminders created.
 
 ---
 
@@ -46,285 +34,23 @@ Every 2 hours, pause and run this check-in:
   destroys exactly that. A red commit that does not compile is expected. It is
   not a broken trunk, and git.md's "trunk stays green" does not override this.
 
-> Claude Code users: use the `/behavior-first-tdd` skill.
+For any behavior change, use the `behavior-first-tdd` skill (Claude command:
+`/behavior-first-tdd`).
 
 ---
 
 ## Coverage & Dead Code
 
-Aim for 100% coverage of core code through behaviour-driven tests that drive real
-code paths and assert observable output.
+When reviewing coverage, mutation results, compatibility paths, or dead code,
+use the `coverage-and-mutation` skill.
 
-### Code must justify itself
-
-- Code that cannot be justified is removed, not covered. Code that exists only to
-  be exercised by its own tests — no production callers — is not justified by
-  those tests.
-- Before deleting dead or unreferenced code, decide whether it is useful
-  functionality that should be *wired up* rather than deleted (e.g. a correct
-  primitive with no caller yet). Assess its value and propose wiring it up. Only
-  delete genuine leftovers and duplicates. Never delete useful code to raise a
-  coverage number.
-
-### Compatibility code needs a real past
-
-Migrations, upcasters, versioned shapes, deprecation shims, and fallback paths
-are justified by something that *actually exists* depending on the old shape: a
-released version, data already written, a caller you do not control. Absent
-that, there is no old shape — only the current one, arrived at by editing.
-
-Before writing any of it, establish what depends on the old shape. If nothing
-does, change the shape in place and delete the old one.
-
-Pre-release is the common case: nothing is deployed, no data was ever written,
-so every schema is version 1 no matter how many times it changed on the way
-here. Ask whether the project has shipped; do not assume it has because the code
-looks mature.
-
-This one is hard to catch from the inside, because writing the upcaster *feels*
-like diligence rather than waste. The tell is noticing "nothing depends on this
-yet" and building it anyway — if you can say the cost is currently zero, you
-have already proved the code is currently pointless.
-
-### Read the gap before you close it
-
-An uncovered line means **that behaviour has never once executed**. It is a
-statement about the code, not about the tests.
-
-- If one half of a pair is covered and the other is not, the untested half is
-  load-bearing code nobody has ever run. Symmetry gaps are the richest.
-- Assert the behaviour the gap reveals, not the line.
-- Assert what you believe, then let a failure correct the belief. Never weaken an
-  assertion to match observed output without first understanding why it differs.
-
-### Covered is not checked
-
-The converse of the section above, and the more dangerous half. Coverage says a
-line **ran**. It says nothing about whether anything **checked** it. A suite can
-sit at 100% line coverage, all green, and pin nothing — and unlike a coverage
-gap, this failure is invisible, because every signal you are looking at is the
-colour you wanted.
-
-Two ways a property-based test tests nothing while looking thorough:
-
-- **It is written relative to the output.** If every property compares against
-  `outcome.damage`, they all agree with each other about a damage figure that is
-  wrong by a constant. Consistency among outputs is not correctness. At least one
-  property must say what the value **must be**, derived from the inputs alone.
-- **The generator fixes the input's shape.** Vary arity and collection size, not
-  only values. With one element, `sum`, `max`, `first` and `last` are the same
-  function — a whole class of operator error is unreachable by a generator that
-  looked exhaustive because it ran ten thousand cases.
-
-A third way, wherever a test parses what the code wrote: **the reader in the test
-is more permissive than the real consumer.** A helper that strips optional quotes
-before comparing reads quoted and unquoted output as the same string — so the
-assertion holds whichever the code emits, and the format nobody re-reads is the
-format nothing pins. The writer and the test agree with each other; the consumer
-was never consulted. Parse with a reader at least as strict as the thing that
-will actually load the output, and prefer the real parser to a hand-rolled one.
-
-So: **before trusting a suite, break the code on purpose.** Injecting a fault is
-the only cheap way to learn what the tests actually hold. If nothing goes red,
-the suite does not test that, whatever the coverage report says. Mutation testing
-is this, systematised — run it where it exists, and hand-inject where it does not.
-
-**A memoized result is invisible to mutation testing.** If the suite computes the
-system's output once — a `static Lazy`, a shared fixture, a cached scan — and every
-test asserts against that one snapshot, the mutant activates but nothing re-runs the
-mutated path: the snapshot was produced under the original code, so the survivor is
-a false one and the score is a false floor. The tell is a survivor whose behaviour a
-green test plainly asserts; confirm it by hand-injecting the mutant and watching that
-test go red. Each assertion must **re-drive** the code under test, not read a cached
-answer — the memoization that makes a slow suite fast is often the very thing that
-makes it blind. Prefer pinning the inputs that reproduce a case (a known seed) over
-caching the outputs it produced.
-
-**A mutant that never applied is not a survivor.** Before reading a green suite
-as evidence the tests are blind, confirm the fault actually reached the file: a
-`sed` that matched nothing, a patch against a moved line, or quoting mangled on
-its way through `eval` all leave the original code running and the suite
-truthfully passing. The two failures look identical from the outside, and the
-false one is the more expensive, because it sends you strengthening a test that
-was already correct — or worse, "fixing" working code to make the phantom
-reproduce. Diff the mutated file, or print the changed line, before you believe
-the result.
-
-**A mutant no test ran against is not a survivor either.** The mirror image of the
-one above, and the one the rule above will not catch: the fault applies cleanly,
-and the *tests* are what never arrive. Mutation tools map tests to mutants from an
-instrumented baseline run so they can run only the covering subset; when that
-mapping comes back empty — a runner the tool half-supports, a coverage collector
-that failed to load, tests it discovered but could not attribute — every unmapped
-mutant is filed "no coverage" and scored as unkilled without a single test being
-run against it. Nothing errors. You get a plausible, terrible score.
-
-Read the **status breakdown, not the score**. Killed-versus-survived is the number
-that means something; a large "no coverage" bucket is a broken harness reporting
-as a bare patch of code, and the two are indistinguishable from the headline
-figure. The tell is a survivor in a file you have *watched* a hand-injected fault
-die in. When the score contradicts something you observed directly, the score is
-what is wrong.
-
-Disabling per-test coverage mapping removes the failure by running the whole suite
-against every mutant. Correct, and much slower — check what that costs before
-launching it, especially where each run spawns a visible process.
-
-**Coverage first, then mutation.** They answer questions in order — coverage asks
-whether a line ever ran, mutation asks whether anything checked it — and the second
-question is meaningless while the first is unanswered. A mutation score computed
-over code the suite never reaches is measuring the harness. So establish coverage,
-and confirm the mutation tool can kill a fault you planted yourself, before reading
-any score it produces. Hand-injection is not the crude approximation of mutation
-testing; it is what calibrates it.
-
-That ordering is between the two *questions*, not a schedule. It does not mean
-mutation belongs at the end, after the feature is finished and the design has set.
-Run it as soon as a slice is green and its lines are covered — the report's design
-signal is worth the most while the design is still soft enough to act on. See
-"Read the whole report early" below.
-
-Which cuts both ways. Everything above is a false *survivor* — a test that never
-ran. But a reported *kill* can be as hollow: a test that failed without checking the
-mutated behaviour — a timeout or a crash the tool scores as a kill — or a runner
-that cannot say which test did the killing and attributes it anyway. Hand-injection
-is the ground truth the tool only approximates, so a `Killed` is a claim until you
-have watched a named test go red for that fault — reproduce the kills you rely on,
-not only the survivors. The false kill is the worse one: a green survivor sends you
-to look, while a green kill tells you to stop.
-
-### Two tests that kill the same mutant are one test
-
-Aim for **fewer tests, each closer to something a user actually does, covering
-more.** Those three pull together rather than against each other: a test that
-walks a real scenario crosses several decisions at once, so it kills more mutants
-than the same effort spent on one narrow case per branch — and it is one thing to
-update when the spec moves, not five.
-
-So check it as you write, rather than assuming it and finding out at review. For
-each test, ask which mutant it kills that nothing else kills — then confirm by
-injecting that mutant and watching *this* test go red.
-
-- None: it is duplication. Fold it into the scenario that already covers it.
-- One, uniquely: keep the case, but prefer a `[Theory]`/parameterised case over a
-  second test method. Two tests differing only in their input are one rule with
-  two examples.
-- Never delete on resemblance alone. Tests that read alike may drive different
-  construction paths; the mutant question decides, appearance does not.
-
-Beware the reverse failure. Collapsing tests by weakening what they assert also
-drives the count down while coverage holds — and pins nothing. Fewer tests must
-be the result of each one doing more, never of each one checking less.
-
-This is "write the test against the rule, not the instance" applied while
-writing.
-
-### A surviving mutant may be the code talking
-
-A survivor is not automatically a missing test. Before writing one — and *well*
-before excluding a mutant class in config — ask whether it is pointing at surface
-that decides nothing:
-
-- An **equivalent** mutant (`x * 1` → `x / 1`) is dead arithmetic. It survives
-  because it cannot change the answer, which is also why the code should not be
-  there.
-- A comparison that **cannot** change the answer is dead. Comparing fields that
-  the type fixes to constants is a comparison of two things that are always equal.
-- Surface beyond the contract invites survivors. A hand-written `GetHashCode`
-  spraying every field through a hash has more moving parts than "equal objects
-  hash alike" requires; the parts that no test can distinguish are the parts that
-  earn nothing.
-
-The exclusion hides it. The deletion fixes it — and the score rises because there
-is less code, which is the better outcome twice over.
-
-A survivor that decides nothing is one reading; a survivor that decides something
-**unspecified** is the other. When a boundary mutant lives (`>` → `>=` holds), find
-where the rule came from before pinning it: `> 10` versus `>= 10` may be an
-assumption nobody made, and a test that freezes it encodes the accident as law. The
-fix may be to correct the boundary, name the rule as its own policy, or delete a
-decision another module already owns — not to add an assertion. And when killing one
-boundary needs half the application stood up, the mutant is naming a **misplaced
-responsibility**, not a missing test: extract the rule to a small object answerable
-to one source of change, and the assertion that was impossible becomes trivial.
-
-The score is a diagnostic, not the target. Chasing 100% with ever-narrower
-assertions buys a suite welded to today's implementation that says little about what
-the system must do. Killing a mutant is the by-product of pinning a real rule,
-deleting dead surface, or moving a misplaced one — never the goal in itself.
-
-Excluding a mutant class is legitimate only where killing it would assert
-something you have decided not to own: the wording of an exception message, or a
-guard whose behaviour belongs to the standard library. Say so where the exclusion
-lives, or the next reader will read it as a lowered bar.
-
-### Read the whole report early — it is a design review
-
-This is one of the main reasons to run mutation testing **first**, rather than as a
-release gate. The report's most valuable output is not the score. It is a map of
-which code nothing can distinguish — and that is a finding about the design, worth
-having while the design is still cheap to change. A report read after the feature is
-finished can only produce tests; a report read while the slice is still warm can
-produce a better shape.
-
-**Read it by clustering survivors across files, not file by file.** One survivor is a
-question about one test. The *same survivor shape* in seven types is a question about
-the code. That cluster is invisible if you only inspect the survivors your own diff
-introduced, which is the natural and the wrong way to read a report.
-
-Three things a cluster means, each with a different fix:
-
-- **Repeated surface beyond the contract.** The same pattern hand-rolled across many
-  types — a canonical-order `GetHashCode` and a hand-written `Equals` over a backing
-  collection — produces permanently unkillable mutants everywhere it appears, because
-  the only contract is "equal objects hash alike" and every mutation preserves it. The
-  finding here is **duplication to consolidate**, not code to delete: each copy is
-  load-bearing, so deleting one breaks its type. Extract the shape into one primitive
-  and the whole cluster retires at once — dozens of survivors answered by one edit
-  rather than by dozens of assertions that could never have been written.
-- **Genuinely equivalent.** A comparison whose branches agree at the boundary is dead
-  branching. Delete it, as above.
-- **Never executed.** The richest bucket, and the one the headline score hides by
-  folding it in with survivors. A line nothing has run is behaviour nobody has ever
-  had. Check each against what the spec, the task list, or the commit message that
-  introduced it *claims* — a claim with an unexecuted line under it is the gap to
-  close first, because someone has already written down that the behaviour exists.
-
-**A survivor can lie about which bucket it is in**, and it lies toward "equivalent",
-the one bucket whose verdict is "do nothing". A mutant that flips *both* sides of the
-comparison a test makes leaves the two still agreeing: the test stays green, the
-mutant looks like it cannot change the answer, and nothing is pinned. Symmetry
-assertions are the usual shape — `f(a, b)` equals `f(b, a)` holds just as well when
-the operands are swapped inside. Before filing a survivor as equivalent, ask what
-downstream depends on the value the test declined to name: a persisted format, a
-serialised order, an on-the-wire shape. The mutant is equivalent only if the answer
-is nothing.
-
-That last one is "Covered is not checked" arriving by a different road — consistency
-among outputs is not correctness — found by reading the report rather than by reading
-the test.
-
-### Never call a branch unreachable
-
-An unreachable branch means the type does not carry what you already know. Before
-you write "unreachable", "defensive", or "justified but uncoverable" in a
-comment, work this list in order:
-
-1. **Carry the value forward.** An earlier step proved the lookup succeeds, then
-   threw the result away. Keep it instead of looking it up twice.
-2. **Remove the impossible variant.** An `Option`/`Result` that no path returns
-   is a lie. Change the return type.
-3. **Make a silent skip a loud failure.** A lookup that quietly does nothing when
-   it misses will emit a *wrong answer* if the invariant ever breaks.
-   `.expect("why this holds")` is strictly better: it fails loudly, and costs no
-   coverage because the panic lives in the standard library.
-4. **Re-derive reachability from the public API.** You are usually wrong.
-   Boundary lookups, `?`-paths on public methods, and "obviously valid" inputs
-   are typically reachable and merely untested.
-
-Only when all four fail is code genuinely uncoverable. Then keep it, exclude it
-from the coverage target, and state the reason inline. Exclusion is a last
-resort, not a permission.
+- Aim for 100% coverage of core code through externally observable behavior.
+- An uncovered line has never executed; a covered line has not necessarily been
+  checked by an assertion.
+- Remove code that has no useful caller or contract instead of covering it for
+  its own sake.
+- Establish coverage before mutation testing, and calibrate the mutation harness
+  with a fault you have watched the relevant test reject.
 
 ---
 
@@ -378,153 +104,15 @@ cannot be a test. Don't propose one; route that lesson to a rules file instead
 
 ## Security by Design
 
-Secure code is not a checklist of secure methods bolted onto an insecure shape.
-It is a property of the design: **the fewer places that make a security decision,
-the fewer places that can make it wrong.** Good primitives used badly are still a
-breach. So the goal is to make the secure path the easy path — concentrate the
-decisions, expose intent rather than machinery, and let the type system and the
-module boundary carry the rules a reviewer would otherwise have to remember.
+For encryption, signing, token handling, secrets, sensitive domain types, or a
+security review, use the `security-by-design` skill.
 
-This is an API-design problem before it is a cryptography problem.
-
-### Concentrate security decisions behind one boundary
-
-Security-relevant behaviour — encryption, signing, token handling, secret
-management — belongs in one small module with a clear responsibility and a narrow
-API, not scattered across the call sites that happen to need it, and not dumped in
-a miscellaneous `Security` grab-bag either.
-
-Code outside that boundary asks for an **outcome**:
-
-```
-protected = protector.Protect(customerReference)
-```
-
-It must never assemble that outcome from primitives:
-
-```
-nonce = randomBytes(12); key = keys.get("customer"); ct = encrypt(pt, key, nonce); out = nonce + ct
-```
-
-The second shape lets every caller omit a step, pick the wrong key, reuse a nonce,
-or invent an incompatible payload format — and there are as many chances to get it
-wrong as there are call sites. One boundary gives a reviewer a single place to
-inspect the policy, makes a dependency change visible, and lets the whole
-operation be tested. This is the one place tight coupling is a feature.
-
-### Expose intent, not primitives
-
-Most of that module should be **private/internal** — the most underused
-visibility in most languages. Cipher choices, key resolvers, nonce generators, and
-serialisation helpers are machinery the rest of the system has no business
-naming. The public surface should describe only the permitted operations, named
-after what they *do*: `ProtectCustomerData`, `SignPaymentInstruction`,
-`SealOcrText` — never a general `Encrypt(data, algorithm, mode, padding, key,
-nonce)` that hands every caller authority over choices they should never make.
-
-The operation owns its security policy: algorithm, key, nonce, content role,
-payload version, associated data, and failure handling all live inside it, so the
-implementation and the versioned format can change without editing a single
-caller. Do not make a dangerous choice configurable merely because it can be.
-
-Visibility here is a **design** boundary, not a barrier against malicious code in
-the same process — reflection bypasses it. It reduces *accidental* misuse, which
-is most misuse. Enforce it the way [[guardrails]] describes: a build-time check
-that sweeps the module's public surface and fails when it widens beyond the
-intended operations catches the next well-meaning `public` before review does.
-
-### Give sensitive values their own types
-
-Primitive obsession — a bare `string`, `int`, or byte array standing in for a
-specific concept — is a security flaw, not only a smell. A `string` can be a
-customer reference, a password, an access token, or a ciphertext; a byte array can
-be plaintext, ciphertext, a key, or a nonce. When an API accepts the primitive,
-the compiler cannot stop a caller passing the wrong one.
-
-Give each security-sensitive value an immutable type that validates its whole
-state at construction and exposes only the operations consumers need. Then the API
-that takes a `CustomerReference` and returns `ProtectedData` cannot be handed a
-raw token that merely shares the same underlying representation.
-
-- Validate the complete value in a constructor or factory before exposing it.
-- Make it immutable: no public setters, no partial initialisation, no collection a
-  caller can mutate after validation. A read-only *view* over a caller-owned
-  collection is not immutable — copy the input at the ownership boundary.
-- Seal it so a subclass cannot change its behaviour; accept a read-only span/view
-  when you only need to read a caller's buffer.
-
-The one deliberate exception is a mutable buffer holding a plaintext secret, kept
-so it can be overwritten — see below. It stays locally owned and never becomes a
-domain object.
-
-### Keep secrets alive for as little time as possible
-
-Decrypt as late as possible, use the plaintext for one purpose, discard it at
-once. Keep plaintext out of logs, exceptions, tracing tags, long-lived objects,
-caches, queues, events, temporary files, diagnostic snapshots, and strings made
-only to format or convert it. Every one of those is a copy in memory, a crash
-dump, or a telemetry pipeline you did not mean to write a secret to.
-
-For binary secrets, prefer a short-lived mutable buffer and zero it in a `finally`
-(or the language's equivalent guaranteed cleanup), rather than waiting for the
-garbage collector — which may have copied it and cannot be told to erase it. This
-does not prove a secret was never copied; it is strictly better than not trying.
-Do not hand out a view over a live secret buffer or leave it in a pool with its
-contents intact.
-
-### Minimise dependencies, not proven safety
-
-Every dependency inside the trust boundary is more code to understand, patch, and
-monitor, and a door to a vulnerable transitive package or an unsafe default. Keep
-that graph small; prefer the platform's own facilities where they meet the
-requirement.
-
-But "fewer libraries" is not "rewrite everything". Replacing a mature, maintained
-library with a bespoke version usually *adds* risk — hand-rolled SQL invites
-injection, and a home-grown cipher is the classic disaster. The question is
-whether a dependency needs to exist inside the boundary, what it drags in, whether
-it is maintained, and whether a smaller established API would do — not whether you
-can achieve aesthetic purity by deleting it. Remove unnecessary **capability**,
-never a well-tested safety mechanism.
-
-### Do not build your own cryptography
-
-Use established primitives and protocols. Your job is to *compose* them well:
-centralise algorithm selection, key identifiers, payload versions, associated
-data, rotation, and failure handling in the one boundary, and expose an operation
-that makes none of those a caller's problem.
-
-Two failure rules are absolute, and both echo [[guardrails]] and [[coverage]]:
-
-- **An authentication failure returns no partial plaintext.** Verify, then
-  release — never the other way round.
-- **Errors reveal nothing about validity.** Do not let a message, a status code,
-  or a timing difference disclose whether a key, an account, or a field was valid.
-- **Reject insecure input rather than silently recovering from it.** Silent
-  recovery is the fail-open that reads as success — the same trap as a guardrail
-  that cannot fail.
-
-### Treat the module boundary as a review boundary
-
-A cohesive security module earns its keep only if changes to it get the scrutiny
-its blast radius deserves:
-
-- test invalid, truncated, and tampered payloads — not just the happy path;
-- confirm secrets never reach logs or telemetry;
-- scan direct **and** transitive dependencies;
-- record *why* an algorithm or protocol was chosen;
-- version payload formats, so the on-disk shape can evolve without a caller edit;
-- design and test key rotation *before* it is urgent;
-- reject insecure defaults instead of quietly repairing them.
-
-Test the permitted public operations, the way a real caller uses them. Internal
-primitives may have their own focused tests, but the question that matters is
-whether ordinary application code can use the boundary *safely* — and, per
-[[coverage]], whether the tests would go red if it could not.
-
-None of these is a complete boundary on its own. Together they shrink the number
-of places a security decision is made, and make the ones that remain easy to find,
-review, and get right.
+- Concentrate security decisions behind one narrow, intent-named boundary.
+- Expose permitted outcomes, not configurable cryptographic primitives.
+- Give sensitive values validated immutable types and minimize plaintext
+  lifetime.
+- Use established cryptography, reject insecure input, and release no partial
+  plaintext after authentication failure.
 
 ---
 
@@ -602,27 +190,9 @@ inventing another local folder.
 
 ## Reflection
 
-When finished with a piece of work — tests green, commit landed — capture any
-durable lesson before the context is lost. Writing nothing is the common,
-correct outcome; most tasks teach nothing worth keeping.
+After non-trivial work lands with tests green and its commit recorded,
+use the `reflect` skill to capture any durable lesson before context is lost.
+Writing nothing is the common, correct outcome.
 
-A lesson is worth keeping only if it is **transferable** (about judgment, not
-about this file), **non-obvious** (not what you'd have done anyway), and
-**load-bearing** (knowing it at the start would have changed what you did).
-
-Lessons hide in user corrections — especially corrections phrased as a question,
-which mean you had already talked yourself into something — and in any moment you
-defended code rather than fixing it.
-
-Route each lesson to the scope it pertains to:
-
-| | Any project | This repo only |
-|---|---|---|
-| **Must obey** | global rules file | repo `AGENTS.md` / `CLAUDE.md` |
-| **Should recall** | global skill | project memory |
-
-Do not leave a globally useful lesson in a project's memory just because that is
-where you learned it. If an existing rule is what let you go wrong, amend that
-rule rather than adding a contradictory one beside it.
-
-> Claude Code users: use the `/reflect` skill.
+Keep only transferable, non-obvious, load-bearing lessons, and store each at
+the narrowest scope that reaches every task where it applies.

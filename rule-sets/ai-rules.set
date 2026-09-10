@@ -16,4 +16,7 @@ rule: issues
 rule: reflection
 
 skill: behavior-first-tdd
+skill: coverage-and-mutation
+skill: security-by-design
+skill: break-reminders
 skill: reflect
