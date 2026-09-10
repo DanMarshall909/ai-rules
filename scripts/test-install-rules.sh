@@ -330,7 +330,7 @@ if grep -qF "rule-sets/tool-repos.md" "${PWD}/AGENTS.md" 2>/dev/null; then
 else
   no "Copilot points the project's AGENTS.md at a layered set"
 fi
-if grep -qF "../rule-sets/tool-repos.md" \
+if grep -qF "../AGENTS.md" \
      "${PWD}/.github/copilot-instructions.md" 2>/dev/null; then
   ok "Copilot writes its project adapter for a layered set"
 else
@@ -349,7 +349,7 @@ else
   no "Copilot preserves an existing project adapter"
 fi
 n="$(count_of "${PWD}/.github/copilot-instructions.md" \
-  "../rule-sets/tool-repos.md")"
+  "../AGENTS.md")"
 if [[ "${n}" == "1" ]]; then
   ok "Copilot does not add its project pointer twice"
 else
