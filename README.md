@@ -3,7 +3,7 @@
 Lean, agent-agnostic AI coding rules. Works with Claude Code, Codex, OpenCode,
 GitHub Copilot, Cursor, and Cline.
 
-The complete shared rule set lives in:
+The concise, always-loaded shared policy lives in:
 
 rule-sets/ai-rules.md
 
@@ -39,9 +39,10 @@ scripts/new-rule.sh --title "Caching" caching     # into the base set
 scripts/new-skill.sh --set tool-repos --description "Use when ..." my-skill
 ```
 
-A skill a set claims travels with it: installing the set into a repo installs
-that skill there too, project-scoped, so it does not load in every session on
-the machine. Installing a layered set into the repo that wants it:
+A skill a set claims travels with it. Base-set skills install into the profile;
+layered-set skills install project-scoped, so repo-specific guidance does not
+load in unrelated sessions. Installing a layered set into the repo that wants
+it:
 
 ```bash
 scripts/install-rules.sh --rule-set tool-repos --project ../some-tool --dry-run
@@ -51,7 +52,8 @@ scripts/install-rules.sh --rule-set tool-repos --project ../some-tool
 | Agent | Gets |
 |-------|------|
 | `claude` | `@` import of the set appended to the project's `CLAUDE.md` |
-| `codex`, `opencode`, `copilot` | `<project>/rule-sets/<set>.md`, plus one pointer line in the project's `AGENTS.md` |
+| `codex`, `opencode` | `<project>/rule-sets/<set>.md`, plus one pointer line in the project's `AGENTS.md` |
+| `copilot` | the same set and `AGENTS.md` pointer, plus a preserving `.github/copilot-instructions.md` adapter |
 | `cursor` | `.cursor/rules/<set>.mdc` |
 | `cline` | `.clinerules/<set>.md` |
 
@@ -140,6 +142,11 @@ filename. All three point at the same generated rule set. An edit to a rule
 reaches installed profiles and project-only adapters once
 `scripts/build-agents.sh` has run. The links mean you never have to reinstall;
 the hook below means you never forget to regenerate.
+
+The base installation also links its detailed workflows into
+`~/.agents/skills`, with Claude compatibility links under `~/.claude/skills`.
+This keeps the always-loaded rule set concise without making its TDD, coverage,
+security, break, or reflection procedures undiscoverable.
 
 For Claude the installer appends one line to `~/.claude/CLAUDE.md`, keeping
 whatever is already there, and won't add it twice.

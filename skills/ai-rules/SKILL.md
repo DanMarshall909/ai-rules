@@ -30,7 +30,8 @@ something silently broke.
 `AGENTS.md` exists because Codex, OpenCode, Copilot, Cursor and Cline can consume
 that instruction shape, either natively or through an adapter. It should stay
 small and point at `rule-sets/ai-rules.md`. `CLAUDE.md` imports that same set.
-The sets are the policy; the agent files are entrypoints.
+The sets are the always-loaded policy, skills hold detailed workflows, and the
+agent files are entrypoints.
 
 If asked to change a rule, change `rules/<...>.md` and regenerate. If you find
 yourself editing `AGENTS.md` or a `rule-sets/*.md`, stop — the change will be
@@ -44,6 +45,9 @@ overwritten.
 `rules/`. A **layered** set — `tool-repos` is the first — is rules for one kind
 of repo, kept in `rules/<set>/`, and read alongside the base rather than
 instead of it.
+
+A manifest may also declare `skill:` entries. Base-set skills install into the
+user profile; layered-set skills install into the target project.
 
 Choosing between them is the judgment call. A rule that would make a reader in
 an unrelated project think "not my repo" belongs in a layered set; if it is

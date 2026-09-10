@@ -1,6 +1,6 @@
 # Cross-Agent Rules and Skills
 
-Status: design recommendation
+Status: implemented in ai-rules; downstream DnDan migration remains
 
 Last verified: 2026-09-10
 
@@ -20,11 +20,11 @@ agent's native instruction and skill locations.
   must say this explicitly because not every agent implements override
   semantics.
 
-The existing generated base rule set is 628 lines and 32.4 KiB. Loading that
-beside a substantial project `AGENTS.md` spends context on procedures that are
-irrelevant to most tasks and can cross instruction-size limits. The base policy
-should become short; detailed TDD, coverage, mutation, security-review,
-reflection, and similar workflows should be skills.
+Before this migration, the generated base rule set was 628 lines and 32.4 KiB.
+Loading that beside a substantial project `AGENTS.md` spent context on
+procedures irrelevant to most tasks and risked instruction-size limits. The
+base policy is now 198 lines and 8.1 KiB; detailed coverage, mutation, security,
+break, and reflection workflows live in skills installed with the base set.
 
 ## Canonical layout
 
@@ -207,10 +207,9 @@ reference implementation for symlink behavior, but adopting it would still
 require wrappers for personal scope, nested drift checks, backup restoration,
 and platform-specific binary selection.
 
-Proceed with the installer modernization below, retaining `rules/` and
-`skills/` as the authored sources. Re-evaluate AgentSync if its native global
-mode, nested status, and backup-restoring cleanup mature. The implementation
-must still prove Windows behavior in CI before release.
+The custom installer modernization below retains `rules/` and `skills/` as the
+authored sources. Re-evaluate AgentSync if its native global mode, nested
+status, and backup-restoring cleanup mature.
 
 ## Installer modernization status
 
@@ -228,12 +227,17 @@ implement the portable path and ownership changes:
    Codex, OpenCode, and Copilot consume the canonical packages directly.
 5. Copilot participates in explicit selection, `all`, and autodetection for
    both rules and skills.
+6. Layered Copilot installation preserves and augments
+   `.github/copilot-instructions.md`, routing it through the project-owned root
+   `AGENTS.md` without duplicating the pointer.
+7. The always-loaded base policy is capped below 200 lines. Its manifest ships
+   the `behavior-first-tdd`, `coverage-and-mutation`, `security-by-design`,
+   `break-reminders`, and `reflect` workflows into the matching profile.
 
-The remaining work is to reduce the 628-line base policy by moving detailed
-procedures into on-demand skills and add any generated adapters needed by
-project Copilot surfaces. The suites now cover discovery paths, idempotence,
-existing-file preservation, and symlink behavior on Linux and native Windows;
-the Windows installer job passed on 2026-09-10 after these changes landed.
+The suites cover discovery paths, idempotence, existing-file preservation,
+symlink behavior, adapter generation, and context size on Linux and native
+Windows. The Windows installer job passed on 2026-09-10 after these changes
+landed.
 
 ## DnDan compatibility audit
 

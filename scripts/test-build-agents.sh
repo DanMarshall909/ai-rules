@@ -115,11 +115,11 @@ contains "demotes the rule's own heading" rule-sets/extra.md "## Extra Rule"
 # the rest of it is, or it silently obeys the extras and none of the base.
 contains "a layered set names the set it extends" rule-sets/extra.md "ai-rules.md"
 
-# --- the base set's content is unchanged ------------------------------------
-# The manifest replaced a hard-coded array. Nothing about which rules ship, or
-# in what order, was meant to change with it.
+# --- the base set stays complete and lean ----------------------------------
+# Every rule still ships, but detailed procedures route to on-demand skills so
+# the always-loaded context stays below the agreed budget.
 
-echo "the base set still says what it said"
+echo "the base set stays complete and lean"
 sandbox
 "${BUILD}" >/dev/null 2>&1
 for rule in breaks tdd coverage guardrails git issues reflection; do

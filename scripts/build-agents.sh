@@ -7,8 +7,8 @@
 # `ai-rules` is the base set every project gets; a set with a `layer:` field is
 # an addition for one kind of repo, read alongside the set it names.
 #
-# AGENTS.md is intentionally small. The substantive policy lives in the rule
-# sets, so the policy has one markdown home and the agent entrypoint is only
+# AGENTS.md is intentionally small. The always-loaded policy lives in the rule
+# sets and detailed workflows live in skills, so the agent entrypoint is only
 # compatibility wiring.
 #
 # Source of truth is rules/*.md and the manifests. Never edit a generated file.
