@@ -30,7 +30,7 @@ SKILLS_DIR="${REPO}/skills"
 user_target() { # <agent> <skill>
   case "$1" in
     claude)   printf '%s' "${HOME}/.claude/skills/$2" ;;
-    codex)    printf '%s' "${HOME}/.codex/skills/$2" ;;
+    codex)    printf '%s' "${HOME}/.agents/skills/$2" ;;
     opencode) printf '%s' "$(config_home)/opencode/command/$2.md" ;;
     cursor)   printf '%s' "${PROJECT}/.cursor/rules/$2.mdc" ;;
     cline)    printf '%s' "${PROJECT}/.clinerules/$2.md" ;;
