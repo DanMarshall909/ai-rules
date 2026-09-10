@@ -50,7 +50,7 @@ $skillsDir = Join-Path $repo 'skills'
 #
 #   Root   presence means the agent is installed (used for autodetect)
 #   Target where the skill has to appear for that agent to see it
-#   Kind   Dir  = the agent reads a skill directory (Claude Code)
+#   Kind   Dir  = the agent reads a skill directory
 #          File = the agent reads a single markdown file
 #   Scope  User = per profile;  Project = relative to the current directory
 function Get-ConfigHome {
@@ -98,6 +98,11 @@ function Get-AgentSpec {
         Target = Get-CanonicalTarget -SkillName $SkillName
         Kind   = 'Dir'; Scope = if ($inProject) { 'Project' } else { 'User' }
       } }
+    'copilot' { @{
+        Root   = Join-Path $home_ '.copilot'
+        Target = Get-CanonicalTarget -SkillName $SkillName
+        Kind   = 'Dir'; Scope = if ($inProject) { 'Project' } else { 'User' }
+      } }
     'cursor' { @{
         Root   = Join-Path $cwd '.cursor'
         Target = Join-Path $cwd (Join-Path '.cursor\rules' "$SkillName.mdc")
@@ -112,7 +117,7 @@ function Get-AgentSpec {
   }
 }
 
-$knownAgents = @('claude', 'codex', 'opencode', 'cursor', 'cline')
+$knownAgents = @('claude', 'codex', 'opencode', 'copilot', 'cursor', 'cline')
 
 function Get-SourcePath {
   param([string]$AgentName, [string]$SkillName)

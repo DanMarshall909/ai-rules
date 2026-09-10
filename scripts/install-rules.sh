@@ -54,6 +54,7 @@ rules_target() { # <agent>
     claude)            printf '%s' "${CLAUDE_CONFIG}" ;;
     codex)             printf '%s' "${HOME}/.codex/AGENTS.md" ;;
     opencode)          printf '%s' "$(config_home)/opencode/AGENTS.md" ;;
+    copilot)           printf '%s' "${HOME}/.copilot/copilot-instructions.md" ;;
     cursor)            printf '%s' "${PROJECT}/.cursor/rules/${BASE_SET}.mdc" ;;
     cline)             printf '%s' "${PROJECT}/.clinerules/${BASE_SET}.md" ;;
   esac
@@ -71,7 +72,7 @@ rule_set_target() { # <agent>
 set_target() { # <agent>
   case "$1" in
     claude)         printf '%s' "" ;;
-    codex|opencode) printf '%s/rule-sets/%s.md' "${PROJECT}" "${SET_NAME}" ;;
+    codex|opencode|copilot) printf '%s/rule-sets/%s.md' "${PROJECT}" "${SET_NAME}" ;;
     cursor)         printf '%s/.cursor/rules/%s.mdc' "${PROJECT}" "${SET_NAME}" ;;
     cline)          printf '%s/.clinerules/%s.md' "${PROJECT}" "${SET_NAME}" ;;
   esac
@@ -249,7 +250,7 @@ install_layered_set() {
       append_once "${PROJECT}/CLAUDE.md" "${import}" \
         "claude: ${PROJECT}/CLAUDE.md"
       ;;
-    codex|opencode)
+    codex|opencode|copilot)
       target="$(set_target "${agent}")"
       if link_to "${SET_FILE}" "${target}" "${agent}: ${target}"; then
         # AGENTS.md has no import syntax, so the pointer is a sentence an agent

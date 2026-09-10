@@ -32,15 +32,16 @@ canonical_target() { # <skill>
   fi
 }
 
-# Where a skill has to appear for each agent to see it. Claude Code, Codex, and
-# OpenCode read a skill directory, preserving any resources beside SKILL.md.
-# The rest read a single markdown file directly. Roots and scopes live in
-# agents.sh.
+# Where a skill has to appear for each agent to see it. Claude Code, Codex,
+# OpenCode, and Copilot read a skill directory, preserving any resources beside
+# SKILL.md. The rest read a single markdown file directly. Roots and scopes
+# live in agents.sh.
 user_target() { # <agent> <skill>
   case "$1" in
     claude)   printf '%s' "${HOME}/.claude/skills/$2" ;;
     codex)    printf '%s' "${HOME}/.agents/skills/$2" ;;
     opencode) printf '%s' "${HOME}/.agents/skills/$2" ;;
+    copilot)  printf '%s' "${HOME}/.agents/skills/$2" ;;
     cursor)   printf '%s' "${PROJECT}/.cursor/rules/$2.mdc" ;;
     cline)    printf '%s' "${PROJECT}/.clinerules/$2.md" ;;
   esac
@@ -58,6 +59,7 @@ project_target() { # <agent> <skill>
     claude)         printf '%s' "${PROJECT}/.claude/skills/$2" ;;
     codex)          printf '%s' "${PROJECT}/.agents/skills/$2" ;;
     opencode)       printf '%s' "${PROJECT}/.agents/skills/$2" ;;
+    copilot)        printf '%s' "${PROJECT}/.agents/skills/$2" ;;
     cursor)         printf '%s' "${PROJECT}/.cursor/rules/$2.mdc" ;;
     cline)          printf '%s' "${PROJECT}/.clinerules/$2.md" ;;
   esac
@@ -73,8 +75,8 @@ agent_target() { # <agent> <skill>
 
 agent_source() { # <agent> <skill>
   case "$1" in
-    claude|codex|opencode) printf '%s' "${SKILLS_DIR}/$2" ;;
-    *)                     printf '%s' "${SKILLS_DIR}/$2/SKILL.md" ;;
+    claude|codex|opencode|copilot) printf '%s' "${SKILLS_DIR}/$2" ;;
+    *)                             printf '%s' "${SKILLS_DIR}/$2/SKILL.md" ;;
   esac
 }
 

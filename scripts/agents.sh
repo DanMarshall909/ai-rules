@@ -11,7 +11,7 @@
 # Harmless everywhere else.
 export MSYS="${MSYS:-} winsymlinks:nativestrict"
 
-KNOWN_AGENTS="claude codex opencode cursor cline"
+KNOWN_AGENTS="claude codex opencode copilot cursor cline"
 
 # The repo project-scoped things install into. Both installers overwrite this
 # from --project; it defaults to wherever the command was run, which is what
@@ -27,6 +27,7 @@ agent_root() {
     claude)   printf '%s' "${HOME}/.claude" ;;
     codex)    printf '%s' "${HOME}/.codex" ;;
     opencode) printf '%s' "$(config_home)/opencode" ;;
+    copilot)  printf '%s' "${HOME}/.copilot" ;;
     cursor)   printf '%s' "${PROJECT}/.cursor" ;;
     cline)    printf '%s' "${PROJECT}/.clinerules" ;;
   esac
