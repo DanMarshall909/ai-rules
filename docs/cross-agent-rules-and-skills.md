@@ -230,11 +230,10 @@ implement the portable path and ownership changes:
    both rules and skills.
 
 The remaining work is to reduce the 628-line base policy by moving detailed
-procedures into on-demand skills, add any generated adapters needed by project
-Copilot surfaces, and prove the PowerShell behavior on native Windows CI. The
-current suites cover discovery paths, idempotence, existing-file preservation,
-and symlink behavior on Linux, including the PowerShell implementation under a
-portable PowerShell runtime.
+procedures into on-demand skills and add any generated adapters needed by
+project Copilot surfaces. The suites now cover discovery paths, idempotence,
+existing-file preservation, and symlink behavior on Linux and native Windows;
+the Windows installer job passed on 2026-09-10 after these changes landed.
 
 ## DnDan compatibility audit
 
