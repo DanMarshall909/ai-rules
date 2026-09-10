@@ -27,9 +27,10 @@ something silently broke.
 | `AGENTS.md` | **generated** minimal entrypoint — never edit |
 | `CLAUDE.md` | authored, but should import the base rule set |
 
-`AGENTS.md` exists because Codex, OpenCode, Cursor and Cline look for that
-filename. It should stay small and point at `rule-sets/ai-rules.md`. `CLAUDE.md`
-imports that same set. The sets are the policy; the agent files are entrypoints.
+`AGENTS.md` exists because Codex, OpenCode, Copilot, Cursor and Cline can consume
+that instruction shape, either natively or through an adapter. It should stay
+small and point at `rule-sets/ai-rules.md`. `CLAUDE.md` imports that same set.
+The sets are the policy; the agent files are entrypoints.
 
 If asked to change a rule, change `rules/<...>.md` and regenerate. If you find
 yourself editing `AGENTS.md` or a `rule-sets/*.md`, stop — the change will be
@@ -89,10 +90,12 @@ scripts/install-skill.sh my-skill        # every agent detected here
 scripts/install-skill.sh --agent all my-skill
 ```
 
-Skills are **symlinked** out of the checkout, never copied. A copy stops
-tracking the repo the moment either side is edited, which is the failure this
-repo exists to prevent. On Windows this needs Developer Mode or an elevated
-shell; `install-skill.ps1` names the setting when it cannot link.
+Skills are **symlinked** out of the checkout, never copied. Personal portable
+skills are canonical under `~/.agents/skills`; project skills use
+`.agents/skills`. Claude receives compatibility links under `.claude/skills`.
+A copy stops tracking the repo the moment either side is edited, which is the
+failure this repo exists to prevent. On Windows this needs Developer Mode or an
+elevated shell; `install-skill.ps1` names the setting when it cannot link.
 
 ---
 
@@ -117,10 +120,11 @@ Rules and skills install differently, and the difference is the point:
   one in a single repo (`.claude/skills/`, `.agents/skills/`) instead of the
   profile, which is how a set's skills travel with it.
 - **Rules** reach Claude Code through an `@` import, also live at once — but
-  reach every other agent through a symlinked rule-set file. An edit to
-  `rules/` does not reach them until `build-agents.sh` runs. Enable the hook
-  (`git config core.hooksPath scripts/hooks`) so a commit cannot leave it
-  stale.
+  reach every other agent through a symlinked rule-set file. Codex, OpenCode,
+  and Copilot base rules install into their user-level native instruction
+  locations; Cursor and Cline remain project adapters. An edit to `rules/` does
+  not reach them until `build-agents.sh` runs. Enable the hook
+  (`git config core.hooksPath scripts/hooks`) so a commit cannot leave it stale.
 - **A layered set** installs into one repo:
   `install-rules.sh --rule-set <name> --project <dir>`. It appends to that
   repo's `AGENTS.md` and `CLAUDE.md` and replaces neither, because both are

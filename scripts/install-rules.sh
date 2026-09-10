@@ -13,14 +13,16 @@
 #   Claude Code resolves `@` imports at read time, so it gets a one-line import
 #   written into a CLAUDE.md. Nothing is copied and nothing can go stale.
 #
-#   Everyone else reads AGENTS.md, so they get a minimal symlinked entrypoint
-#   plus the rule-set file it points at. `build-agents.sh` still has to run
-#   after a rule changes. The pre-commit hook in scripts/hooks catches that.
+#   AGENTS-compatible agents get a minimal symlinked entrypoint at the native
+#   filename they discover, plus the rule-set file it points at.
+#   `build-agents.sh` still has to run after a rule changes. The pre-commit hook
+#   in scripts/hooks catches that.
 #
 # And two kinds of rule set, which install to different places:
 #
-#   The **base** set is the policy for every project you work on, so it goes
-#   into your profile — one import, once, covering everything.
+#   The **base** set is the policy for every project you work on. Agents with
+#   user-level instructions get it in their profile; project-only adapters get
+#   it in the selected project.
 #
 #   A **layered** set is rules for one kind of repo, so it goes into that repo:
 #   a link to the set, a pointer added to files the project already owns, and

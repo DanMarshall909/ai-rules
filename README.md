@@ -1,6 +1,7 @@
 # ai-rules
 
-Lean, agent-agnostic AI coding rules. Works with Claude Code, Cursor, Windsurf, Cline, and any assistant that reads markdown rule files.
+Lean, agent-agnostic AI coding rules. Works with Claude Code, Codex, OpenCode,
+GitHub Copilot, Cursor, and Cline.
 
 The complete shared rule set lives in:
 
@@ -50,7 +51,7 @@ scripts/install-rules.sh --rule-set tool-repos --project ../some-tool
 | Agent | Gets |
 |-------|------|
 | `claude` | `@` import of the set appended to the project's `CLAUDE.md` |
-| `codex`, `opencode` | `<project>/rule-sets/<set>.md`, plus one pointer line in the project's `AGENTS.md` |
+| `codex`, `opencode`, `copilot` | `<project>/rule-sets/<set>.md`, plus one pointer line in the project's `AGENTS.md` |
 | `cursor` | `.cursor/rules/<set>.mdc` |
 | `cline` | `.clinerules/<set>.md` |
 
@@ -94,9 +95,8 @@ scripts\install-skill.ps1 -Agent codex reflect
 
 | Agent | Skill lands at | Scope |
 |-------|----------------|-------|
-| `claude` | `~/.claude/skills/<skill>/` | user |
-| `codex` | `~/.codex/skills/<skill>/` | user |
-| `opencode` | `~/.config/opencode/command/<skill>.md` | user |
+| `claude` | `~/.agents/skills/<skill>/`, plus `~/.claude/skills/<skill>/` | user |
+| `codex`, `opencode`, `copilot` | `~/.agents/skills/<skill>/` | user |
 | `cursor` | `.cursor/rules/<skill>.mdc` | project |
 | `cline` | `.clinerules/<skill>.md` | project |
 
@@ -104,10 +104,10 @@ With no `--agent`, it installs for every agent it finds a config directory for
 and skips the rest. `--force` is needed only to replace a file you wrote
 yourself; an existing symlink is repointed without asking.
 
-**Skills are symlinked, not copied.** Editing `skills/<name>/SKILL.md` in the
-checkout takes effect everywhere at once — a copy under `~/.claude` stops
-tracking this repo the moment either side changes, which is the whole failure
-this repo exists to avoid. The installer refuses to leave a copy behind even
+**Skills are symlinked, not copied.** Portable packages are canonical under
+`~/.agents/skills`; Claude receives the one compatibility link it needs under
+`~/.claude/skills`. Editing `skills/<name>/SKILL.md` in the checkout takes
+effect everywhere at once. The installer refuses to leave a copy behind even
 when the shell hands it one, so on Windows it needs Developer Mode or an
 elevated shell; it names the setting when it can't link.
 
@@ -115,7 +115,8 @@ Then run `/break-reminders` at the start of any Claude Code session.
 
 ## Adopt the rules
 
-From the project you want the rules in:
+Run the base installer from anywhere. User-scoped agents install into their
+profiles; Cursor and Cline install adapters into the selected project:
 
 ```bash
 ~/code/ai-rules/scripts/install-rules.sh --list   # what each agent would get
@@ -126,15 +127,19 @@ From the project you want the rules in:
 | Agent | Gets | Where |
 |-------|------|-------|
 | `claude` | an `@` import of this repo's `CLAUDE.md` | `~/.claude/CLAUDE.md` (user) |
-| `codex`, `opencode` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `./AGENTS.md` and `./rule-sets/ai-rules.md` |
+| `codex` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `~/.codex/AGENTS.md` and `~/.codex/rule-sets/ai-rules.md` |
+| `opencode` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `~/.config/opencode/AGENTS.md` and `~/.config/opencode/rule-sets/ai-rules.md` |
+| `copilot` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `~/.copilot/copilot-instructions.md` and `~/.copilot/rule-sets/ai-rules.md` |
 | `cursor` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `.cursor/rules/ai-rules.mdc` and `.cursor/rules/rule-sets/ai-rules.md` |
 | `cline` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `.clinerules/ai-rules.md` and `.clinerules/rule-sets/ai-rules.md` |
 
 Claude Code resolves `@` imports at read time, so it imports
-`rule-sets/ai-rules.md`. Everyone else reads a small `AGENTS.md` entrypoint that
-points at the same generated rule set. An edit to a rule reaches installed
-projects once `scripts/build-agents.sh` has run. The links mean you never have
-to reinstall; the hook below means you never forget to regenerate.
+`rule-sets/ai-rules.md`. Codex and OpenCode read a small `AGENTS.md` entrypoint;
+Copilot receives that entrypoint through its native personal-instructions
+filename. All three point at the same generated rule set. An edit to a rule
+reaches installed profiles and project-only adapters once
+`scripts/build-agents.sh` has run. The links mean you never have to reinstall;
+the hook below means you never forget to regenerate.
 
 For Claude the installer appends one line to `~/.claude/CLAUDE.md`, keeping
 whatever is already there, and won't add it twice.

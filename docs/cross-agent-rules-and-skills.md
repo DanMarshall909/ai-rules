@@ -212,23 +212,29 @@ Proceed with the installer modernization below, retaining `rules/` and
 mode, nested status, and backup-restoring cleanup mature. The implementation
 must still prove Windows behavior in CI before release.
 
-## Installer changes implied by this decision
+## Installer modernization status
 
-If the spike rejects the existing tools, the current installers should be
-modernized. They predate these vendor conventions. A follow-up change should:
+The replacement spike rejected the existing tools. The custom installers now
+implement the portable path and ownership changes:
 
-1. Install the short base policy to user-level native instruction locations:
+1. Base-policy entrypoints install to user-level native instruction locations:
    - Claude: `~/.claude/CLAUDE.md`
    - Codex: `~/.codex/AGENTS.md`
    - OpenCode: `~/.config/opencode/AGENTS.md`
    - Copilot CLI: `~/.copilot/copilot-instructions.md`
-2. Never replace a project's root `AGENTS.md` while installing global rules.
-3. Standardize portable skills on `~/.agents/skills` and `.agents/skills`.
-4. Create only the Claude compatibility links required under
-   `.claude/skills`.
-5. Add Copilot detection and installation support.
-6. Test discovery paths, idempotence, existing-file preservation, symlink
-   behavior, and generated-adapter drift on Linux and Windows.
+2. Global installation never targets a project's root `AGENTS.md`.
+3. Portable skills use `~/.agents/skills` and `.agents/skills`.
+4. Claude receives the required compatibility links under `.claude/skills`;
+   Codex, OpenCode, and Copilot consume the canonical packages directly.
+5. Copilot participates in explicit selection, `all`, and autodetection for
+   both rules and skills.
+
+The remaining work is to reduce the 628-line base policy by moving detailed
+procedures into on-demand skills, add any generated adapters needed by project
+Copilot surfaces, and prove the PowerShell behavior on native Windows CI. The
+current suites cover discovery paths, idempotence, existing-file preservation,
+and symlink behavior on Linux, including the PowerShell implementation under a
+portable PowerShell runtime.
 
 ## DnDan compatibility audit
 

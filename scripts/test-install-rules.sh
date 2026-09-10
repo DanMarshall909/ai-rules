@@ -5,10 +5,10 @@
 #   scripts/test-install-rules.sh
 #
 # Rules reach agents by two different mechanisms and the tests are split the
-# same way: AGENTS.md is linked into a project, while Claude Code is given an
-# `@` import line in a file it already owns. The second is the awkward one —
-# it edits a file the user wrote, so most of these tests are about not
-# damaging it.
+# same way: an AGENTS.md entrypoint is linked into each agent's native location,
+# while Claude Code is given an `@` import line in a file it already owns. The
+# second is the awkward one — it edits a file the user wrote, so most of these
+# tests are about not damaging it.
 
 set -uo pipefail
 
@@ -146,7 +146,7 @@ links_to "installs independently of the current directory" \
   "${HOME}/.codex/AGENTS.md" "${REPO}/AGENTS.md"
 absent "does not treat the current directory as a profile" "${project}/AGENTS.md"
 
-# A link means an edit to rules/ reaches the project as soon as generated rule
+# A link means an edit to rules/ reaches the profile as soon as generated rule
 # files are regenerated. A copy would not, which is the whole point.
 sandbox
 "${INSTALL}" --agent codex >/dev/null 2>&1
