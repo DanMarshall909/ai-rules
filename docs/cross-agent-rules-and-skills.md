@@ -156,26 +156,61 @@ generator:
   instructions and optional resources. Claude Code, Codex, OpenCode, and
   Copilot all support the format, although their discovery directories differ.
 
+### Replacement spike results
+
+A contained Linux spike ran on 2026-09-10 against Rulesync 16.26.1, Ruler
+0.3.44, and AgentSync 1.45.2. Each candidate used throwaway project and home
+trees. The global Rulesync run was additionally isolated with a filesystem
+sandbox because its global mode ignored `--output-roots` and resolved the real
+home directory.
+
+Rulesync proved broad generation and the best generated-file drift workflow:
+project and user-scope outputs covered Claude Code, Codex, OpenCode, repository
+Copilot, and Copilot CLI; repeated generation was content-idempotent; and
+`--dry-run` and `--check` correctly reported changes without writing. It failed
+the ownership and removal boundaries, however. Project generation replaced an
+existing root `AGENTS.md` even with `delete: false`, and `--delete` removed
+unowned skill directories from every managed destination. Its global mode also
+ignored an explicit output root, and its global-mode guide understated the
+Codex support the CLI actually provided.
+
+Ruler did not provide user-scope agent outputs: its global configuration is a
+fallback source for project generation. The first project apply backed up and
+included an existing root `AGENTS.md`, but a second apply dropped that content
+from the generated files. `revert` restored the root backup yet left generated
+skills, nested outputs and backups, and a generated `CLAUDE.md` after repeated
+applies. Nested generation worked, but remained experimental, and the released
+CLI rejected the documented `revert --nested` option.
+
+AgentSync was the only candidate that could express the intended ownership
+model. A custom configuration kept the repository's root `AGENTS.md` as a
+regular project-owned file, linked Claude and Copilot adapters to it, kept
+`.agents/skills` canonical, and created per-skill Claude compatibility links
+without disturbing an unowned skill. Treating a throwaway home as the project
+root also produced the required personal Claude, Codex, OpenCode, and Copilot
+paths. Applies were idempotent, source edits propagated immediately, and
+`status` detected and `apply` repaired a deliberately broken global link.
+
+AgentSync still fell short of selection. `status` reported a false missing path
+for a working `nested-glob` target, `clean` removed managed links but did not
+restore displaced files from their `.bak` files, and user-scope use required an
+undocumented custom-project configuration. Its default GNU/Linux binary also
+required GLIBC 2.38/2.39 and would not start on this GLIBC 2.35 host; the
+checksummed musl build worked. Native Windows execution remains unproven by
+this spike.
+
 ### Recommendation
 
-Do not add another round of vendor paths to the custom installers before
-testing these tools. Run a contained replacement spike in a throwaway home and
-project directory:
+Do not adopt any candidate as the distribution engine yet. Rulesync and Ruler
+violate hard ownership or idempotence requirements. AgentSync is a useful
+reference implementation for symlink behavior, but adopting it would still
+require wrappers for personal scope, nested drift checks, backup restoration,
+and platform-specific binary selection.
 
-1. Evaluate Rulesync first because it already covers the widest required
-   surface and has drift checking, imports, diagnostics, and active releases.
-2. Evaluate Ruler as the simpler fallback if Rulesync's breadth or generated
-   configuration is too heavy.
-3. Evaluate AgentSync only if instantaneous symlink propagation remains a hard
-   requirement after considering generated files plus CI `--check`.
-4. Keep `rules/` and `skills/` in this repository as the authored content. A
-   selected tool is a distribution engine, not the owner of policy.
-
-The spike must prove global and project scope for Claude Code, Codex, OpenCode,
-Copilot CLI, and repository Copilot; preservation of an existing project
-`AGENTS.md`; `.agents/skills` interoperability; path-scoped rules; idempotence;
-dry-run and drift detection; Linux and Windows behavior; and clean removal. Do
-not select a tool from its advertised support matrix alone.
+Proceed with the installer modernization below, retaining `rules/` and
+`skills/` as the authored sources. Re-evaluate AgentSync if its native global
+mode, nested status, and backup-restoring cleanup mature. The implementation
+must still prove Windows behavior in CI before release.
 
 ## Installer changes implied by this decision
 
