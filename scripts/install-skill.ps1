@@ -63,6 +63,12 @@ function Get-ProjectRoot {
   return (Get-Location).Path
 }
 
+function Get-CanonicalTarget {
+  param([string]$SkillName)
+  $root = if ($Project) { Get-ProjectRoot } else { $env:USERPROFILE }
+  return (Join-Path $root (Join-Path '.agents\skills' $SkillName))
+}
+
 function Get-AgentSpec {
   param([string]$Name, [string]$SkillName)
 
@@ -84,14 +90,13 @@ function Get-AgentSpec {
     'codex' { @{
         Root   = Join-Path $home_ '.codex'
         Target = if ($inProject) { Join-Path $cwd (Join-Path '.agents\skills' $SkillName) }
-                 else { Join-Path $home_ (Join-Path '.codex\skills' $SkillName) }
+                 else { Get-CanonicalTarget -SkillName $SkillName }
         Kind   = 'Dir'; Scope = if ($inProject) { 'Project' } else { 'User' }
       } }
     'opencode' { @{
         Root   = Join-Path (Get-ConfigHome) 'opencode'
-        Target = if ($inProject) { Join-Path $cwd (Join-Path '.agents\skills' (Join-Path $SkillName 'SKILL.md')) }
-                 else { Join-Path (Get-ConfigHome) (Join-Path 'opencode\command' "$SkillName.md") }
-        Kind   = 'File'; Scope = if ($inProject) { 'Project' } else { 'User' }
+        Target = Get-CanonicalTarget -SkillName $SkillName
+        Kind   = 'Dir'; Scope = if ($inProject) { 'Project' } else { 'User' }
       } }
     'cursor' { @{
         Root   = Join-Path $cwd '.cursor'
@@ -264,6 +269,13 @@ function Install-Link {
 foreach ($s in $Skill) {
   Write-Host $s
   foreach ($a in $targetAgents) {
+    if ($a -eq 'claude') {
+      $canonical = Get-CanonicalTarget -SkillName $s
+      $installed = Install-Link -Source (Join-Path $skillsDir $s) `
+                                -Target $canonical -Kind 'Dir' `
+                                -Label "portable: $canonical"
+      if (-not $installed) { continue }
+    }
     $spec = Get-AgentSpec -Name $a -SkillName $s
     Install-Link -Source (Get-SourcePath $a $s) -Target $spec.Target `
                  -Kind $spec.Kind -Label "${a}: $($spec.Target)" | Out-Null
