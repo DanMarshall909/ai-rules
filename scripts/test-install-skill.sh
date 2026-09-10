@@ -109,6 +109,8 @@ done
 echo "per-agent targets"
 sandbox
 "${INSTALL}" --agent claude reflect >/dev/null 2>&1
+links_to "claude installs the canonical skill package" \
+  "${HOME}/.agents/skills/reflect" "${REPO}/skills/reflect"
 links_to "claude installs a skill directory" \
   "${HOME}/.claude/skills/reflect" "${REPO}/skills/reflect"
 
@@ -155,6 +157,8 @@ echo "--project"
 sandbox
 project="${PWD}"
 "${INSTALL}" --project "${project}" --agent claude reflect >/dev/null 2>&1
+links_to "claude installs the canonical project skill package" \
+  "${project}/.agents/skills/reflect" "${REPO}/skills/reflect"
 links_to "claude reads a skills directory inside the project" \
   "${project}/.claude/skills/reflect" "${REPO}/skills/reflect"
 absent "installs nothing into the profile" "${HOME}/.claude/skills/reflect"
@@ -221,6 +225,8 @@ sandbox
 if [[ $? -eq 0 ]]; then ok "second run exits 0"; else no "second run exits 0"; fi
 links_to "second run leaves the link intact" \
   "${HOME}/.claude/skills/reflect" "${REPO}/skills/reflect"
+links_to "second run leaves the canonical link intact" \
+  "${HOME}/.agents/skills/reflect" "${REPO}/skills/reflect"
 
 # --- never clobber ---------------------------------------------------------
 
@@ -291,6 +297,7 @@ STUB
 chmod +x "${stub}/ln"
 PATH="${stub}:${PATH}" "${INSTALL}" --agent claude reflect >/dev/null 2>&1
 if [[ $? -ne 0 ]]; then ok "fails rather than leaving a copy"; else no "fails rather than leaving a copy"; fi
+absent "removes the canonical copy it was handed" "${HOME}/.agents/skills/reflect"
 absent "removes the copy it was handed" "${HOME}/.claude/skills/reflect"
 
 # --- dry run ---------------------------------------------------------------
@@ -299,6 +306,7 @@ echo "--dry-run"
 sandbox
 mkdir -p "${HOME}/.claude"
 "${INSTALL}" --dry-run --agent claude reflect >/dev/null 2>&1
+absent "creates no canonical link" "${HOME}/.agents/skills/reflect"
 absent "creates nothing" "${HOME}/.claude/skills/reflect"
 
 # --- several skills --------------------------------------------------------
@@ -306,6 +314,10 @@ absent "creates nothing" "${HOME}/.claude/skills/reflect"
 echo "multiple skills"
 sandbox
 "${INSTALL}" --agent claude reflect break-reminders >/dev/null 2>&1
+links_to "installs the first canonically" \
+  "${HOME}/.agents/skills/reflect" "${REPO}/skills/reflect"
+links_to "installs the second canonically" \
+  "${HOME}/.agents/skills/break-reminders" "${REPO}/skills/break-reminders"
 links_to "installs the first"  "${HOME}/.claude/skills/reflect"         "${REPO}/skills/reflect"
 links_to "installs the second" "${HOME}/.claude/skills/break-reminders" "${REPO}/skills/break-reminders"
 
