@@ -63,7 +63,7 @@ and never twice — a layered set arrives in repos that already have both.
 | `rules/guardrails.md` | Turn a repeatable mistake into a test that fails at build time |
 | `rules/security.md` | Concentrate security decisions behind one narrow, intent-named boundary |
 | `rules/git.md` | pull --rebase, backup before force-push, staged diff review |
-| `rules/issues.md` | `docs/issues/[open\|resolved]/[area]/` structured tracking |
+| `rules/issues.md` | GitHub and/or canonical `docs/issues/[open\|resolved]/[area]/` tracking |
 | `rules/reflection.md` | Capture durable lessons when work lands; route them to the right scope |
 
 ## Install a skill
