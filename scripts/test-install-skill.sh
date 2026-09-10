@@ -115,7 +115,9 @@ links_to "claude installs a skill directory" \
 sandbox
 "${INSTALL}" --agent codex reflect >/dev/null 2>&1
 links_to "codex installs a discoverable skill directory" \
-  "${HOME}/.codex/skills/reflect" "${REPO}/skills/reflect"
+  "${HOME}/.agents/skills/reflect" "${REPO}/skills/reflect"
+absent "codex does not create a vendor-specific skill link" \
+  "${HOME}/.codex/skills/reflect"
 
 sandbox
 "${INSTALL}" --agent opencode reflect >/dev/null 2>&1
@@ -182,7 +184,7 @@ echo "--agent all"
 sandbox
 "${INSTALL}" --agent all reflect >/dev/null 2>&1
 links_to "all: claude"   "${HOME}/.claude/skills/reflect"                 "${REPO}/skills/reflect"
-links_to "all: codex"    "${HOME}/.codex/skills/reflect"                  "${REPO}/skills/reflect"
+links_to "all: codex"    "${HOME}/.agents/skills/reflect"                 "${REPO}/skills/reflect"
 links_to "all: opencode" "${XDG_CONFIG_HOME}/opencode/command/reflect.md" "${REPO}/skills/reflect/SKILL.md"
 links_to "all: cursor"   "${PWD}/.cursor/rules/reflect.mdc"               "${REPO}/skills/reflect/SKILL.md"
 links_to "all: cline"    "${PWD}/.clinerules/reflect.md"                  "${REPO}/skills/reflect/SKILL.md"
@@ -192,7 +194,7 @@ sandbox
 mkdir -p "${HOME}/.codex"
 "${INSTALL}" reflect >/dev/null 2>&1
 links_to "installs for the agent that is present" \
-  "${HOME}/.codex/skills/reflect" "${REPO}/skills/reflect"
+  "${HOME}/.agents/skills/reflect" "${REPO}/skills/reflect"
 absent "skips the agent that is absent" "${HOME}/.claude/skills/reflect"
 
 sandbox
@@ -212,29 +214,29 @@ links_to "second run leaves the link intact" \
 
 echo "existing files"
 sandbox
-mkdir -p "${HOME}/.codex/skills/reflect"
-echo "hand written" > "${HOME}/.codex/skills/reflect/notes.md"
+mkdir -p "${HOME}/.agents/skills/reflect"
+echo "hand written" > "${HOME}/.agents/skills/reflect/notes.md"
 exits_nonzero "refuses to replace a real file" \
   "${INSTALL}" --agent codex reflect
-if [[ "$(cat "${HOME}/.codex/skills/reflect/notes.md")" == "hand written" ]]; then
+if [[ "$(cat "${HOME}/.agents/skills/reflect/notes.md")" == "hand written" ]]; then
   ok "leaves the real file untouched"
 else
   no "leaves the real file untouched" "contents changed"
 fi
 
 sandbox
-mkdir -p "${HOME}/.codex/skills/reflect"
-echo "hand written" > "${HOME}/.codex/skills/reflect/notes.md"
+mkdir -p "${HOME}/.agents/skills/reflect"
+echo "hand written" > "${HOME}/.agents/skills/reflect/notes.md"
 "${INSTALL}" --force --agent codex reflect >/dev/null 2>&1
 links_to "--force replaces a real file" \
-  "${HOME}/.codex/skills/reflect" "${REPO}/skills/reflect"
+  "${HOME}/.agents/skills/reflect" "${REPO}/skills/reflect"
 
 sandbox
-mkdir -p "${HOME}/.codex/skills"
-ln -s /nowhere/else "${HOME}/.codex/skills/reflect" 2>/dev/null
+mkdir -p "${HOME}/.agents/skills"
+ln -s /nowhere/else "${HOME}/.agents/skills/reflect" 2>/dev/null
 "${INSTALL}" --agent codex reflect >/dev/null 2>&1
 links_to "repoints a stale symlink without --force" \
-  "${HOME}/.codex/skills/reflect" "${REPO}/skills/reflect"
+  "${HOME}/.agents/skills/reflect" "${REPO}/skills/reflect"
 
 # --- bad input -------------------------------------------------------------
 
