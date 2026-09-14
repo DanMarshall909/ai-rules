@@ -1,12 +1,12 @@
 ---
 name: behavior-first-tdd
-description: Use when changing system behavior, adding tests, reviewing coverage, or deciding whether uncovered code should be tested or pruned. Enforces behavior-first TDD with externally observable tests.
+description: Use when changing maintained system behavior or revising tests. Owns the behavior-first TDD cycle and test design; use coverage-and-mutation for evidence interpretation.
 ---
 
 # Behavior-First TDD
 
-Use this skill whenever a task may change system behavior, add new behavior,
-revise tests, review coverage, or decide whether uncovered code should stay.
+Use this skill for authorized behavior changes and test revisions. A review-only
+request can use its test-quality criteria without authorizing implementation.
 
 ## Core Rule
 
@@ -81,16 +81,10 @@ valuable cross-boundary evidence.
 
 ## Coverage Review Workflow
 
-For uncovered code, classify each block:
-
-- Boundary code: may be excluded if it only adapts external systems, process entrypoints, FFI, generated code, or vendored code.
-- Useful behavior: add or improve an externally observable test.
-- Unused convenience/API shape: prune it unless there is a concrete near-term consumer or public contract.
-- Defensive branch: keep only if it protects a meaningful failure mode; otherwise simplify.
-
-Do not add tests only to satisfy coverage. A coverage-increasing test must prove
-useful behaviour or guard against harmful behaviour. Read
-`coverage-and-mutation` before interpreting gaps or mutation results.
+Read `coverage-and-mutation` before interpreting uncovered code or mutants. It
+owns classification, harness calibration and test/code retention decisions.
+Bring those findings back into this criterion's coverage and refactor phases;
+do not add tests merely to increase a score.
 
 ## Test Smells
 
@@ -117,10 +111,11 @@ These names describe product promises or useful safety checks rather than implem
 
 ## Scope Boundary
 
-Isolated spikes, prototypes, generated examples, and utility scripts do not need
-a test suite solely to imitate production TDD. Verify their declared output or
-measurement. Once code crosses the project's production boundary, apply the
-ordinary workflow.
+Isolated spikes, prototypes, and genuinely one-off scripts may use proportionate
+smoke, syntax or output evidence. Production, maintained, reused and recurring
+operational code follows the ordinary workflow; the label "utility" is not an
+exemption. Follow explicit task and scoped project rules within the host's
+instruction hierarchy.
 
 ## Communication
 

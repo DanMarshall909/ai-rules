@@ -9,6 +9,27 @@ Lean, agent-agnostic rules for any coding assistant.
 
 ---
 
+## Authority and Scope
+
+Respect the host's instruction hierarchy. Within that hierarchy, explicit task
+instructions and scoped project rules refine these shared defaults. Skills supply
+procedures; environment modules supply tool mechanics; generated adapters expose
+the same policy. None grants additional authority. If applicable instructions
+still conflict, name the conflict and pause only the affected action.
+
+- Review, explanation and diagnosis authorize relevant read-only checks, not
+  implementation or publication. Persistence language does not expand scope.
+- Preserve unrelated work. It blocks only operations that overlap or could
+  change, hide or destroy it; follow the project's worktree and Git policy.
+- Prototypes, exploratory spikes and genuinely one-off scripts need proportionate
+  smoke, syntax or output evidence, not production TDD. Production, maintained,
+  reused or recurring operational code follows the normal testing workflow.
+- Perform routine in-scope work under existing authority. Ask before expanding
+  scope, destructive actions not already authorized, or external side effects
+  not covered by the request. Creating a PR does not authorize merging it.
+
+---
+
 ## Break Reminders
 
 During working hours (9am–5pm), remind the user to take a short break every 30
@@ -22,21 +43,14 @@ scheduled reminders created.
 
 ## Agentic TDD Protocol
 
-**Tidy → RED → GREEN → COVERAGE → REFACTOR → next RED**
+For behaviour changes use the `behavior-first-tdd` skill (`/behavior-first-tdd`):
+**Tidy → RED → GREEN → COVERAGE → REFACTOR → next RED**, one observable acceptance
+criterion at a time. GREEN alone does not complete the criterion.
 
-- Work one observable acceptance criterion at a time; do not batch behaviours.
-- Review adjacent tests before RED; consolidate only when confidence survives.
-- Preserve evidence that RED failed for the missing behaviour, then implement
-  only enough for GREEN.
-- Use COVERAGE to find unprotected behaviour and unearned code; percentages do
-  not finish this phase.
-- REFACTOR production code and tests, or record why each genuinely needs no
-  improvement, before starting the next RED.
-- Preserve RED through the project's driver or a separate commit when permitted;
-  never break shared trunk merely to manufacture evidence.
-
-For behaviour changes use the `behavior-first-tdd` skill (`/behavior-first-tdd`);
-use `agentic-delivery` for non-trivial work.
+Preserve the intended RED through the project's driver or a separate commit
+when permitted; never break shared trunk merely to manufacture evidence.
+Use `agentic-delivery` to coordinate non-trivial implementation, not to impose
+implementation steps on read-only reviews or genuine one-off experiments.
 
 ---
 
@@ -46,8 +60,8 @@ When reviewing coverage, mutation results, compatibility paths, or dead code,
 use the `coverage-and-mutation` skill.
 
 - Aim for 100% coverage of core code through externally observable behavior.
-- An uncovered line has never executed; a covered line has not necessarily been
-  checked by an assertion.
+- An uncovered line did not execute in the measured run (assuming sound
+  instrumentation); a covered line was not necessarily checked by an assertion.
 - Remove code that has no useful caller or contract instead of covering it for
   its own sake.
 - Establish coverage before mutation testing, and calibrate the mutation harness
@@ -57,49 +71,22 @@ use the `coverage-and-mutation` skill.
 
 ## Guardrails
 
-When a mistake is **repeatable** and **bad**, and a test could mechanically
-prevent it, flag that test. Say what it would assert and what it would have
-caught. Don't silently fix the instance and move on — the instance is one
-sample of a class.
-
-Repeatable means it can recur without anyone noticing: a convention that only
-holds while people remember it, a layering rule enforced by habit, a constant
-duplicated by hand, a shape every implementation must share. A one-off typo the
-compiler already rejects is not repeatable.
-
-Prefer the guardrail that fails at build time over the one that relies on
-review. An architecture/convention test that sweeps *every* type is worth more
-than a unit test pinning the one type that happened to break today — write the
-test against the rule, not against the instance.
-
-Flag it and let the user decide whether to build it now. Not every guardrail
-earns its cost; that call is theirs.
+When a harmful mistake can recur unnoticed and a test could mechanically prevent
+it, identify the invariant, the failure it catches and the cost. Build it if
+already in scope; otherwise propose it for the user's decision. Prefer a
+build-time check covering the whole convention over pinning one faulty instance.
 
 ### A guardrail must be able to fail
 
-A guardrail earns trust by being ignored, so how it behaves when it stops
-working matters more than how it behaves when it passes. Three ways one holds
-nothing while still reporting success:
+- Name unavailable checks explicitly. Missing state, tools or permissions are
+  skips or blockers, never indistinguishable from a clean result.
+- Wire the check into the normal pipeline; a local-only suite is not a CI gate.
+- Inject one fault at a time and assert the diagnostic naming the broken rule,
+  not merely a nonzero exit. Setup errors must not impersonate fault detection.
 
-- **It cannot run, and does not say so.** A check reading state it might not
-  have — an index, a lock file, a service — must announce the skip by name.
-  Degrading to a clean result is the worst option available: the output becomes
-  indistinguishable from the check having passed.
-- **Nothing invokes it.** A suite missing from the pipeline still passes
-  locally and is still counted on. Wiring it up is part of building it, not a
-  follow-up.
-- **Its own test asserts only the exit code.** Any failure then stands in for
-  any other, so a guardrail that has begun reporting the *wrong* problem — or
-  choking on its input before it reaches the check at all — still looks
-  correct. Break one rule at a time and assert the message naming that rule.
-
-The test to write for a guardrail is not "does it pass on good input" but "does
-it fail on bad input, for the stated reason" (see [[coverage]]).
-
-**Judgment is not mechanizable.** A rule about *when* code is worth writing at
-all — speculative generality, wrong abstraction, premature migration paths —
-cannot be a test. Don't propose one; route that lesson to a rules file instead
-(see [[reflection]]).
+Use the `coverage-and-mutation` skill to assess that evidence. Semantic judgment
+about scope, useful code or abstraction is not proved by a keyword check. Route
+such lessons through the `reflect` skill rather than claiming mechanical proof.
 
 ---
 
@@ -119,35 +106,28 @@ security review, use the `security-by-design` skill.
 
 ## Git Workflow
 
-- `git pull --rebase` before every push — **except when pushing a merge commit**:
-  plain `--rebase` silently discards merges, replaying their commits and throwing
-  the merge (and its message) away. The push still succeeds, so the loss is
-  invisible unless you look. Integrate *before* merging, or use
-  `git pull --rebase=merges`, and verify with `git log --graph` before pushing
-- Before force-push: create `backup/<branch>-<timestamp>` first
-- Never commit without reviewing the staged diff first
-- Commit messages: present tense, imperative, explain *why* not *what*
-- Never skip hooks (`--no-verify`) unless explicitly asked
+- Fetch and integrate the intended upstream according to project policy before
+  final validation and completion review. Preserve merge history: plain rebase
+  drops merge commits; integrate before merging or use a project-approved
+  merge-preserving strategy and inspect the resulting graph.
+- After completion-review PASS, fetch without pull/rebase/merge and require the
+  recorded upstream object. Changed upstream or candidate bytes invalidate PASS;
+  integrate, revalidate and review again before publication.
+- Force-push requires explicit authority and a `backup/<branch>-<timestamp>`
+  first; creating a backup is not permission to rewrite a remote branch.
+- Review the staged diff before committing. Use present-tense, imperative commit
+  messages explaining why. Never skip hooks unless explicitly asked.
 
 ### Trunk-Based Development
 
-Trunk is the single source of truth, and it is always releasable. Work merges
-back within roughly a day — a branch that outlives that is the problem, not the
-merge that follows it.
+Keep trunk releasable and branches short-lived. Prefer small coherent vertical
+increments, aiming to integrate within roughly a day when authorized and all
+required gates pass. A time target or green build is not merge authorization.
 
-- Branch from trunk, keep it short-lived, merge back as soon as it is green
-- Merge small vertical increments — a coherent, green, releasable slice beats a
-  finished feature that sat unmerged for a week
-- Never let a branch accumulate work that could have landed already; long-lived
-  branches turn into merge risk and hide work from everyone else
-- Unfinished-but-safe belongs on trunk behind a flag or simply unwired, in
-  preference to a branch nobody can see
-- Trunk stays green: if a merge breaks it, fixing trunk outranks whatever came
-  next
-
-Merging an increment does not mean the task is done. When a slice lands with
-work still outstanding, say what is still missing rather than letting the merge
-imply completion.
+Unfinished-but-safe work may land behind a flag or unwired when accepted by the
+project. If an integration breaks trunk, restoring trunk outranks new work.
+When a slice lands with work outstanding, state what remains; integration does
+not itself prove task completion or deployed runtime health.
 
 ---
 
