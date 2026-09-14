@@ -27,11 +27,26 @@ Choose one workflow:
 - **Contribute here:** read [the maintainer skill](skills/ai-rules/SKILL.md),
   edit authored sources, regenerate and run [Checks](#checks).
 
-Clone to a durable location, then preview and install for the intended agent:
+Clone to a durable location:
 
 ```bash
 git clone https://github.com/DanMarshall909/ai-rules ai-rules
 cd ai-rules
+```
+
+Before a first adoption or an update, bootstrap the reconciliation workflow by
+asking the agent to read the checked-out skill directly, for example:
+
+```text
+Read and follow <absolute-ai-rules-checkout>/skills/adopt-ai-rules/SKILL.md to
+adopt <set> into <target> for <agents>.
+```
+
+Reading that file is non-mutating and works before the skill is installed or
+discoverable. Do not run an installer until its inventory and confirmation
+steps say to proceed. Then preview and install for the intended agent:
+
+```bash
 scripts/install-rules.sh --agent codex --dry-run
 scripts/install-rules.sh --agent codex
 ```
