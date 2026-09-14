@@ -301,7 +301,6 @@ scripts/test-install-rules.sh      # the rules installer's behaviour
 scripts/test-install-contracts.sh  # cross-installer destinations and packages
 scripts/test-new-skill.sh          # the skill scaffold's behaviour
 scripts/test-new-rule-set.sh       # the rule and rule-set scaffolds
-scripts/test-check-conventions.sh  # the conventions check's own behaviour
 scripts/check-conventions.sh       # skills load, installers agree, rules registered
 ```
 
