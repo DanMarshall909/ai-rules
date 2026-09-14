@@ -108,10 +108,12 @@ authority.
 
 ## Windows checks that must remain real
 
-`.gitattributes` keeps shell/Markdown/hooks LF and PowerShell CRLF. Strip CR
-before Bash parses a PowerShell table. Preserve executable Git index modes in
-fixtures; NTFS copies do not carry Unix modes. Fault tests must fail for the
-named intended defect, not a setup failure.
+`.gitattributes` and `.editorconfig` keep shell, Markdown, hooks and rule-set
+manifests on LF while PowerShell remains CRLF. Manifest readers tolerate older
+CRLF checkouts, but a CRLF test must prove its fixture bytes before exercising
+the reader. Strip CR before Bash parses a PowerShell table. Preserve executable
+Git index modes in fixtures; NTFS copies do not carry Unix modes. Fault tests
+must fail for the named intended defect, not a setup failure.
 
 If generated-file verification disagrees with Git's diff, inspect line endings
 and the index; report the discrepancy rather than bypassing the check. Skills

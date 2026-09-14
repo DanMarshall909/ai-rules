@@ -123,6 +123,19 @@ matches() {
   fi
 }
 
+# Rewrite manifests without GNU sed's non-portable in-place syntax, then prove
+# the fixture really ends in CRLF before any test is allowed to rely on it.
+make_manifests_crlf() {
+  local path tmp tail_bytes
+  for path in rule-sets/*.set; do
+    tmp="${path}.crlf"
+    awk '{ sub(/\r$/, ""); printf "%s\r\n", $0 }' "${path}" >"${tmp}" || return 1
+    mv "${tmp}" "${path}" || return 1
+    tail_bytes="$(tail -c 2 "${path}" | od -An -t x1 | tr -d '[:space:]')"
+    [[ "${tail_bytes}" == "0d0a" ]] || return 1
+  done
+}
+
 # For diagnoses that must *not* appear: naming the wrong problem costs as much
 # as naming none, because it sends the reader somewhere else entirely.
 says_nothing_about() {
@@ -148,9 +161,14 @@ says_nothing_about "reads the CRLF PowerShell table" "could not read"
 mentions "names the agents it compared" "  cline"
 
 sandbox_git
-sed -i 's/$/\r/' rule-sets/*.set
-run_check
-holds "accepts CRLF rule-set manifests"
+if make_manifests_crlf; then
+  ok "creates CRLF manifest fixtures"
+  run_check
+  holds "accepts CRLF rule-set manifests"
+else
+  no "creates CRLF manifest fixtures" "the final bytes were not 0d0a"
+  no "accepts CRLF rule-set manifests" "fixture creation failed"
+fi
 
 # --- the two agent tables --------------------------------------------------
 
