@@ -9,9 +9,8 @@
 
   Creating a symlink on Windows needs Developer Mode or an elevated shell. Where
   that is unavailable this falls back to a directory junction, which needs
-  neither and works across volumes. File-based agents have no such fallback that
-  survives a repo on a different drive from your profile, so they fail loudly
-  rather than leaving a copy that silently stops tracking the repo.
+  neither and works across volumes. Every supported agent receives a complete
+  skill directory, including references and supporting resources.
 
 .EXAMPLE
   scripts\install-skill.ps1 -List
@@ -50,8 +49,6 @@ $skillsDir = Join-Path $repo 'skills'
 #
 #   Root   presence means the agent is installed (used for autodetect)
 #   Target where the skill has to appear for that agent to see it
-#   Kind   Dir  = the agent reads a skill directory
-#          File = the agent reads a single markdown file
 #   Scope  User = per profile;  Project = relative to the current directory
 function Get-ConfigHome {
   if ($env:XDG_CONFIG_HOME) { return $env:XDG_CONFIG_HOME }
@@ -85,33 +82,33 @@ function Get-AgentSpec {
         Root   = Join-Path $home_ '.claude'
         Target = if ($inProject) { Join-Path $cwd (Join-Path '.claude\skills' $SkillName) }
                  else { Join-Path $home_ (Join-Path '.claude\skills' $SkillName) }
-        Kind   = 'Dir'; Scope = if ($inProject) { 'Project' } else { 'User' }
+        Scope = if ($inProject) { 'Project' } else { 'User' }
       } }
     'codex' { @{
         Root   = Join-Path $home_ '.codex'
         Target = if ($inProject) { Join-Path $cwd (Join-Path '.agents\skills' $SkillName) }
                  else { Get-CanonicalTarget -SkillName $SkillName }
-        Kind   = 'Dir'; Scope = if ($inProject) { 'Project' } else { 'User' }
+        Scope = if ($inProject) { 'Project' } else { 'User' }
       } }
     'opencode' { @{
         Root   = Join-Path (Get-ConfigHome) 'opencode'
         Target = Get-CanonicalTarget -SkillName $SkillName
-        Kind   = 'Dir'; Scope = if ($inProject) { 'Project' } else { 'User' }
+        Scope = if ($inProject) { 'Project' } else { 'User' }
       } }
     'copilot' { @{
         Root   = Join-Path $home_ '.copilot'
         Target = Get-CanonicalTarget -SkillName $SkillName
-        Kind   = 'Dir'; Scope = if ($inProject) { 'Project' } else { 'User' }
+        Scope = if ($inProject) { 'Project' } else { 'User' }
       } }
     'cursor' { @{
         Root   = Join-Path $cwd '.cursor'
-        Target = Join-Path $cwd (Join-Path '.cursor\rules' "$SkillName.mdc")
-        Kind   = 'File'; Scope = 'Project'
+        Target = Join-Path $cwd (Join-Path '.cursor\skills' $SkillName)
+        Scope = 'Project'
       } }
     'cline' { @{
         Root   = Join-Path $cwd '.clinerules'
-        Target = Join-Path $cwd (Join-Path '.clinerules' "$SkillName.md")
-        Kind   = 'File'; Scope = 'Project'
+        Target = Join-Path $cwd (Join-Path '.clinerules\skills' $SkillName)
+        Scope = 'Project'
       } }
     default { $null }
   }
@@ -120,10 +117,8 @@ function Get-AgentSpec {
 $knownAgents = @('claude', 'codex', 'opencode', 'copilot', 'cursor', 'cline')
 
 function Get-SourcePath {
-  param([string]$AgentName, [string]$SkillName)
-  $spec = Get-AgentSpec -Name $AgentName -SkillName $SkillName
-  if ($spec.Kind -eq 'Dir') { return (Join-Path $skillsDir $SkillName) }
-  return (Join-Path $skillsDir (Join-Path $SkillName 'SKILL.md'))
+  param([string]$SkillName)
+  return (Join-Path $skillsDir $SkillName)
 }
 
 function Get-AvailableSkills {
@@ -155,7 +150,7 @@ if ($List) {
     Write-Host ("  {0,-9} {1,-10} {2} ({3})" -f $a, $state, $spec.Root, $spec.Scope.ToLower())
     foreach ($s in Get-AvailableSkills) {
       $t = (Get-AgentSpec -Name $a -SkillName $s).Target
-      if ((Get-LinkTarget $t) -eq (Get-SourcePath $a $s)) {
+      if ((Get-LinkTarget $t) -eq (Get-SourcePath $s)) {
         Write-Host "              installed: $s"
       }
     }
@@ -222,7 +217,7 @@ if ($targetAgents.Count -eq 0) {
 $failures = 0
 
 function Install-Link {
-  param([string]$Source, [string]$Target, [string]$Kind, [string]$Label)
+  param([string]$Source, [string]$Target, [string]$Label)
 
   $existingLink = Get-LinkTarget $Target
   if ($existingLink) {
@@ -256,18 +251,37 @@ function Install-Link {
     Write-Host "  + $Label"
     return $true
   } catch {
-    if ($Kind -eq 'Dir') {
-      try {
-        New-Item -ItemType Junction -Path $Target -Target $Source -ErrorAction Stop | Out-Null
-        Write-Host "  + $Label (junction)"
-        return $true
-      } catch { }
-    }
+    try {
+      New-Item -ItemType Junction -Path $Target -Target $Source -ErrorAction Stop | Out-Null
+      Write-Host "  + $Label (junction)"
+      return $true
+    } catch { }
     Write-Host "error: ${Label}: could not link $Target" -ForegroundColor Red
     Write-Host "  enable Developer Mode (Settings > System > For developers)," -ForegroundColor Red
     Write-Host "  or run this shell as Administrator" -ForegroundColor Red
     $script:failures++
     return $false
+  }
+}
+
+function Retire-FlatRule {
+  param([string]$AgentName, [string]$SkillName)
+  $relative = switch ($AgentName) {
+    'cursor' { ".cursor\rules\$SkillName.mdc" }
+    'cline' { ".clinerules\$SkillName.md" }
+    default { return }
+  }
+  $legacy = Join-Path (Get-ProjectRoot) $relative
+  $expected = Join-Path (Get-SourcePath $SkillName) 'SKILL.md'
+  $link = Get-LinkTarget $legacy
+  if ($link -eq $expected) {
+    if ($DryRun) { Write-Host "  - $legacy (owned flat link, dry run)" }
+    else {
+      Remove-Item -LiteralPath $legacy -Force
+      Write-Host "  - $legacy (migrated to skill package)"
+    }
+  } elseif ($link -or (Test-Path -LiteralPath $legacy)) {
+    Write-Warning "retained existing rule: $legacy (ownership not established)"
   }
 }
 
@@ -277,13 +291,15 @@ foreach ($s in $Skill) {
     if ($a -eq 'claude') {
       $canonical = Get-CanonicalTarget -SkillName $s
       $installed = Install-Link -Source (Join-Path $skillsDir $s) `
-                                -Target $canonical -Kind 'Dir' `
+                                -Target $canonical `
                                 -Label "portable: $canonical"
       if (-not $installed) { continue }
     }
     $spec = Get-AgentSpec -Name $a -SkillName $s
-    Install-Link -Source (Get-SourcePath $a $s) -Target $spec.Target `
-                 -Kind $spec.Kind -Label "${a}: $($spec.Target)" | Out-Null
+    if (Install-Link -Source (Get-SourcePath $s) -Target $spec.Target `
+                     -Label "${a}: $($spec.Target)") {
+      Retire-FlatRule -AgentName $a -SkillName $s
+    }
   }
 }
 

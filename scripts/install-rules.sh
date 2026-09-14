@@ -57,15 +57,15 @@ rules_target() { # <agent>
     codex)             printf '%s' "${HOME}/.codex/AGENTS.md" ;;
     opencode)          printf '%s' "$(config_home)/opencode/AGENTS.md" ;;
     copilot)           printf '%s' "${HOME}/.copilot/copilot-instructions.md" ;;
-    cursor)            printf '%s' "${PROJECT}/.cursor/rules/${BASE_SET}.mdc" ;;
-    cline)             printf '%s' "${PROJECT}/.clinerules/${BASE_SET}.md" ;;
+    cursor)            printf '%s' "${PROJECT}/.cursor/rules/${SET_NAME}.mdc" ;;
+    cline)             printf '%s' "${PROJECT}/.clinerules/${SET_NAME}.md" ;;
   esac
 }
 
 rule_set_target() { # <agent>
   case "$1" in
     claude) printf '%s' "" ;;
-    *)      printf '%s/rule-sets/%s.md' "$(dirname "$(rules_target "$1")")" "${BASE_SET}" ;;
+    *)      printf '%s/rule-sets/%s.md' "$(dirname "$(rules_target "$1")")" "${SET_NAME}" ;;
   esac
 }
 
@@ -137,6 +137,15 @@ fi
 MANIFEST="$(manifest_of "${SET_NAME}")"
 SET_FILE="$(generated_of "${SET_NAME}")"
 LAYER="$(field_one "${MANIFEST}" layer)"
+RULE_SET="${SET_FILE}"
+ENTRYPOINT="${AGENTS_MD}"
+if [[ "${SET_NAME}" != "${BASE_SET}" ]]; then
+  # A standalone set is its own policy. The default AGENTS.md entrypoint
+  # deliberately points at ai-rules and cannot represent another base set.
+  ENTRYPOINT="${SET_FILE}"
+  CLAUDE_IMPORT="@$(native_path "${REPO}")/rule-sets/${SET_NAME}.md"
+fi
+[[ -z "${LAYER}" ]] || CLAUDE_CONFIG="${PROJECT}/CLAUDE.md"
 
 # --- resolve agents ---------------------------------------------------------
 
@@ -179,16 +188,23 @@ if [[ ${LIST} -eq 1 ]]; then
   for a in ${KNOWN_AGENTS}; do
     root="$(agent_root "${a}")"
     if [[ -d "${root}" ]]; then state="detected"; else state="not found"; fi
-    printf '  %-9s %-10s %s\n' "${a}" "${state}" "$(rules_target "${a}")"
-
-    if [[ "${a}" == "claude" ]]; then
-      claude_imported && printf '              installed: @import\n'
+    if [[ -n "${LAYER}" && "${a}" != "claude" ]]; then
+      t="$(set_target "${a}")"
     else
       t="$(rules_target "${a}")"
+    fi
+    printf '  %-9s %-10s %s\n' "${a}" "${state}" "${t}"
+
+    if [[ "${a}" == "claude" ]]; then
+      claude_imported && printf '              installed: %s (@import)\n' "${SET_NAME}"
+    elif [[ -n "${LAYER}" ]]; then
+      [[ -L "${t}" && "$(readlink "${t}")" == "${SET_FILE}" ]] &&
+        printf '              installed: %s\n' "${SET_NAME}"
+    else
       r="$(rule_set_target "${a}")"
-      [[ -L "${t}" && "$(readlink "${t}")" == "${AGENTS_MD}" &&
+      [[ -L "${t}" && "$(readlink "${t}")" == "${ENTRYPOINT}" &&
          -L "${r}" && "$(readlink "${r}")" == "${RULE_SET}" ]] &&
-        printf '              installed: AGENTS.md\n'
+        printf '              installed: %s\n' "${SET_NAME}"
     fi
   done
   exit 0
@@ -235,7 +251,7 @@ install_base_set() {
     return
   fi
   target="$(rules_target "${agent}")"
-  if link_to "${AGENTS_MD}" "${target}" "${agent}: ${target}"; then
+  if link_to "${ENTRYPOINT}" "${target}" "${agent}: ${target}"; then
     rule_target="$(rule_set_target "${agent}")"
     link_to "${RULE_SET}" "${rule_target}" "${agent}: ${rule_target}"
   fi
@@ -298,7 +314,9 @@ install_set_skills() {
 
   echo ""
   echo "skills shipped with ${SET_NAME}"
-  "${REPO}/scripts/install-skill.sh" "${args[@]}" "${skills[@]}" ||
+  # PROJECT selects destinations for project-only agents without turning the
+  # base set's user-scoped agents into project-scoped installations.
+  PROJECT="${PROJECT}" "${REPO}/scripts/install-skill.sh" "${args[@]}" "${skills[@]}" ||
     failures=$((failures + 1))
 }
 
@@ -325,7 +343,7 @@ fi
 if [[ ${DRY_RUN} -eq 1 ]]; then
   echo "dry run — nothing changed."
 else
-  echo "Done. AGENTS.md and rule-sets/ai-rules.md are generated — run"
+  echo "Done. Rule sets and the default AGENTS.md entrypoint are generated — run"
   echo "scripts/build-agents.sh after changing a rule, or install the hook:"
   echo "git config core.hooksPath scripts/hooks"
 fi

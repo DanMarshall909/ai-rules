@@ -97,6 +97,35 @@ try {
   }
 
   # --- per-agent targets ---------------------------------------------------
+  Write-Host 'native package references'
+  $s = New-Sandbox
+  foreach ($nativeAgent in 'cursor', 'cline') {
+    $result = Invoke-Install -Agent $nativeAgent agentic-delivery
+    $nativeRoot = if ($nativeAgent -eq 'cursor') { '.cursor\skills' } else { '.clinerules\skills' }
+    $package = Join-Path "$s\project" "$nativeRoot\agentic-delivery"
+    if ($result.Code -eq 0 -and (Test-Path "$package\references\completion-review.md")) {
+      Ok "$nativeAgent resolves references beside SKILL.md"
+    } else { No "$nativeAgent resolves references beside SKILL.md" $result.Out }
+  }
+
+  Write-Host 'owned flat-rule migration'
+  $s = New-Sandbox
+  New-Item -ItemType Directory -Path "$s\project\.cursor\rules", "$s\project\.clinerules" | Out-Null
+  $legacy = "$s\project\.cursor\rules\agentic-delivery.mdc"
+  New-Item -ItemType SymbolicLink -Path $legacy -Target "$repo\skills\agentic-delivery\SKILL.md" | Out-Null
+  $userRule = "$s\project\.clinerules\agentic-delivery.md"
+  Set-Content -LiteralPath $userRule -Value 'User-authored rule'
+  $result = Invoke-Install -Agent 'cursor,cline' -DryRun agentic-delivery
+  if ($result.Code -eq 0) { Ok 'native package migration dry run succeeds' } else { No 'native package migration dry run succeeds' $result.Out }
+  Assert-LinksTo 'dry run retains the owned flat link' $legacy "$repo\skills\agentic-delivery\SKILL.md"
+  Assert-Absent 'dry run creates no native skill package' "$s\project\.cursor\skills"
+  $result = Invoke-Install -Agent 'cursor,cline' agentic-delivery
+  if ($result.Code -eq 0) { Ok 'native package migration succeeds' } else { No 'native package migration succeeds' $result.Out }
+  Assert-Absent 'migration retires the owned flat link' $legacy
+  if ((Get-Content -LiteralPath $userRule -Raw).Trim() -eq 'User-authored rule') {
+    Ok 'migration preserves the user-authored rule'
+  } else { No 'migration preserves the user-authored rule' 'rule changed' }
+
   Write-Host "per-agent targets"
   $s = New-Sandbox
   Invoke-Install -Agent claude reflect | Out-Null
@@ -119,17 +148,17 @@ try {
 
   $s = New-Sandbox
   Invoke-Install -Agent cursor reflect | Out-Null
-  Assert-LinksTo "cursor installs SKILL.md as an .mdc rule" "$s\project\.cursor\rules\reflect.mdc" "$repo\skills\reflect\SKILL.md"
+  Assert-LinksTo "cursor installs a native skill package" "$s\project\.cursor\skills\reflect" "$repo\skills\reflect"
 
   $s = New-Sandbox
   Invoke-Install -Agent cline reflect | Out-Null
-  Assert-LinksTo "cline installs SKILL.md as a .clinerules file" "$s\project\.clinerules\reflect.md" "$repo\skills\reflect\SKILL.md"
+  Assert-LinksTo "cline installs a native skill package" "$s\project\.clinerules\skills\reflect" "$repo\skills\reflect"
 
   # --- scope ---------------------------------------------------------------
   Write-Host "scope"
   $s = New-Sandbox
   Invoke-Install -Agent cursor reflect | Out-Null
-  Assert-LinksTo "project agent installs under cwd" "$s\project\.cursor\rules\reflect.mdc" "$repo\skills\reflect\SKILL.md"
+  Assert-LinksTo "project agent installs under cwd" "$s\project\.cursor\skills\reflect" "$repo\skills\reflect"
   Assert-Absent "project agent does not touch the profile" "$s\home\.cursor"
 
   # --- -Project ------------------------------------------------------------
@@ -166,8 +195,8 @@ try {
   New-Item -ItemType Directory -Force -Path "$s\elsewhere" | Out-Null
   Invoke-Install -Project "$s\elsewhere" -Agent cursor reflect | Out-Null
   Assert-LinksTo "a project agent follows -Project too" `
-    "$s\elsewhere\.cursor\rules\reflect.mdc" "$repo\skills\reflect\SKILL.md"
-  Assert-Absent "leaves the working directory alone" "$s\project\.cursor\rules\reflect.mdc"
+    "$s\elsewhere\.cursor\skills\reflect" "$repo\skills\reflect"
+  Assert-Absent "leaves the working directory alone" "$s\project\.cursor\skills\reflect"
 
   $s = New-Sandbox
   Assert-Fails "refuses a project directory that does not exist" `
@@ -182,8 +211,8 @@ try {
   Assert-LinksTo "all: opencode" "$s\home\.agents\skills\reflect"              "$repo\skills\reflect"
   Assert-LinksTo "all: copilot"  "$s\home\.agents\skills\reflect"              "$repo\skills\reflect"
   Assert-Absent "all: no OpenCode command adapter" "$s\home\.config\opencode\command\reflect.md"
-  Assert-LinksTo "all: cursor"   "$s\project\.cursor\rules\reflect.mdc"        "$repo\skills\reflect\SKILL.md"
-  Assert-LinksTo "all: cline"    "$s\project\.clinerules\reflect.md"           "$repo\skills\reflect\SKILL.md"
+  Assert-LinksTo "all: cursor"   "$s\project\.cursor\skills\reflect"           "$repo\skills\reflect"
+  Assert-LinksTo "all: cline"    "$s\project\.clinerules\skills\reflect"        "$repo\skills\reflect"
   if ($r.Out -match 'copilot:') { Ok "all selects Copilot" }
   else { No "all selects Copilot" "Copilot was absent from installer output" }
 
