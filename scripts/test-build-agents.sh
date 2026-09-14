@@ -82,6 +82,19 @@ contains() { # <label> <file> <text>
 # Line number of the first match, for order assertions.
 line_of() { grep -nF -m1 "$2" "$1" | cut -d: -f1; }
 
+# Rewrite manifests without GNU sed's non-portable in-place syntax, then prove
+# the fixture really ends in CRLF before any test is allowed to rely on it.
+make_manifests_crlf() {
+  local path tmp tail_bytes
+  for path in rule-sets/*.set; do
+    tmp="${path}.crlf"
+    awk '{ sub(/\r$/, ""); printf "%s\r\n", $0 }' "${path}" >"${tmp}" || return 1
+    mv "${tmp}" "${path}" || return 1
+    tail_bytes="$(tail -c 2 "${path}" | od -An -t x1 | tr -d '[:space:]')"
+    [[ "${tail_bytes}" == "0d0a" ]] || return 1
+  done
+}
+
 echo "build-agents.sh"
 
 # --- one generated markdown file per manifest -------------------------------
@@ -114,6 +127,21 @@ contains "demotes the rule's own heading" rule-sets/extra.md "## Extra Rule"
 # A layered set is only half a policy: an agent handed one must be told where
 # the rest of it is, or it silently obeys the extras and none of the base.
 contains "a layered set names the set it extends" rule-sets/extra.md "ai-rules.md"
+
+# Windows Git commonly checks text out with CRLF. Manifest values must not
+# retain the carriage return as part of a rule, skill or layer name.
+sandbox
+if make_manifests_crlf; then
+  ok "creates CRLF manifest fixtures"
+  if "${BUILD}" --check >/dev/null 2>&1; then
+    ok "accepts CRLF rule-set manifests"
+  else
+    no "accepts CRLF rule-set manifests" "$("${BUILD}" --check 2>&1 | head -n 2)"
+  fi
+else
+  no "creates CRLF manifest fixtures" "the final bytes were not 0d0a"
+  no "accepts CRLF rule-set manifests" "fixture creation failed"
+fi
 
 # --- the base set stays complete and lean ----------------------------------
 # Every rule still ships, but detailed procedures route to on-demand skills so

@@ -104,6 +104,25 @@ for skill in break-reminders reflect behavior-first-tdd; do
   fi
 done
 
+sandbox
+project="${PWD}"
+"${INSTALL}" --agent codex reflect >/dev/null 2>&1
+"${INSTALL}" --project "${project}" --agent codex behavior-first-tdd >/dev/null 2>&1
+profile_out="$("${INSTALL}" --list 2>&1)"
+project_out="$("${INSTALL}" --list --project "${project}" 2>&1)"
+if grep -qF 'installed: reflect' <<<"${profile_out}" &&
+   ! grep -qF 'installed: behavior-first-tdd' <<<"${profile_out}"; then
+  ok "unscoped list inventories profile skill destinations"
+else
+  no "unscoped list inventories profile skill destinations" "${profile_out}"
+fi
+if grep -qF 'installed: behavior-first-tdd' <<<"${project_out}" &&
+   ! grep -qF 'installed: reflect' <<<"${project_out}"; then
+  ok "--project list inventories project skill destinations"
+else
+  no "--project list inventories project skill destinations" "${project_out}"
+fi
+
 # --- one agent at a time ---------------------------------------------------
 
 echo "per-agent targets"

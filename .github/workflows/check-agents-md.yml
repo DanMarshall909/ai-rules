@@ -10,7 +10,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: AGENTS.md matches rules/
         run: scripts/build-agents.sh --check
       - name: generator behaves
@@ -33,7 +33,7 @@ jobs:
   windows-installer:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: PowerShell installer behaves
         shell: pwsh
         run: scripts/test-install-skill.ps1

@@ -20,7 +20,9 @@ generated_of() { printf '%s/%s.md' "${RULE_SET_DIR}" "$1"; }
 # Manifests are line-based (`field: value`) so bash can read them without a
 # YAML parser, and `#` comments fall out for free: nothing matches them.
 field() { # <manifest> <field> -> every value, in file order
-  sed -n "s/^$2: *//p" "$1"
+  # Git may have produced an existing Windows checkout before .gitattributes
+  # declared manifests as LF. Keep those checkouts usable while they update.
+  sed -n "s/^$2: *//p" "$1" | tr -d '\r'
 }
 
 # tail, not head: `head -n 1` closes the pipe, sed dies of SIGPIPE, and under

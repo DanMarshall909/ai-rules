@@ -11,6 +11,10 @@ set -uo pipefail
 
 cd "$(dirname "$0")/.."
 
+# Read rule-set fields through the same parser used by the generator and
+# installers. It also tolerates manifests from an older CRLF checkout.
+source scripts/rule-sets.sh
+
 failures=0
 
 fail() {
@@ -214,7 +218,7 @@ for path in rule-sets/*.set; do
     if [[ ! -f "skills/${skill}/SKILL.md" ]]; then
       fail "${path} claims skill '${skill}', which is not in skills/"
     fi
-  done < <(sed -n 's/^skill: *//p' "${path}")
+  done < <(field "${path}" skill)
 
   printf '  %s\n' "${name}"
 done

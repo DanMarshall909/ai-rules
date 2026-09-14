@@ -19,16 +19,34 @@ Choose one workflow:
 
 - **Adopt the shared policy:** use `install-rules.sh`. It includes the skills
   declared by the selected set; no second skill-install step is required.
+- **Reconcile an existing setup:** use `adopt-ai-rules` to inventory current
+  instructions and skills, confirm duplicate cleanup, and flag portable local
+  guidance without silently promoting it.
 - **Use one workflow without adopting policy:** use `install-skill.sh`, or
   `install-skill.ps1` on Windows.
 - **Contribute here:** read [the maintainer skill](skills/ai-rules/SKILL.md),
   edit authored sources, regenerate and run [Checks](#checks).
 
-Clone to a durable location, then preview and install for the intended agent:
+Clone to a durable location:
 
 ```bash
 git clone https://github.com/DanMarshall909/ai-rules ai-rules
 cd ai-rules
+```
+
+Before a first adoption or an update, bootstrap the reconciliation workflow by
+asking the agent to read the checked-out skill directly, for example:
+
+```text
+Read and follow <absolute-ai-rules-checkout>/skills/adopt-ai-rules/SKILL.md to
+adopt <set> into <target> for <agents>.
+```
+
+Reading that file is non-mutating and works before the skill is installed or
+discoverable. Do not run an installer until its inventory and confirmation
+steps say to proceed. Then preview and install for the intended agent:
+
+```bash
 scripts/install-rules.sh --agent codex --dry-run
 scripts/install-rules.sh --agent codex
 ```
@@ -124,6 +142,7 @@ adapters do not add authority.
 
 | Decision | Procedural owner |
 |---|---|
+| Adopt or reconcile rule and skill installations | [adopt-ai-rules](skills/adopt-ai-rules/SKILL.md) |
 | Deliver accepted implementation scope | [agentic-delivery](skills/agentic-delivery/SKILL.md) |
 | Design tests and complete each TDD cycle | [behavior-first-tdd](skills/behavior-first-tdd/SKILL.md) |
 | Interpret coverage, mutants and pruning evidence | [coverage-and-mutation](skills/coverage-and-mutation/SKILL.md) |
@@ -223,8 +242,8 @@ below catches stale generated policy.
 
 The base installation also links its declared workflows to each selected agent's
 skill destination above, with Claude compatibility links under `~/.claude/skills`.
-This keeps the always-loaded rule set concise without making its agentic
-delivery, TDD, coverage, security, break, or reflection procedures
+This keeps the always-loaded rule set concise without making its adoption,
+agentic delivery, TDD, coverage, security, break, or reflection procedures
 undiscoverable.
 
 For Claude the installer appends one line to `~/.claude/CLAUDE.md`, keeping
@@ -314,6 +333,7 @@ rules/
   tool-repos/*.md                      ← fragments of the tool-repos set
 skills/
   ai-rules/SKILL.md             ← how to work on this repo itself
+  adopt-ai-rules/SKILL.md       ← safe adoption and duplicate reconciliation
   agentic-delivery/SKILL.md     ← scope-to-publication delivery workflow
   break-reminders/SKILL.md      ← host-aware requested session pacing
   behavior-first-tdd/SKILL.md   ← behaviour-first TDD
@@ -335,5 +355,5 @@ scripts/
   hooks/pre-commit              ← refuses stale generated rule files
   check-conventions.sh          ← skills load; installers agree; sets registered
   test-*.sh / test-*.ps1        ← behaviour tests for the above
-.gitattributes                   ← forces LF on *.sh; CRLF breaks them silently
+.gitattributes / .editorconfig   ← keep scripts, Markdown and manifests on intentional line endings
 ```
