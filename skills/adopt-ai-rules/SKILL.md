@@ -62,11 +62,17 @@ packages whose names do not exist in the `ai-rules` checkout, because copied,
 renamed, independently owned, stale and broken packages are otherwise invisible
 to `install-skill.sh --list`.
 
-Inspect every reported instruction adapter and skill destination. Resolve links
-to their sources and distinguish real directories, junctions, symlinks, broken
-links and generated adapters. Include complete skill packages in the comparison:
-frontmatter, `SKILL.md`, references, scripts and assets. Do not infer duplication
-from a matching directory name or a similar description alone.
+Likewise, enumerate every in-scope instruction discovery root named by the
+installation contract, including root instruction files and agent-specific rule
+directories. Include entries whose names do not exist in this checkout; the
+rules installer reports the selected set's destinations, not every other policy
+that the agent may still load.
+
+Inspect every discovered instruction adapter and skill destination. Resolve
+links to their sources and distinguish real directories, junctions, symlinks,
+broken links and generated adapters. Include complete skill packages in the
+comparison: frontmatter, `SKILL.md`, references, scripts and assets. Do not infer
+duplication from a matching directory name or a similar description alone.
 
 Classify each apparent overlap:
 
