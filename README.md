@@ -71,19 +71,22 @@ and never twice — a layered set arrives in repos that already have both.
 |------|-------------|
 | `rules/breaks.md` | 30-min + 2-hour break reminders with cross-project check-in |
 | `rules/tdd.md` | Criterion-led RED → GREEN → COVERAGE → REFACTOR |
-| `rules/coverage.md` | Code must justify itself; never call a branch unreachable |
+| `rules/coverage.md` | Code must justify itself; establish reachability before excluding branches |
 | `rules/guardrails.md` | Turn a repeatable mistake into a test that fails at build time |
 | `rules/security.md` | Concentrate security decisions behind one narrow, intent-named boundary |
-| `rules/git.md` | pull --rebase, backup before force-push, staged diff review |
+| `rules/git.md` | Integrate before review; preserve approved bytes and merge history |
 | `rules/issues.md` | GitHub and/or canonical `docs/issues/[open\|resolved]/[area]/` tracking |
 | `rules/reflection.md` | Capture durable lessons when work lands; route them to the right scope |
+| `rules/authority.md` | Instruction precedence, task authority, and proportionate scope |
 
 For non-trivial autonomous feature delivery, use `agentic-delivery`. It binds
 accepted scope to criterion-led TDD, quality evidence, independent completion
 review, exact publication, cleanup, and owner-confirmed workflow lessons. Its
 environment modules keep the core portable while adapting test, coverage, and
 mutation mechanics for .NET and JavaScript/TypeScript; repositories can provide
-stricter local modules for other stacks.
+local modules for other stacks. Explicit task and scoped project instructions
+refine shared defaults within the host's instruction hierarchy; skills and
+adapters do not add authority.
 
 ## Install a skill
 

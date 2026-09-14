@@ -8,6 +8,9 @@ description: Use when reviewing coverage, mutation-test results, dead code, comp
 Aim for 100% coverage of core code through behaviour-driven tests that drive real
 code paths and assert observable output.
 
+For review-only requests, report evidence and propose changes; do not implement
+deletions or tests without authority. Scores never expand the accepted scope.
+
 When this skill is used through `agentic-delivery`, first read its matching
 environment modules. Mutation implementations are not flag-compatible:
 Stryker.NET `--since` produces a changed-mutant subset, while StrykerJS
@@ -48,14 +51,27 @@ have already proved the code is currently pointless.
 
 ## Read the gap before you close it
 
-An uncovered line means **that behaviour has never once executed**. It is a
-statement about the code, not about the tests.
+An uncovered line did not execute in the measured run, assuming the collector
+and source mapping are sound. It says nothing about all past tests or runtime
+use. Record the run's scope and exclusions before interpreting the gap.
 
 - If one half of a pair is covered and the other is not, the untested half is
-  load-bearing code nobody has ever run. Symmetry gaps are the richest.
+  a candidate gap in that run. Investigate the missing behavior and test scope.
 - Assert the behaviour the gap reveals, not the line.
 - Assert what you believe, then let a failure correct the belief. Never weaken an
   assertion to match observed output without first understanding why it differs.
+
+Classify each uncovered block:
+
+- Useful behavior or a meaningful failure mode: protect it through an observable
+  contract, including boundary and error cases.
+- Unused API or convenience code: check real callers, released contracts and
+  accepted near-term consumers before proposing removal.
+- Generated, vendored or external boundary code: apply the project's declared
+  exclusions, but do not exclude owned decisions merely because they live at an
+  entrypoint or adapter boundary.
+- Defensive or apparently unreachable code: establish its invariant and public
+  reachability before simplifying or documenting an exclusion.
 
 ## Covered is not checked
 
@@ -119,21 +135,19 @@ that failed to load, tests it discovered but could not attribute — every unmap
 mutant is filed "no coverage" and scored as unkilled without a single test being
 run against it. Nothing errors. You get a plausible, terrible score.
 
-Read the **status breakdown, not the score**. Killed-versus-survived is the number
-that means something; a large "no coverage" bucket is a broken harness reporting
-as a bare patch of code, and the two are indistinguishable from the headline
-figure. The tell is a survivor in a file you have *watched* a hand-injected fault
-die in. When the score contradicts something you observed directly, the score is
-what is wrong.
+Read the **status breakdown, not the score**. A large "no coverage" bucket can
+mean genuinely unreached code, mismatched run scope, or broken attribution.
+Distinguish those using baseline coverage and a hand-injected fault in the same
+scope. A contradiction with direct observation warrants investigating the
+instrumentation and run configuration, not automatically adding tests.
 
-Disabling per-test coverage mapping removes the failure by running the whole suite
-against every mutant. Correct, and much slower — check what that costs before
-launching it, especially where each run spawns a visible process.
+Where supported, running the full suite per mutant can diagnose attribution
+failures. It does not fix genuinely unexecuted code. Verify the installed tool's
+mode and cost before launching a potentially much slower run.
 
 **Coverage first, then mutation.** They answer questions in order — coverage asks
-whether a line ever ran, mutation asks whether anything checked it — and the second
-question is meaningless while the first is unanswered. A mutation score computed
-over code the suite never reaches is measuring the harness. So establish coverage,
+whether a line ran in scope, mutation asks whether tests detect changed behavior.
+Separate unreached code from executed-but-unchecked behavior. Establish coverage,
 and confirm the mutation tool can kill a fault you planted yourself, before reading
 any score it produces. Hand-injection is not the crude approximation of mutation
 testing; it is what calibrates it.
@@ -153,31 +167,23 @@ have watched a named test go red for that fault — reproduce the kills you rely
 not only the survivors. The false kill is the worse one: a green survivor sends you
 to look, while a green kill tells you to stop.
 
-## Two tests that kill the same mutant are one test
+## Mutation overlap is evidence, not test identity
 
-Aim for **fewer tests, each closer to something a user actually does, covering
-more.** Those three pull together rather than against each other: a test that
-walks a real scenario crosses several decisions at once, so it kills more mutants
-than the same effort spent on one narrow case per branch — and it is one thing to
-update when the spec moves, not five.
+Two tests can kill the same generated mutants while protecting different input
+classes, failure modes, contracts or integration boundaries. A finite operator
+set cannot enumerate every regression. No unique mutant is not proof that a test
+is redundant.
 
-So check it as you write, rather than assuming it and finding out at review. For
-each test, ask which mutant it kills that nothing else kills — then confirm by
-injecting that mutant and watching *this* test go red.
+Use the four test-quality criteria in `behavior-first-tdd`. For each proposed
+consolidation, identify the observable protection and layer each test contributes.
+Retain distinct boundary, regression and cross-system evidence. Parameterize
+cases sharing one contract when that improves clarity; do not combine unrelated
+promises merely to reduce test count.
 
-- None: it is duplication. Fold it into the scenario that already covers it.
-- One, uniquely: keep the case, but prefer a `[Theory]`/parameterised case over a
-  second test method. Two tests differing only in their input are one rule with
-  two examples.
-- Never delete on resemblance alone. Tests that read alike may drive different
-  construction paths; the mutant question decides, appearance does not.
-
-Beware the reverse failure. Collapsing tests by weakening what they assert also
-drives the count down while coverage holds — and pins nothing. Fewer tests must
-be the result of each one doing more, never of each one checking less.
-
-This is "write the test against the rule, not the instance" applied while
-writing.
+Confirm a claimed unique kill with a fault that reaches the owning code and
+makes the named test fail for the intended reason. Remove a test only when its
+useful protection is demonstrably retained elsewhere, without weakening the
+oracle or hiding which case failed.
 
 ## A surviving mutant may be the code talking
 
@@ -185,18 +191,20 @@ A survivor is not automatically a missing test. Before writing one — and *well
 before excluding a mutant class in config — ask whether it is pointing at surface
 that decides nothing:
 
-- An **equivalent** mutant (`x * 1` → `x / 1`) is dead arithmetic. It survives
-  because it cannot change the answer, which is also why the code should not be
-  there.
+- An **equivalent** mutant cannot change observable behavior over the valid
+  input domain. That does not prove the original code is unnecessary: a mutation
+  can preserve behavior in essential code. Establish equivalence and separately
+  assess whether a simpler implementation preserves all relevant contracts.
 - A comparison that **cannot** change the answer is dead. Comparing fields that
   the type fixes to constants is a comparison of two things that are always equal.
-- Surface beyond the contract invites survivors. A hand-written `GetHashCode`
-  spraying every field through a hash has more moving parts than "equal objects
-  hash alike" requires; the parts that no test can distinguish are the parts that
-  earn nothing.
+- Surface beyond the contract invites survivors. For a hash implementation,
+  inspect equality, distribution, performance and any persisted-format contract
+  before simplifying it. Merely preserving "equal objects hash alike" does not
+  make a constant hash a good implementation.
 
-The exclusion hides it. The deletion fixes it — and the score rises because there
-is less code, which is the better outcome twice over.
+Delete or consolidate only when that contract analysis justifies it. A documented
+equivalent-mutant exclusion is legitimate when useful code remains; an exclusion
+must not conceal an untested observable difference.
 
 A survivor that decides nothing is one reading; a survivor that decides something
 **unspecified** is the other. When a boundary mutant lives (`>` → `>=` holds), find
@@ -204,9 +212,10 @@ where the rule came from before pinning it: `> 10` versus `>= 10` may be an
 assumption nobody made, and a test that freezes it encodes the accident as law. The
 fix may be to correct the boundary, name the rule as its own policy, or delete a
 decision another module already owns — not to add an assertion. And when killing one
-boundary needs half the application stood up, the mutant is naming a **misplaced
-responsibility**, not a missing test: extract the rule to a small object answerable
-to one source of change, and the assertion that was impossible becomes trivial.
+boundary needs half the application stood up, investigate a **misplaced
+responsibility** as well as a missing integration test. Extract a policy when it
+has one source of change; retain cross-boundary tests for genuinely integrated
+behavior.
 
 The score is a diagnostic, not the target. Chasing 100% with ever-narrower
 assertions buys a suite welded to today's implementation that says little about what
@@ -220,12 +229,11 @@ lives, or the next reader will read it as a lowered bar.
 
 ## Read the whole report early — it is a design review
 
-This is one of the main reasons to run mutation testing **first**, rather than as a
-release gate. The report's most valuable output is not the score. It is a map of
+Run mutation analysis early in a green, coverage-understood slice, rather than
+only at the final release gate. Its most valuable output is not the score: it maps
 which code nothing can distinguish — and that is a finding about the design, worth
 having while the design is still cheap to change. A report read after the feature is
-finished can only produce tests; a report read while the slice is still warm can
-produce a better shape.
+finished can still improve the design, but earlier feedback is cheaper to use.
 
 **Read it by clustering survivors across files, not file by file.** One survivor is a
 question about one test. The *same survivor shape* in seven types is a question about
@@ -234,54 +242,52 @@ introduced, which is the natural and the wrong way to read a report.
 
 Three things a cluster means, each with a different fix:
 
-- **Repeated surface beyond the contract.** The same pattern hand-rolled across many
-  types — a canonical-order `GetHashCode` and a hand-written `Equals` over a backing
-  collection — produces permanently unkillable mutants everywhere it appears, because
-  the only contract is "equal objects hash alike" and every mutation preserves it. The
-  finding here is **duplication to consolidate**, not code to delete: each copy is
-  load-bearing, so deleting one breaks its type. Extract the shape into one primitive
-  and the whole cluster retires at once — dozens of survivors answered by one edit
-  rather than by dozens of assertions that could never have been written.
-- **Genuinely equivalent.** A comparison whose branches agree at the boundary is dead
-  branching. Delete it, as above.
-- **Never executed.** The richest bucket, and the one the headline score hides by
-  folding it in with survivors. A line nothing has run is behaviour nobody has ever
-  had. Check each against what the spec, the task list, or the commit message that
-  introduced it *claims* — a claim with an unexecuted line under it is the gap to
-  close first, because someone has already written down that the behaviour exists.
+- **Repeated surface beyond the contract.** Similar survivor patterns across
+  hand-written equality or hashing implementations may suggest a shared primitive.
+  Confirm that contracts and reasons to change align before consolidating; similar
+  mutation reports alone do not prove the implementations are interchangeable.
+- **Genuinely equivalent.** Separate an equivalent mutation from redundant
+  production logic; branch agreement at one boundary does not prove the whole
+  branch is dead. Simplify only after checking the full valid input domain.
+- **Not executed in this run.** Check instrumentation, run scope and the accepted
+  behavior before deciding whether the gap needs a test, wiring or removal.
+  Lack of execution evidence is not proof that the feature never worked.
 
 **A survivor can lie about which bucket it is in**, and it lies toward "equivalent",
-the one bucket whose verdict is "do nothing". A mutant that flips *both* sides of the
+the bucket easiest to dismiss. A mutant that flips *both* sides of the
 comparison a test makes leaves the two still agreeing: the test stays green, the
 mutant looks like it cannot change the answer, and nothing is pinned. Symmetry
 assertions are the usual shape — `f(a, b)` equals `f(b, a)` holds just as well when
 the operands are swapped inside. Before filing a survivor as equivalent, ask what
 downstream depends on the value the test declined to name: a persisted format, a
-serialised order, an on-the-wire shape. The mutant is equivalent only if the answer
-is nothing.
+serialised order, an on-the-wire shape. Equivalence requires unchanged relevant
+observable behavior over the valid input domain, not merely tests that still agree.
 
 That last one is "Covered is not checked" arriving by a different road — consistency
 among outputs is not correctness — found by reading the report rather than by reading
 the test.
 
-## Never call a branch unreachable
+## Establish reachability before excluding a branch
 
-An unreachable branch means the type does not carry what you already know. Before
-you write "unreachable", "defensive", or "justified but uncoverable" in a
-comment, work this list in order:
+An apparently unreachable branch may signal an invariant that the type does not
+carry. Before writing "unreachable", "defensive", or "justified but uncoverable",
+investigate these simplifications and the actual public input domain:
 
 1. **Carry the value forward.** An earlier step proved the lookup succeeds, then
    threw the result away. Keep it instead of looking it up twice.
 2. **Remove the impossible variant.** An `Option`/`Result` that no path returns
-   is a lie. Change the return type.
+   may be unnecessary. Change the return type only if owned callers and public
+   contracts permit it.
 3. **Make a silent skip a loud failure.** A lookup that quietly does nothing when
    it misses will emit a *wrong answer* if the invariant ever breaks.
-   `.expect("why this holds")` is strictly better: it fails loudly, and costs no
-   coverage because the panic lives in the standard library.
-4. **Re-derive reachability from the public API.** You are usually wrong.
+   Prefer an explicit invariant failure or domain error appropriate to the
+   boundary. Moving a panic into a library is not a reason to avoid testing the
+   required failure behavior.
+4. **Re-derive reachability from the public API.** Challenge the assumption.
    Boundary lookups, `?`-paths on public methods, and "obviously valid" inputs
    are typically reachable and merely untested.
 
-Only when all four fail is code genuinely uncoverable. Then keep it, exclude it
-from the coverage target, and state the reason inline. Exclusion is a last
-resort, not a permission.
+If the branch remains necessary but cannot be exercised in the supported test
+environment, document the invariant, measurement limit and remaining risk. Use
+only project-approved exclusions; lack of a convenient test does not itself
+prove unreachability.

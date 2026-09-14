@@ -1,11 +1,12 @@
 # ai-rules — the base set every project gets.
 #
-# Order is reading order: breaks and TDD frame what follows, reflection closes.
+# Order is reading order: authority frames the policy; reflection closes.
 # A set with no `layer:` is a base set; it stands on its own.
 
 title: AI Rules
 blurb: Lean, agent-agnostic rules for any coding assistant.
 
+rule: authority
 rule: breaks
 rule: tdd
 rule: coverage

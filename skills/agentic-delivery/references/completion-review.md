@@ -1,8 +1,9 @@
 # Independent Completion Review and Publication
 
 Read this reference when a non-trivial feature or product-behaviour change is
-candidate-complete. Project-specific review contracts take precedence when they
-are stricter.
+candidate-complete. Explicit task and scoped project review contracts refine these
+defaults within the host's instruction hierarchy. Name any unresolved conflict
+before the affected action; this procedure does not grant publication authority.
 
 ## Review boundary
 

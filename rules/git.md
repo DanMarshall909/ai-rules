@@ -1,31 +1,24 @@
 # Git Workflow
 
-- `git pull --rebase` before every push — **except when pushing a merge commit**:
-  plain `--rebase` silently discards merges, replaying their commits and throwing
-  the merge (and its message) away. The push still succeeds, so the loss is
-  invisible unless you look. Integrate *before* merging, or use
-  `git pull --rebase=merges`, and verify with `git log --graph` before pushing
-- Before force-push: create `backup/<branch>-<timestamp>` first
-- Never commit without reviewing the staged diff first
-- Commit messages: present tense, imperative, explain *why* not *what*
-- Never skip hooks (`--no-verify`) unless explicitly asked
+- Fetch and integrate the intended upstream according to project policy before
+  final validation and completion review. Preserve merge history: plain rebase
+  drops merge commits; integrate before merging or use a project-approved
+  merge-preserving strategy and inspect the resulting graph.
+- After completion-review PASS, fetch without pull/rebase/merge and require the
+  recorded upstream object. Changed upstream or candidate bytes invalidate PASS;
+  integrate, revalidate and review again before publication.
+- Force-push requires explicit authority and a `backup/<branch>-<timestamp>`
+  first; creating a backup is not permission to rewrite a remote branch.
+- Review the staged diff before committing. Use present-tense, imperative commit
+  messages explaining why. Never skip hooks unless explicitly asked.
 
 ## Trunk-Based Development
 
-Trunk is the single source of truth, and it is always releasable. Work merges
-back within roughly a day — a branch that outlives that is the problem, not the
-merge that follows it.
+Keep trunk releasable and branches short-lived. Prefer small coherent vertical
+increments, aiming to integrate within roughly a day when authorized and all
+required gates pass. A time target or green build is not merge authorization.
 
-- Branch from trunk, keep it short-lived, merge back as soon as it is green
-- Merge small vertical increments — a coherent, green, releasable slice beats a
-  finished feature that sat unmerged for a week
-- Never let a branch accumulate work that could have landed already; long-lived
-  branches turn into merge risk and hide work from everyone else
-- Unfinished-but-safe belongs on trunk behind a flag or simply unwired, in
-  preference to a branch nobody can see
-- Trunk stays green: if a merge breaks it, fixing trunk outranks whatever came
-  next
-
-Merging an increment does not mean the task is done. When a slice lands with
-work still outstanding, say what is still missing rather than letting the merge
-imply completion.
+Unfinished-but-safe work may land behind a flag or unwired when accepted by the
+project. If an integration breaks trunk, restoring trunk outranks new work.
+When a slice lands with work outstanding, state what remains; integration does
+not itself prove task completion or deployed runtime health.
