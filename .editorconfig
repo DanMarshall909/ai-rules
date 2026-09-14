@@ -4,7 +4,7 @@ root = true
 charset = utf-8
 insert_final_newline = true
 
-[*.{md,set,sh}]
+[*.{md,set,sh,yaml,yml}]
 end_of_line = lf
 
 [scripts/hooks/*]
