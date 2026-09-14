@@ -27,4 +27,4 @@ If adding a capability to the second host means copying anything beyond argument
 wiring, the service does not yet own what it should. Move the decision down
 rather than writing it twice; an assertion that needed a whole host stood up
 becomes trivial once the rule lives in a small object of its own
-(see [[coverage]]).
+(use the `coverage-and-mutation` skill to assess the evidence).

@@ -1,109 +1,73 @@
 ---
 name: reflect
-description: Capture durable lessons after finishing a piece of work. Run at the end of any non-trivial task — after the tests pass and the commit lands — to distil what would have changed the approach if it had been known at the start, and write it to memory. Also use when the user says "/reflect", "what did we learn", or asks to capture a lesson.
+description: Identify transferable lessons after non-trivial work or when the user asks what was learned. Propose the narrowest useful home; write memory or standing guidance only with the required authority.
 ---
 
-Finishing work is when the lesson is cheapest to see and most likely to be lost.
-This skill turns a completed task into at most a couple of durable notes — and
-usually into none at all.
+# Reflect
 
-**The bar is high on purpose.** Most tasks teach nothing worth keeping. A skill
-that writes a memory every time produces a memory file nobody reads. Writing
-nothing is the common, correct outcome. Say so plainly and move on.
+Reflection is a judgment pass, not an automatic memory write. Most work teaches
+nothing durable enough to retain; writing nothing is a normal result.
 
-## The test
+## Find a lesson that changes a future decision
 
-A lesson is worth keeping only if it passes all three:
+Keep a lesson only when it is:
 
-1. **Transferable.** It applies to work you haven't done yet, not just to this
-   file. "The latency pass computes root latency from output sources" is a fact
-   about the code. "A branch you believe is unreachable is a question about why
-   the type doesn't know what you know" is a lesson.
-2. **Non-obvious.** It would not have been your default. If you'd have done it
-   that way anyway, it isn't a lesson.
-3. **Load-bearing.** Knowing it at the start would have changed what you did.
-   If it only explains what you did, it's a commit message, not a memory.
+- **Transferable:** useful beyond the current diff or completed task.
+- **Non-obvious:** it would not already be the default approach.
+- **Load-bearing:** knowing it earlier would have changed a decision or avoided
+  a demonstrated failure.
 
-Ask directly: *if I'd known this before starting, what would I have done
-differently?* If the answer is "nothing", there is no lesson.
+Look first at user corrections, unexpected test/tool evidence, rationalized
+assumptions, and invariants the implementation failed to express. Record what
+was believed, what disproved it, and the future trigger/action. Do not turn a
+single incident or personal preference into a universal rule.
 
-## Where lessons come from
+Code facts, file inventories, completed steps and current branch status belong
+in code, task records or the handoff, not durable judgment guidance.
 
-Look hardest at these, in order:
+## Route before writing
 
-- **The user corrected you.** The strongest signal available. Especially when
-  the correction was a *question* rather than an instruction — "if it's
-  unreachable why is it there?" — because that means you had already talked
-  yourself into something and needed to be stopped. Capture the correction and
-  the reasoning error behind it, not just the fix.
-- **You were wrong and the tooling proved it.** A test that failed the way you
-  didn't predict. A coverage report that contradicted your reading. An
-  assertion you had to weaken because the real behaviour was better than your
-  guess. Record what you believed, and what was actually true.
-- **You rationalized.** Any moment you defended a thing rather than fixing it —
-  "justified but uncoverable", "defensive", "can't happen in practice". Those
-  phrases are where lessons hide.
-- **An invariant surfaced.** Something the code knew but the types didn't.
+Distinguish a constraint to obey from context to recall, then choose the narrowest
+scope that reaches the work where it applies:
 
-Do **not** mine: the diff, the architecture, the file layout, what a function
-now does. Git records those, and they go stale. Memory is for judgment.
-
-## Where it goes
-
-Route on two axes: **must I obey it, or merely recall it?** and **does it bind
-everywhere, or only here?** Memory is for judgment you should *remember*; a
-rules file is for constraints you must *obey*. Answer both before writing.
-
-| | Applies to any project | Applies to this repo only |
+| Kind | Cross-project | Project-specific |
 |---|---|---|
-| **Must obey** | the global rules repo (`ai-rules/rules/*.md`) | repo `AGENTS.md` / `CLAUDE.md` |
-| **Should recall** | a global skill under `ai-rules/skills/` | project memory directory |
+| Always-applicable constraint | Authored shared rule fragment | Project-owned instruction source |
+| Task-specific procedure | Shared skill and relevant references | Project skill |
+| Context or judgment to recall | Host-supported global memory, if authorized | Project memory, if authorized |
 
-The global rules and skills live in a checked-out repo (`~/code/ai-rules`),
-included into `~/.claude/CLAUDE.md` by `@` import and symlinked into
-`~/.claude/skills/`. Edit them there, and commit — a rule that only exists on
-one machine is not a global rule.
+Discover the actual source checkout, applicable instructions and storage contract
+from this workspace and the host. Do not assume a personal path, vendor directory,
+memory format or mutable index. When the source cannot be established, propose
+the lesson and destination rather than writing an arbitrary substitute.
 
-A lesson about a *language or engineering habit* — how to treat an unreachable
-branch, what a coverage gap means, when to reach for a type instead of a check —
-is globally useful. Write it to the global rules. Do not leave it in a
-project's memory just because that's where you learned it; the next project
-needs it too, and memory is per-project.
+A language-specific lesson is not automatically an always-loaded global rule:
+put it in the relevant environment module or task skill when that is its trigger.
+Keep the policy/procedure distinction even when the lesson arose in one project.
 
-A lesson about *this codebase's conventions*, its build, its domain constraints,
-or the user's preferences for this work belongs in the repo rules file or
-project memory.
+## Obtain and respect write authority
 
-**Sharpen before you append.** If an existing rule is what let you go wrong —
-if you rationalized *within* its letter — amend that rule rather than adding a
-contradictory one beside it. Two rules in tension teach nothing; the reader
-obeys whichever they read last. Quote the old rule, show the amendment.
+Do not write memory unless the user explicitly requests a memory update, and
+follow the host's supported write mechanism and consent requirements. A request
+to discuss lessons is not permission to edit memory, shared guidance or profiles.
 
-Editing global rules is a durable, cross-project change: propose it and get
-agreement before writing, unless the user has already asked for it.
+Changes to standing rules or skills need owner agreement unless the user already
+asked for that change. Normal scope, worktree, validation and publication rules
+still apply; approval to edit guidance does not imply approval to push or merge.
 
-## Writing it
+Check the intended source for an existing rule or note first. Amend the owner
+that allowed the error instead of appending a conflicting duplicate. Show the
+old meaning, proposed change, evidence and maintenance cost. Preserve unrelated
+notes and instructions.
 
-Check for an existing note or rule that already covers the ground — update it
-rather than placing a duplicate beside it.
+## Write and report
 
-For memory: one fact per file, in the format already in use (`name`,
-`description`, `metadata.type`, then body). For `feedback` and `project`, follow
-the body with **Why:** and **How to apply:** lines. Link related notes with
-`[[slug]]`. Then add the one-line pointer to `MEMORY.md`.
+When authorized, use the destination's existing format and write path. Never
+invent required metadata, wiki-link syntax or a MEMORY.md update for every host.
+Do not edit generated instruction bundles; update their authored source and
+regenerate using the project's workflow.
 
-- `feedback` — how you should work; corrections and confirmed approaches
-- `project` — goals or constraints not derivable from the code or git history
-- `reference` — pointers to external resources
-- `user` — who the user is
-
-However it is stored, write the lesson so it **fires at the right moment**. Bad:
-"be careful about unreachable code." Good: names the trigger ("when you're about
-to write 'unreachable' in a comment") and the action ("ask why the type doesn't
-carry the invariant"). A rule that doesn't say *when* it applies will never
-apply. Prefer an ordered list of what to try to a statement of principle.
-
-## Report
-
-Tell the user what you kept and what you deliberately didn't, in a sentence or
-two. If nothing met the bar, say that — it's information, not a failure.
+Keep each lesson focused on when it applies and what decision changes. Verify
+the saved result through the supported mechanism. Report whether the lesson was
+saved, merely proposed, or deliberately not retained; do not imply persistence
+from a suggestion in chat.

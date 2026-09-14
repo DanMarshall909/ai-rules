@@ -24,12 +24,17 @@ docs/issues/
 - Discover existing areas from the folder structure — don't hardcode them
 - If a file is linked to a GitHub issue, include the issue URL and use one stable
   ticket identity in both records.
-- On resolution of a file-backed record: update `status: Resolved`, add a
-  decision-log entry, and move it to `resolved/[area]/`.
+- When the file is the authoritative tracker, resolution updates
+  `status: Resolved`, adds a decision-log entry and moves it to `resolved/[area]/`.
+- When GitHub owns workflow status, a linked file's open/resolved location tracks
+  only whether its investigation is archived. Do not add a duplicate task-status
+  field; record the archive decision and link to live status.
 - On resolution of a GitHub-tracked item: follow the project's completion rules
   and update any linked durable file in the same change.
 
 If the repository declares neither approach, use `docs/issues/` rather than
 inventing another local folder.
 
-> Claude Code users: use `/issue` and `/security-finding` skills.
+Use the repository's available tracking tools or edit the authorized record
+directly. For a security finding, also use the `security-by-design` skill; this
+repository does not supply separate issue or security-finding slash commands.

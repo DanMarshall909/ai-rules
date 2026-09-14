@@ -1,100 +1,63 @@
 ---
 name: break-reminders
-description: Schedule recurring break reminders for a working session — a short break every 30 minutes and a longer break plus goal check-in every 2 hours, each with a cross-project memory scan. Use when the user says "/break-reminders", asks to set up break reminders, or starts a session they want paced.
+description: Pace a requested working session with short breaks and goal check-ins using the host's available scheduling or in-session tools. Does not create reminders merely because coding work starts.
 ---
 
-# Break Reminders Skill
+# Break Reminders
 
-Sets up two recurring break reminders for working hours (9am–5pm). Invoke with `/break-reminders` at the start of a session.
+Use when the user requests reminders or a paced session. Installing or discovering
+this skill does not authorize creating jobs.
 
----
+## Establish the session
 
-## What this does
+Use the user's stated cadence, time zone, working window and end condition. If
+unspecified, propose short breaks every 30 minutes and a longer break plus goal
+check every 2 hours during 9am–5pm local time for this session. Resolve missing
+time zone or end time before creating an external schedule; do not invent them.
+Cadences are elapsed session time, not a hard-coded clock schedule. Suppress the
+short reminder when it coincides with the longer one.
 
-Schedules two cron jobs:
+Read only context relevant to the current requested session. A break reminder
+does not authorize scanning other projects, private memories or plan directories.
 
-| Reminder | Cadence | Purpose |
-|----------|---------|---------|
-| Short break | Every 30 min, 9:00–4:30pm | Quick rest + cross-project memory scan |
-| Longer break + goal wizard | 9:07, 11:07, 13:07, 15:07 | 10–15 min break + progress/goal check-in |
+## Select an available mechanism
 
-Both reminders scan **all Claude project memories** (not just the current project) before reporting back.
+Inspect the host's actual tool surface and scheduling instructions. Determine:
 
----
+- whether reminders can recur or only fire once;
+- whether time zones, end times and cancellation are supported;
+- whether they run only while this session is active or persist outside it; and
+- how to inspect existing jobs, confirm creation and cancel them.
 
-## Step 1 — Schedule the short break reminder
+Use supported tools and arguments. Do not assume a vendor's cron tool exists,
+invent API calls, install a scheduler, or create an OS background task as a
+fallback. If the mechanism cannot honor the requested window and lifetime, say
+so and offer an in-session alternative. Without background scheduling, explicitly
+state that no scheduled reminder is active and timing depends on the session
+remaining active.
 
-Call CronCreate with:
-- `cron`: `*/30 9-16 * * *`
-- `recurring`: `true`
-- `prompt`:
+## Create and verify only the requested reminders
 
-```
-Short break reminder — stand up and rest your eyes for a couple of minutes.
+Check for existing reminders for this same session and purpose when listing is
+available. Reuse a matching job rather than duplicate it. If existing state
+cannot be established, resolve duplicate risk before adding a recurring job.
 
-While paused, do a quick cross-project check:
-1. Read C:\Users\DanMarshall\.claude\projects\ to see all project memory folders
-2. For each project that has a MEMORY.md, skim the index
-3. Note anything relevant or urgent across all projects
+Create only the authorized cadence, window and lifetime. Read back the returned
+job identity and schedule before saying it is active. A partial failure is a
+partial result: report which reminder exists, which failed and how to cancel the
+successful one. Do not retry blindly and accumulate jobs.
 
-Then briefly tell the user: what's been covered this session, and whether anything from another project needs attention.
-```
+Report the actual time zone, next firing time, expiry/session lifetime and
+cancellation method. Do not claim a universal expiry period. Cancel task-owned
+reminders when requested or at the agreed session end; never cancel unrelated
+jobs. Do not claim automatic cancellation unless the mechanism enforces it.
 
----
+## Reminder content
 
-## Step 2 — Schedule the longer break + goal wizard
+For a short break, suggest briefly standing up or resting the eyes. For the
+longer break, summarize progress against the current goal and ask one concise
+question about the next focus. Use the host's supported question tool when
+appropriate, or ordinary conversation; no named questionnaire API is required.
 
-Call CronCreate with:
-- `cron`: `7 9-15/2 * * *`
-- `recurring`: `true`
-- `prompt`:
-
-```
-Time for a longer break — step away for 10–15 minutes.
-
-First, do a cross-project review:
-1. Read C:\Users\DanMarshall\.claude\projects\ — list all project folders
-2. For each project, read its MEMORY.md to pick up any open threads, pending beads, or flagged work
-3. Also check C:\Users\DanMarshall\.claude\plans\ for any active plan files
-
-Then use AskUserQuestion to run this wizard:
-
-Q1 header: "Progress"
-Question: "How is the session tracking against the goal?"
-Options:
-  - On track — everything going to plan
-  - Slightly off track — minor detour but recoverable
-  - Need to pivot — goal has shifted or something's blocking
-
-Q2 header: "Next goal"
-Question: "What's the focus after the break?"
-Options:
-  - Continue current work — same bead / task
-  - Start a new bead — pick up something from the backlog
-  - Review open issues — triage docs/issues/open/
-  - End session — wrap up and commit
-
-After the wizard, summarise: current status, next focus, any blockers, and anything flagged from other projects.
-```
-
----
-
-## Step 3 — Confirm
-
-Tell the user both reminders are active and show this summary:
-
-| Job | Cron | Fires at |
-|-----|------|----------|
-| Short break | `*/30 9-16 * * *` | Every 30 min, 9:00–4:30pm |
-| Longer break | `7 9-15/2 * * *` | 9:07, 11:07, 13:07, 15:07 |
-
-Remind them that cron jobs are session-only and auto-expire after 7 days — re-run `/break-reminders` at the start of each session to restore them.
-
----
-
-## Notes
-
-- To cancel early: `CronDelete <job-id>` (job IDs shown at scheduling time)
-- To fire a short break immediately: ask Claude to "fire a short break now"
-- Times are in local timezone
-- Adjust `9-16` / `9-15` hour ranges if your working hours differ
+A check-in does not authorize switching tasks, committing, publishing, or
+expanding a backlog. Continue within the user's existing scope.

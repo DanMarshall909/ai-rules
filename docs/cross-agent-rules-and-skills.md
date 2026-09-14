@@ -1,8 +1,13 @@
 # Cross-Agent Rules and Skills
 
-Status: implemented in ai-rules; downstream DnDan migration remains
+Status: maintained distribution design, with dated research retained below.
 
-Last verified: 2026-09-10
+Design review: 2026-09-14. Vendor/tool research and downstream audit: 2026-09-10.
+
+Use [README installation guidance](../README.md#start-here) for the current
+repository contract and [workflow owners](../README.md#workflow-owners) for
+procedural routing. Vendor behavior, tool comparisons and downstream findings
+below are historical snapshots, not a fresh client/runtime or downstream audit.
 
 ## Decision
 
@@ -23,7 +28,7 @@ agent's native instruction and skill locations.
 Before this migration, the generated base rule set was 628 lines and 32.4 KiB.
 Loading that beside a substantial project `AGENTS.md` spent context on
 procedures irrelevant to most tasks and risked instruction-size limits. The
-base policy is now 198 lines and 8.1 KiB; detailed coverage, mutation, security,
+base policy is kept below 200 lines by a generator test; detailed coverage, mutation, security,
 break, and reflection workflows live in skills installed with the base set.
 
 ## Canonical layout
@@ -51,6 +56,10 @@ Do not maintain hand-edited copies. Where a product cannot consume a symlink or
 an import, generate the adapter and provide a drift check.
 
 ## Vendor adapters
+
+This section records the 2026-09-10 discovery research. Verify the installed
+client version and current official documentation before using vendor commands;
+the README and installer tests own this repository's maintained destinations.
 
 ### Anthropic Claude Code
 
@@ -136,8 +145,8 @@ CLI 2.90.0 or newer. Preview third-party skills before installation.
 
 ## Existing portable rule tools
 
-This repository is not the only project solving rule distribution. The main
-active candidates are:
+The 2026-09-10 research compared these candidates. Versions, product coverage
+and maturity assessments are historical and must be refreshed before adoption:
 
 | Tool | Source model | Coverage | Relevant trade-off |
 |---|---|---|---|
@@ -199,7 +208,7 @@ required GLIBC 2.38/2.39 and would not start on this GLIBC 2.35 host; the
 checksummed musl build worked. Native Windows execution remains unproven by
 this spike.
 
-### Recommendation
+### Decision from the 2026-09-10 spike
 
 Do not adopt any candidate as the distribution engine yet. Rulesync and Ruler
 violate hard ownership or idempotence requirements. AgentSync is a useful
@@ -233,14 +242,24 @@ implement the portable path and ownership changes:
 7. The always-loaded base policy is capped below 200 lines. Its manifest ships
    the `agentic-delivery`, `behavior-first-tdd`, `coverage-and-mutation`,
    `security-by-design`, `break-reminders`, and `reflect` workflows into the
-   matching profile.
+   destination for each selected agent.
+8. Cursor and Cline receive complete native skill directories at
+   `.cursor/skills/<name>` and `.clinerules/skills/<name>`, preserving supporting
+   resources. See README for migration and client-discovery limits.
+9. Selecting a standalone manifest installs that policy and its declared skills.
+   An explicit target project receives all project-scoped artifacts even when
+   invoked from another directory; profile-scoped agents retain profile scope.
+10. The shipped Authority and Scope rule makes project refinements explicit.
+    Detailed procedures have one owner rather than relying on vendor load order.
 
-The suites cover discovery paths, idempotence, existing-file preservation,
-symlink behavior, adapter generation, and context size on Linux and native
-Windows. The Windows installer job passed on 2026-09-10 after these changes
-landed.
+The suites exercise discovery paths, idempotence, existing-file preservation,
+symlink behavior, adapter generation and context size; CI runs Linux and native
+Windows jobs. Consult the relevant PR/check run for current results. Filesystem
+proof is not evidence that every live client loaded the package.
 
 ## DnDan compatibility audit
+
+Historical snapshot from 2026-09-10; not refreshed by this repository's PR series.
 
 DnDan's root `CLAUDE.md` already uses the Anthropic-recommended `@AGENTS.md`
 adapter. Its root `AGENTS.md` is recognized by Codex, OpenCode, and Copilot
@@ -263,9 +282,9 @@ The remaining incompatibilities are:
   project file should retain project architecture, commands, and hard
   constraints while reusable procedures move into skills.
 
-These should be fixed only after the shared installer and precedence contract
-are corrected, so DnDan consumes the supported mechanism rather than another
-one-off arrangement.
+The shared installer and precedence corrections provide the dependency for a
+downstream migration. Reconcile DnDan's current source and guidance before
+changing it; no downstream change or completion claim is included here.
 
 ## References
 

@@ -3,16 +3,45 @@
 Lean, agent-agnostic AI coding rules. Works with Claude Code, Codex, OpenCode,
 GitHub Copilot, Cursor, and Cline.
 
-The concise, always-loaded shared policy lives in:
-
-rule-sets/ai-rules.md
+The concise, always-loaded shared policy lives in
+[`rule-sets/ai-rules.md`](rule-sets/ai-rules.md).
 
 `AGENTS.md` is intentionally minimal. It points agents at the rule set instead
 of carrying the full policy itself.
 
-The cross-agent distribution strategy, native discovery paths, and migration
-work are documented in
+The distribution decisions and dated migration research are documented in
 [`docs/cross-agent-rules-and-skills.md`](docs/cross-agent-rules-and-skills.md).
+The installation sections below are the maintained usage contract.
+
+## Start here
+
+Choose one workflow:
+
+- **Adopt the shared policy:** use `install-rules.sh`. It includes the skills
+  declared by the selected set; no second skill-install step is required.
+- **Use one workflow without adopting policy:** use `install-skill.sh`, or
+  `install-skill.ps1` on Windows.
+- **Contribute here:** read [the maintainer skill](skills/ai-rules/SKILL.md),
+  edit authored sources, regenerate and run [Checks](#checks).
+
+Clone to a durable location, then preview and install for the intended agent:
+
+```bash
+git clone https://github.com/DanMarshall909/ai-rules ai-rules
+cd ai-rules
+scripts/install-rules.sh --agent codex --dry-run
+scripts/install-rules.sh --agent codex
+```
+
+Replace `codex` with your agent. For Cursor or Cline, add
+`--project /path/to/existing-project`; otherwise their destination is the
+invoking directory. Profile agents remain profile-scoped for a standalone/base
+policy. Use Git Bash for rule installation on Windows; there is currently a
+PowerShell skill installer, not a PowerShell rules installer.
+
+Links remain live to this checkout. Keep it available; do not install from a
+temporary worktree you intend to remove. Use the dry-run output to inspect every
+destination before changing real instructions.
 
 ## Rule sets
 
@@ -25,6 +54,9 @@ A manifest without `layer:` is standalone. Selecting it with `--rule-set`
 installs that policy in the agent's native instruction location. Standalone sets
 use profile scope where the agent supports it; `--project` selects the destination
 for project-scoped agents. `--list --rule-set <name>` reports the selected set.
+Selection is not uninstallation: other named set adapters may remain, especially
+in Cursor/Cline rule directories. Inspect existing instructions when switching
+standalone policies so conflicting always-loaded sets are not left active.
 
 | Set | For | Layers on |
 |-----|-----|-----------|
@@ -36,16 +68,16 @@ Making one:
 ```bash
 scripts/new-rule-set.sh --title "Tool Repo Rules" \
   --blurb "For repos whose product is a tool an agent drives." \
-  --layer ai-rules tool-repos       # manifest, first rule, README row, rebuild
+  --layer ai-rules my-tools         # choose an unused name
 
-scripts/new-rule.sh --set tool-repos --title "Agent Contract" agent-contract
+scripts/new-rule.sh --set my-tools --title "Agent Contract" agent-contract
 scripts/new-rule.sh --title "Caching" caching     # into the base set
 
-scripts/new-skill.sh --set tool-repos --description "Use when ..." my-skill
+scripts/new-skill.sh --set my-tools --description "Use when ..." my-skill
 ```
 
-A skill a set claims travels with it. Base-set skills install into the profile;
-layered-set skills install project-scoped, so repo-specific guidance does not
+A skill a set claims travels with it. Base-set skills retain each agent's normal
+profile or project scope; layered-set skills install project-scoped, so guidance does not
 load in unrelated sessions. Installing a layered set into the repo that wants
 it:
 
@@ -69,7 +101,7 @@ and never twice — a layered set arrives in repos that already have both.
 
 | Rule | What it does |
 |------|-------------|
-| `rules/breaks.md` | 30-min + 2-hour break reminders with cross-project check-in |
+| `rules/breaks.md` | Requested session pacing with available host capabilities |
 | `rules/tdd.md` | Criterion-led RED → GREEN → COVERAGE → REFACTOR |
 | `rules/coverage.md` | Code must justify itself; establish reachability before excluding branches |
 | `rules/guardrails.md` | Turn a repeatable mistake into a test that fails at build time |
@@ -88,26 +120,40 @@ local modules for other stacks. Explicit task and scoped project instructions
 refine shared defaults within the host's instruction hierarchy; skills and
 adapters do not add authority.
 
+## Workflow owners
+
+| Decision | Procedural owner |
+|---|---|
+| Deliver accepted implementation scope | [agentic-delivery](skills/agentic-delivery/SKILL.md) |
+| Design tests and complete each TDD cycle | [behavior-first-tdd](skills/behavior-first-tdd/SKILL.md) |
+| Interpret coverage, mutants and pruning evidence | [coverage-and-mutation](skills/coverage-and-mutation/SKILL.md) |
+| Freeze, independently review and publish a candidate | [completion-review](skills/agentic-delivery/references/completion-review.md) |
+| Select stack-specific commands | [environment modules](skills/agentic-delivery/references/environments/index.md) |
+| Pace a requested session | [break-reminders](skills/break-reminders/SKILL.md) |
+| Propose or save a lesson with authority | [reflect](skills/reflect/SKILL.md) |
+
+Rules state boundaries and route to these owners; they do not repeat the full
+procedures. A named skill is a package name, not a guarantee that every client
+has an identically named slash command. Use the host's available invocation
+mechanism. If a required package is missing, report it and use an authorized
+installation path rather than pretending the workflow loaded.
+
 ## Install a skill
 
-Clone the repo once, then install any skill into whichever agents you use:
+After cloning, install individual skills only when needed independently of a set:
 
 ```bash
-git clone https://github.com/DanMarshall909/ai-rules ~/code/ai-rules
-cd ~/code/ai-rules
-
 scripts/install-skill.sh --list              # what's available, what's installed
-scripts/install-skill.sh break-reminders     # every agent found on this machine
 scripts/install-skill.sh --agent codex reflect
-scripts/install-skill.sh --agent all reflect
+scripts/install-skill.sh --agent codex --project ../some-tool refresh-tool-surface
 ```
 
 Windows without Git Bash — same arguments, PowerShell spelling:
 
 ```powershell
 scripts\install-skill.ps1 -List
-scripts\install-skill.ps1 break-reminders
 scripts\install-skill.ps1 -Agent codex reflect
+scripts\install-skill.ps1 -Agent 'cursor,cline' -Project ..\some-tool reflect
 ```
 
 | Agent | Skill lands at | Scope |
@@ -117,9 +163,14 @@ scripts\install-skill.ps1 -Agent codex reflect
 | `cursor` | `.cursor/skills/<skill>/` | project |
 | `cline` | `.clinerules/skills/<skill>/` | project |
 
-With no `--agent`, it installs for every agent it finds a config directory for
-and skips the rest. `--force` is needed only to replace a file you wrote
-yourself; an existing symlink is repointed without asking.
+With no `--agent`, it selects agents detected from their config directories;
+`--agent all` selects every supported adapter even if undetected. For this
+skill-only installer, `--project` / `-Project` moves user-scoped skills into that
+project too. This differs from a standalone/base rules installation.
+
+Existing links are repointed. Real files/directories are preserved unless
+`--force` / `-Force` is passed, which authorizes their replacement; inspect them
+first. Dry-run before migration or force operations.
 
 **Complete skill packages are linked.** Portable personal packages are canonical under
 `~/.agents/skills`; Claude receives the one compatibility link it needs under
@@ -130,15 +181,15 @@ PowerShell installer can fall back to directory junctions without either.
 
 Cursor uses its native skill directory. Cline supports `.clinerules/skills`;
 discovered skills are enabled by default and managed in its Skills tab.
-Reinstallation retires old
-flat skill-rule links only when they point to the matching `SKILL.md` in this
+Reinstallation retires old flat skill-rule links only when they point to the matching `SKILL.md` in this
 checkout. It reports and preserves other links and user-authored rules; inspect
 those manually if they duplicate the newly installed skill.
 
 See the official [Cursor skill locations](https://cursor.com/docs/skills) and
 [Cline skill locations and management](https://docs.cline.bot/customization/skills).
 
-Then run `/break-reminders` at the start of any Claude Code session.
+Ask for a paced session when you want break reminders. Scheduling depends on
+available host tools; installing the skill does not create jobs.
 
 ## Adopt the rules
 
@@ -146,9 +197,9 @@ Run the base installer from anywhere. User-scoped agents install into their
 profiles; Cursor and Cline install adapters into the selected project:
 
 ```bash
-~/code/ai-rules/scripts/install-rules.sh --list   # what each agent would get
-~/code/ai-rules/scripts/install-rules.sh          # every agent detected here
-~/code/ai-rules/scripts/install-rules.sh --agent claude,cursor
+scripts/install-rules.sh --list
+scripts/install-rules.sh --agent claude,cursor --project ../some-tool --dry-run
+scripts/install-rules.sh --agent claude,cursor --project ../some-tool
 ```
 
 | Agent | Gets | Where |
@@ -165,11 +216,13 @@ Claude Code resolves `@` imports at read time, so it imports
 Copilot receives that entrypoint through its native personal-instructions
 filename. All three point at the same generated rule set. An edit to a rule
 reaches installed profiles and project-only adapters once
-`scripts/build-agents.sh` has run. The links mean you never have to reinstall;
-the hook below means you never forget to regenerate.
+`scripts/build-agents.sh` has run. Content edits do not require reinstallation;
+changed adapter locations or newly bundled skills may require rerunning the
+installer. Restart or refresh the client when discovery requires it. The hook
+below catches stale generated policy.
 
-The base installation also links its detailed workflows into
-`~/.agents/skills`, with Claude compatibility links under `~/.claude/skills`.
+The base installation also links its declared workflows to each selected agent's
+skill destination above, with Claude compatibility links under `~/.claude/skills`.
 This keeps the always-loaded rule set concise without making its agentic
 delivery, TDD, coverage, security, break, or reflection procedures
 undiscoverable.
@@ -212,9 +265,8 @@ discoverable. Don't hand-create the directory — an agent finds a skill by its
 frontmatter `name` and `description`, so a `SKILL.md` without them installs
 cleanly, reads fine, and never loads.
 
-**Working on this repo?** Install the `ai-rules` skill and invoke it — it covers
-what's generated vs authored, the four places a new rule has to be registered,
-and the checks to run before committing:
+**Working on this repo?** Read `skills/ai-rules/SKILL.md` directly from the
+checkout. Optional installation makes it discoverable in your agent:
 
 ```bash
 scripts/install-skill.sh ai-rules
@@ -233,12 +285,18 @@ scripts/test-new-rule-set.sh       # the rule and rule-set scaffolds
 scripts/test-check-conventions.sh  # the conventions check's own behaviour
 scripts/check-conventions.sh       # skills load, installers agree, rules registered
 ```
+
 ```powershell
 scripts\test-install-skill.ps1
 ```
 
-All of these run in CI. The tests install into a throwaway `HOME` and project
-directory, so they never touch your real config.
+All of these run in CI. Tests isolate home/profile and project destinations, so
+they do not touch real agent config. Retain output and final exit status on slow
+runs; Windows process-heavy suites can take several minutes.
+
+These checks establish generation, installation and convention behavior, not
+semantic policy correctness or live client discovery. Review realistic scenarios
+for changed guidance, and use an independent completion review when required.
 
 ## Structure
 
@@ -251,14 +309,16 @@ rule-sets/
   tool-repos.set                ← authored manifest: layers on ai-rules
   tool-repos.md                 ← GENERATED from it
 rules/
-  breaks.md  tdd.md  coverage.md  guardrails.md
-  git.md  issues.md  reflection.md     ← fragments of the base set
+  authority.md  breaks.md  tdd.md  coverage.md  guardrails.md
+  security.md  git.md  issues.md  reflection.md ← fragments of the base set
   tool-repos/*.md                      ← fragments of the tool-repos set
 skills/
   ai-rules/SKILL.md             ← how to work on this repo itself
   agentic-delivery/SKILL.md     ← scope-to-publication delivery workflow
-  break-reminders/SKILL.md      ← auto-schedules break reminders
+  break-reminders/SKILL.md      ← host-aware requested session pacing
   behavior-first-tdd/SKILL.md   ← behaviour-first TDD
+  coverage-and-mutation/SKILL.md ← interpretation and pruning evidence
+  security-by-design/SKILL.md   ← sensitive boundaries and secure design
   reflect/SKILL.md              ← capture lessons when work lands
   refresh-tool-surface/SKILL.md ← shipped with the tool-repos set
 scripts/
@@ -277,18 +337,3 @@ scripts/
   test-*.sh / test-*.ps1        ← behaviour tests for the above
 .gitattributes                   ← forces LF on *.sh; CRLF breaks them silently
 ```
-
-## Use as your global rules (Claude Code)
-
-Check the repo out once, then let every project inherit both the rules and the
-skills:
-
-```bash
-git clone https://github.com/DanMarshall909/ai-rules ~/code/ai-rules
-cd ~/code/ai-rules
-scripts/install-rules.sh --agent claude    # @import into ~/.claude/CLAUDE.md
-scripts/install-skill.sh --agent claude ai-rules reflect
-```
-
-Editing the rules then means editing this repo — a rule that only exists on one
-machine is not a global rule.

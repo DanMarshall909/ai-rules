@@ -27,4 +27,5 @@ The same goes for anything else describing the tool to a caller: examples in the
 README, skill files, MCP tool descriptions. Whatever cannot be generated has to
 be checked by something that runs — a test that the documented commands still
 exist is cheap, and it is the only thing standing between a rename and a fleet
-of agents calling a flag that is gone (see [[guardrails]]).
+of agents calling a flag that is gone. Apply the shared Guardrails rule: wire the
+check into the pipeline and verify it fails for the named contract violation.

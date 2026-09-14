@@ -1,199 +1,119 @@
 ---
 name: ai-rules
-description: 'Use when working on the ai-rules repo itself: editing rules/*.md, adding or changing a skill, or touching the scripts. Covers what is generated versus authored, which checks must pass before a commit, and where a new rule has to be registered.'
+description: 'Use when working on the ai-rules repository itself: authoring rule fragments or skills, changing installers or scaffolds, or checking generated distribution. Does not install into real agent profiles unless requested.'
 ---
 
-# ai-rules
+# Maintain ai-rules
 
-This repo is the source of the rules its own agents obey, so a mistake here
-propagates to every project that imports it. Everything below is about keeping
-the generated copies honest and the conventions enforced by something other than
-memory.
+Changes here affect every checkout consuming the shared guidance. Inspect the
+task worktree first and preserve unrelated work. Use this skill from the actual
+ai-rules repository root; paths below are relative to that root, not an assumed
+personal installation path.
 
-Run the checks at the end. They are fast, and most of them exist because
-something silently broke.
+## Authored sources and generated outputs
 
----
+| Path | Owner |
+|---|---|
+| `rules/**/*.md` | Authored always-loaded policy fragments |
+| `rule-sets/*.set` | Authored fragment order, layer and bundled skill selection |
+| `skills/*/SKILL.md` and supporting resources | Authored task-specific procedures |
+| `scripts/*` | Authored generation, scaffolding and installation mechanics |
+| `rule-sets/*.md`, `AGENTS.md` | Generated; never edit by hand |
+| `CLAUDE.md` | Authored entrypoint importing the shared base |
 
-## Step 1 — Know what is authored and what is generated
+The rule set is policy, skills are procedures, and adapters expose the same
+sources. Follow `rules/authority.md` for scope and precedence. Read
+`skills/reflect/SKILL.md` when deciding where a new lesson belongs.
 
-| Path | Status |
-|------|--------|
-| `rules/**/*.md` | **authored** — the rule fragments |
-| `rule-sets/*.set` | **authored** — which set ships which fragments, in order |
-| `skills/*/SKILL.md` | **authored** |
-| `scripts/*` | **authored** |
-| `rule-sets/*.md` | **generated** rule sets — never edit |
-| `AGENTS.md` | **generated** minimal entrypoint — never edit |
-| `CLAUDE.md` | authored, but should import the base rule set |
+## Register a rule or set
 
-`AGENTS.md` exists because Codex, OpenCode, Copilot, Cursor and Cline can consume
-that instruction shape, either natively or through an adapter. It should stay
-small and point at `rule-sets/ai-rules.md`. `CLAUDE.md` imports that same set.
-The sets are the always-loaded policy, skills hold detailed workflows, and the
-agent files are entrypoints.
+The default `ai-rules` set serves every project. A layered set adds guidance
+for one kind of repository; a standalone manifest without `layer:` does not
+require a base. Selecting a set does not uninstall other named sets.
+A rule unique to one downstream repository belongs in that
+repository's authored instruction source, not this shared base.
 
-If asked to change a rule, change `rules/<...>.md` and regenerate. If you find
-yourself editing `AGENTS.md` or a `rule-sets/*.md`, stop — the change will be
-overwritten.
-
----
-
-## Step 2 — A rule belongs to a set
-
-`ai-rules` is the base set: rules for every project, kept at the top of
-`rules/`. A **layered** set — `tool-repos` is the first — is rules for one kind
-of repo, kept in `rules/<set>/`, and read alongside the base rather than
-instead of it.
-
-A manifest may also declare `skill:` entries. Base-set skills install into the
-user profile; layered-set skills install into the target project.
-
-Choosing between them is the judgment call. A rule that would make a reader in
-an unrelated project think "not my repo" belongs in a layered set; if it is
-only true of *one* repo it is not a rule at all, and belongs in that repo's own
-`AGENTS.md` (`rules/reflection.md` has the routing table).
-
-Use the scaffolds — they write every place a rule has to be registered:
+Use the scaffolds:
 
 ```bash
-scripts/new-rule.sh --title "Caching" caching                 # base set
-scripts/new-rule.sh --set tool-repos --title "..." some-rule  # layered set
-scripts/new-rule-set.sh --title "..." --blurb "..." --layer ai-rules <name>
-scripts/new-skill.sh --set tool-repos --description "..." <name>
+scripts/new-rule.sh --title "Caching" caching
+scripts/new-rule.sh --set tool-repos --title "Cache Contract" cache-contract
+scripts/new-rule-set.sh --title "Tool Repo Rules" --blurb "For tool repos." --layer ai-rules my-tools
+scripts/new-skill.sh --set tool-repos --description "Use when ..." my-skill
 ```
 
-By hand it is: the fragment, a `rule:` line in the manifest, a README row for a
-base-set rule or a sets-table row for a whole set, then
-`scripts/build-agents.sh`. Miss one and a check names it — the build refuses a
-fragment no manifest lists, and `check-conventions.sh` guards the README. That
-was not always true: `guardrails.md` was absent from the README table for its
-whole life, which is why the check exists.
+Scaffolds create the source and register the manifest and README rows required
+by the conventions checks. Replace their placeholders. Manifest order is reading
+order; reorder deliberately, not incidentally. Regenerate with
+`scripts/build-agents.sh` after changing fragments or manifests.
 
----
+A set's `skill:` entries travel with it. Standalone/default installations retain
+each agent's normal profile or project scope; layered sets scope their skills to
+the target project. See README installation sections for current destinations
+and the differing meaning of the two installers' `--project` option.
 
-## Step 3 — Adding a skill
+## Author a complete skill package
 
-```bash
-scripts/new-skill.sh --description "Use when ..." my-skill
-```
+For a new skill, run `scripts/new-skill.sh --description "Use when ..." <name>`.
+For an existing skill, edit its owner; do not initialize a duplicate. Keep its
+frontmatter name equal to its directory and its description narrow enough to
+select the right work.
 
-This writes `skills/my-skill/SKILL.md` with the YAML frontmatter that makes a
-skill discoverable. Do not hand-create the directory: an agent finds a skill by
-its frontmatter `name` and `description`, so a SKILL.md without them installs
-cleanly, reads correctly, and never loads.
+Write actionable instructions and an honest missing-capability fallback. Keep
+shared decisions in the entrypoint and conditional detail in linked references.
+Resolve resource links inside the installed package; a link to a checkout-only
+sibling is not automatically portable. Inspect callers before moving resources.
 
-Write skills as instructions to an agent — steps to carry out — not as
-documentation for a human. Say what to do when a step cannot be completed.
+For semantic policy edits, review realistic decisions and conflicts. Keyword
+matches cannot prove that a skill preserves scope or makes sound judgments.
+Tests of generators, manifests and installed resource reachability still apply.
 
-To install a skill into the agents on this machine:
+## Change installation mechanics
 
-```bash
-scripts/install-skill.sh --list          # what exists, what is already linked
-scripts/install-skill.sh my-skill        # every agent detected here
-scripts/install-skill.sh --agent all my-skill
-```
+`scripts/agents.sh` owns shared Bash agent identities, roots, scopes and link
+helpers; both Bash installers source it. `scripts/rule-sets.sh` owns manifest
+layout and reading for the rules installer and scaffolds. Skill/rule targets
+remain in their owning installers; `install-skill.ps1` mirrors skill targets for
+Windows. Do not introduce another independently maintained table.
 
-Skills are **symlinked** out of the checkout, never copied. Personal portable
-skills are canonical under `~/.agents/skills`; project skills use
-`.agents/skills`. Claude receives compatibility links under `.claude/skills`.
-A copy stops tracking the repo the moment either side is edited, which is the
-failure this repo exists to prevent. On Windows this needs Developer Mode or an
-elevated shell; `install-skill.ps1` names the setting when it cannot link.
+For a new agent, update shared identity/detection, Bash user/project skill
+targets, base/layered rule targets and PowerShell targets. Extend observable
+installer tests and run conventions; merely listing an agent is not support.
 
----
+Link complete skill directories, including references. Bash requires native
+symlinks; PowerShell may fall back to directory junctions. Preserve project-owned
+entrypoints and unowned files. Inspect actual destinations with a dry run before
+an authorized real installation. Repository maintenance does not itself authorize
+installing into a user profile.
 
-## Step 4 — Changing the installers
+## Validate and commit
 
-`scripts/agents.sh` holds the one agent table: roots, scopes, `link_to` (which
-refuses to leave a copy where a symlink was meant) and `append_once` (for the
-files a project owns and we may only add a line to). `scripts/rule-sets.sh`
-holds the manifest layout. Both bash installers source both.
-`install-skill.ps1` keeps its own copy for want of a shell it can source, so it
-is the one that can drift.
+Read README's `Checks` section from this repository and run that complete
+checklist before committing, including the PowerShell suite on Windows. It is
+the human-facing command list; `.github/workflows/check-agents-md.yml` owns CI
+execution. New suites must be wired into CI. Retain command, output, duration
+and exit status for long runs; runtime varies by platform.
 
-Adding an agent means: the list and root in `agents.sh`, a target in each of
-`user_target`, `project_target` (install-skill.sh), `rules_target` and
-`set_target` (install-rules.sh), and the whole lot again in
-`install-skill.ps1`. `check-conventions.sh` names whichever you forget — it
-reads all of them.
+For maintained executable behavior, follow `behavior-first-tdd`: preserve an
+intended failing test before its implementation, using `test(red)` commits when
+permitted by the project workflow. Semantic guidance changes use scenario review
+and relevant mechanical checks rather than fabricated prose-keyword tests.
+Apply the explicit prototype exceptions and the independent completion-review
+gate when it covers the task.
 
-Rules and skills install differently, and the difference is the point:
+Review the staged diff, use imperative messages explaining why, and commit with
+hooks. Follow `rules/git.md` for integration before review and unchanged-candidate
+publication afterward. Short-lived branches are a target, not automatic merge
+authority.
 
-- **Skills** are symlinked, so an edit is live at once. `--project <dir>` puts
-  one in a single repo (`.claude/skills/`, `.agents/skills/`) instead of the
-  profile, which is how a set's skills travel with it.
-- **Rules** reach Claude Code through an `@` import, also live at once — but
-  reach every other agent through a symlinked rule-set file. Codex, OpenCode,
-  and Copilot base rules install into their user-level native instruction
-  locations; Cursor and Cline remain project adapters. An edit to `rules/` does
-  not reach them until `build-agents.sh` runs. Enable the hook
-  (`git config core.hooksPath scripts/hooks`) so a commit cannot leave it stale.
-- **A layered set** installs into one repo:
-  `install-rules.sh --rule-set <name> --project <dir>`. It appends to that
-  repo's `AGENTS.md` and `CLAUDE.md` and replaces neither, because both are
-  usually already written. Dry-run it first.
+## Windows checks that must remain real
 
----
+`.gitattributes` keeps shell/Markdown/hooks LF and PowerShell CRLF. Strip CR
+before Bash parses a PowerShell table. Preserve executable Git index modes in
+fixtures; NTFS copies do not carry Unix modes. Fault tests must fail for the
+named intended defect, not a setup failure.
 
-## Step 5 — Run the checks before committing
-
-```bash
-scripts/build-agents.sh --check    # every rule set matches its manifest
-scripts/test-build-agents.sh       # the generator's behaviour
-scripts/test-install-skill.sh      # the skill installer's behaviour
-scripts/test-install-rules.sh      # the rules installer's behaviour
-scripts/test-new-skill.sh          # the skill scaffold's behaviour
-scripts/test-new-rule-set.sh       # the rule and rule-set scaffolds
-scripts/test-check-conventions.sh  # the conventions check's own behaviour
-scripts/check-conventions.sh       # skills load, installers agree, sets registered
-```
-
-On Windows, also:
-
-```powershell
-scripts\test-install-skill.ps1
-```
-
-All of them run in CI, and `check-conventions.sh` fails if a `scripts/test-*.sh`
-is not named in `.github/workflows/` — so adding a suite means wiring it up in
-the same commit.
-
-`.gitattributes` does not force LF on everything, and the exception is a trap:
-`.sh`, `.md` and the git hooks arrive LF everywhere, but `*.ps1` arrives
-**CRLF** everywhere, Linux and CI included, because PowerShell is
-Windows-native. A bash script reading `install-skill.ps1` therefore sees a
-trailing `\r` on every line, and an end-anchored pattern matches nothing at all.
-Strip the CR before parsing, not after.
-
-If `build-agents.sh --check` reports a generated markdown file stale while
-`git diff` says it is unchanged, that is the opposite failure — an `.sh` or `.md`
-that arrived CRLF despite the rule. Report it rather than working around it.
-
----
-
-## Step 6 — Commit
-
-Follow `rules/git.md` and `rules/tdd.md`, which this repo obeys itself:
-
-- a failing test before the code that satisfies it, committed as `test(red)`
-- present tense, imperative, saying *why* rather than *what*
-- review the staged diff before committing
-- branch from trunk and merge back the same day
-
-When a change is meant to prevent a class of mistake, verify the check actually
-fires by injecting the fault it claims to catch. A guardrail that cannot fail is
-worse than none, because it reads as coverage.
-
----
-
-## Notes
-
-- Rules are for *any* project consuming this repo. A lesson that applies to only
-  one project belongs in that project's memory — `rules/reflection.md` has the
-  routing table.
-- The break-reminders skill schedules cron jobs that expire after 7 days;
-  re-running `/break-reminders` each session is expected, not a bug.
-- `rules/coverage.md` is the longest source rule and the most often relevant. If a task
-  involves tests, coverage numbers, or a surviving mutant, read it before
-  proposing a fix.
+If generated-file verification disagrees with Git's diff, inspect line endings
+and the index; report the discrepancy rather than bypassing the check. Skills
+and rule links are live, but source-rule edits reach consumers only after
+regeneration. Actual client discovery is separate evidence from filesystem tests.

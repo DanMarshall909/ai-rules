@@ -126,9 +126,6 @@ for rule in breaks tdd coverage guardrails git issues reflection; do
   title="$(head -n 1 "rules/${rule}.md" | sed 's/^# //')"
   contains "ships ${rule}" rule-sets/ai-rules.md "## ${title}"
 done
-contains "the TDD rule names its supplied skill" rule-sets/ai-rules.md \
-  "/behavior-first-tdd"
-
 lines="$(wc -l < rule-sets/ai-rules.md)"
 if [[ ${lines} -lt 200 ]]; then
   ok "keeps the always-loaded base policy below 200 lines"
