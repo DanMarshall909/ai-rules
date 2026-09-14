@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # End-to-end contracts spanning rule and skill installation.
 set -euo pipefail
+export MSYS="${MSYS:-} winsymlinks:nativestrict"
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 fixture="$(mktemp -d)"
 cleanup() { rm -rf "${fixture}"; }
@@ -63,3 +64,34 @@ grep -qF 'installed: standalone' "${fixture}/listing" || {
   echo "FAIL: listing does not identify the installed standalone policy" >&2; exit 1;
 }
 echo "PASS: standalone policy selection"
+
+echo "native skill packages preserve references and owned migrations"
+mkdir -p "${fixture}/packages/.cursor/rules" "${fixture}/packages/.clinerules"
+package_install() {
+  "${REPO}/scripts/install-skill.sh" --project "${fixture}/packages" \
+    --agent cursor,cline agentic-delivery "$@"
+}
+package_install >/dev/null
+for path in .cursor/skills/agentic-delivery .clinerules/skills/agentic-delivery; do
+  [[ -f "${fixture}/packages/${path}/SKILL.md" &&
+     -f "${fixture}/packages/${path}/references/environments/index.md" &&
+     -f "${fixture}/packages/${path}/references/completion-review.md" ]] || {
+    echo "FAIL: installed skill package cannot resolve its references: ${path}" >&2; exit 1;
+  }
+done
+ln -s "${REPO}/skills/agentic-delivery/SKILL.md" \
+  "${fixture}/packages/.cursor/rules/agentic-delivery.mdc"
+printf 'User-authored rule\n' > "${fixture}/packages/.clinerules/agentic-delivery.md"
+package_install --dry-run >/dev/null
+[[ -L "${fixture}/packages/.cursor/rules/agentic-delivery.mdc" ]] || {
+  echo "FAIL: package migration dry run changed the legacy link" >&2; exit 1;
+}
+package_install >/dev/null
+[[ ! -L "${fixture}/packages/.cursor/rules/agentic-delivery.mdc" ]] || {
+  echo "FAIL: migrated skill still loads as an always-on flat rule" >&2; exit 1;
+}
+grep -qxF 'User-authored rule' "${fixture}/packages/.clinerules/agentic-delivery.md" || {
+  echo "FAIL: migration changed a user-authored rule" >&2; exit 1;
+}
+package_install >/dev/null
+echo "PASS: native packages, references, repeat installation, and preservation"

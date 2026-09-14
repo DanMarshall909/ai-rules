@@ -97,6 +97,17 @@ try {
   }
 
   # --- per-agent targets ---------------------------------------------------
+  Write-Host 'native package references'
+  $s = New-Sandbox
+  foreach ($nativeAgent in 'cursor', 'cline') {
+    $result = Invoke-Install -Agent $nativeAgent agentic-delivery
+    $nativeRoot = if ($nativeAgent -eq 'cursor') { '.cursor\skills' } else { '.clinerules\skills' }
+    $package = Join-Path "$s\project" "$nativeRoot\agentic-delivery"
+    if ($result.Code -eq 0 -and (Test-Path "$package\references\completion-review.md")) {
+      Ok "$nativeAgent resolves references beside SKILL.md"
+    } else { No "$nativeAgent resolves references beside SKILL.md" $result.Out }
+  }
+
   Write-Host "per-agent targets"
   $s = New-Sandbox
   Invoke-Install -Agent claude reflect | Out-Null
