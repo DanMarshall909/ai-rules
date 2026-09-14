@@ -115,6 +115,16 @@ contains "demotes the rule's own heading" rule-sets/extra.md "## Extra Rule"
 # the rest of it is, or it silently obeys the extras and none of the base.
 contains "a layered set names the set it extends" rule-sets/extra.md "ai-rules.md"
 
+# Windows Git commonly checks text out with CRLF. Manifest values must not
+# retain the carriage return as part of a rule, skill or layer name.
+sandbox
+sed -i 's/$/\r/' rule-sets/*.set
+if "${BUILD}" --check >/dev/null 2>&1; then
+  ok "accepts CRLF rule-set manifests"
+else
+  no "accepts CRLF rule-set manifests" "$("${BUILD}" --check 2>&1 | head -n 2)"
+fi
+
 # --- the base set stays complete and lean ----------------------------------
 # Every rule still ships, but detailed procedures route to on-demand skills so
 # the always-loaded context stays below the agreed budget.

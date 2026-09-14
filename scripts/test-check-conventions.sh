@@ -147,6 +147,11 @@ holds "passes on the repo as it stands"
 says_nothing_about "reads the CRLF PowerShell table" "could not read"
 mentions "names the agents it compared" "  cline"
 
+sandbox_git
+sed -i 's/$/\r/' rule-sets/*.set
+run_check
+holds "accepts CRLF rule-set manifests"
+
 # --- the two agent tables --------------------------------------------------
 
 echo "the two installers agree"
