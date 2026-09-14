@@ -19,6 +19,8 @@ jobs:
         run: scripts/test-install-skill.sh
       - name: rules installer behaves
         run: scripts/test-install-rules.sh
+      - name: installation contracts hold
+        run: scripts/test-install-contracts.sh
       - name: scaffold behaves
         run: scripts/test-new-skill.sh
       - name: rule-set scaffolds behave
