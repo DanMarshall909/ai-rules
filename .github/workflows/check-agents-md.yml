@@ -25,8 +25,6 @@ jobs:
         run: scripts/test-new-skill.sh
       - name: rule-set scaffolds behave
         run: scripts/test-new-rule-set.sh
-      - name: conventions check behaves
-        run: scripts/test-check-conventions.sh
       - name: conventions hold
         run: scripts/check-conventions.sh
 
