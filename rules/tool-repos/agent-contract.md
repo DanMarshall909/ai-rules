@@ -31,4 +31,4 @@ same act as renaming a public method, minus the compiler.
 A test that parses the tool's output with a hand-rolled reader will not catch
 any of this: the reader is written to match what the code emits today, so it
 agrees with whatever the code does next. Parse with the reader the real consumer
-uses (see [[coverage]]).
+uses; apply the `coverage-and-mutation` skill to check the strength of that evidence.

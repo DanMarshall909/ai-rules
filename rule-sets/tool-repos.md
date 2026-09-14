@@ -44,7 +44,7 @@ same act as renaming a public method, minus the compiler.
 A test that parses the tool's output with a hand-rolled reader will not catch
 any of this: the reader is written to match what the code emits today, so it
 agrees with whatever the code does next. Parse with the reader the real consumer
-uses (see [[coverage]]).
+uses; apply the `coverage-and-mutation` skill to check the strength of that evidence.
 
 ---
 
@@ -77,7 +77,7 @@ If adding a capability to the second host means copying anything beyond argument
 wiring, the service does not yet own what it should. Move the decision down
 rather than writing it twice; an assertion that needed a whole host stood up
 becomes trivial once the rule lives in a small object of its own
-(see [[coverage]]).
+(use the `coverage-and-mutation` skill to assess the evidence).
 
 ---
 
@@ -142,4 +142,5 @@ The same goes for anything else describing the tool to a caller: examples in the
 README, skill files, MCP tool descriptions. Whatever cannot be generated has to
 be checked by something that runs — a test that the documented commands still
 exist is cheap, and it is the only thing standing between a rename and a fleet
-of agents calling a flag that is gone (see [[guardrails]]).
+of agents calling a flag that is gone. Apply the shared Guardrails rule: wire the
+check into the pipeline and verify it fails for the named contract violation.

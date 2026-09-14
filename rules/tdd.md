@@ -1,6 +1,6 @@
 # Agentic TDD Protocol
 
-For behaviour changes use the `behavior-first-tdd` skill (`/behavior-first-tdd`):
+For behaviour changes use the `behavior-first-tdd` skill:
 **Tidy → RED → GREEN → COVERAGE → REFACTOR → next RED**, one observable acceptance
 criterion at a time. GREEN alone does not complete the criterion.
 

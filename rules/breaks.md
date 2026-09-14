@@ -1,8 +1,8 @@
 # Break Reminders
 
-During working hours (9am–5pm), remind the user to take a short break every 30
-minutes. Every 2 hours, pause for a goal-and-focus check-in after briefly
-scanning relevant project context.
+Use the `break-reminders` skill when the user requests a paced working session or
+scheduled reminders. Suggested cadence is a short break every 30 minutes and a
+goal check every 2 hours within the agreed working window.
 
-Use the `break-reminders` skill when the user wants a working session paced or
-scheduled reminders created.
+Ordinary coding work does not authorize scheduling. Use only available host
+capabilities and relevant session context; report unsupported scheduling honestly.

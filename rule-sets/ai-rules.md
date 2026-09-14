@@ -32,18 +32,18 @@ still conflict, name the conflict and pause only the affected action.
 
 ## Break Reminders
 
-During working hours (9am–5pm), remind the user to take a short break every 30
-minutes. Every 2 hours, pause for a goal-and-focus check-in after briefly
-scanning relevant project context.
+Use the `break-reminders` skill when the user requests a paced working session or
+scheduled reminders. Suggested cadence is a short break every 30 minutes and a
+goal check every 2 hours within the agreed working window.
 
-Use the `break-reminders` skill when the user wants a working session paced or
-scheduled reminders created.
+Ordinary coding work does not authorize scheduling. Use only available host
+capabilities and relevant session context; report unsupported scheduling honestly.
 
 ---
 
 ## Agentic TDD Protocol
 
-For behaviour changes use the `behavior-first-tdd` skill (`/behavior-first-tdd`):
+For behaviour changes use the `behavior-first-tdd` skill:
 **Tidy → RED → GREEN → COVERAGE → REFACTOR → next RED**, one observable acceptance
 criterion at a time. GREEN alone does not complete the criterion.
 
@@ -157,23 +157,30 @@ docs/issues/
 - Discover existing areas from the folder structure — don't hardcode them
 - If a file is linked to a GitHub issue, include the issue URL and use one stable
   ticket identity in both records.
-- On resolution of a file-backed record: update `status: Resolved`, add a
-  decision-log entry, and move it to `resolved/[area]/`.
+- When the file is the authoritative tracker, resolution updates
+  `status: Resolved`, adds a decision-log entry and moves it to `resolved/[area]/`.
+- When GitHub owns workflow status, a linked file's open/resolved location tracks
+  only whether its investigation is archived. Do not add a duplicate task-status
+  field; record the archive decision and link to live status.
 - On resolution of a GitHub-tracked item: follow the project's completion rules
   and update any linked durable file in the same change.
 
 If the repository declares neither approach, use `docs/issues/` rather than
 inventing another local folder.
 
-> Claude Code users: use `/issue` and `/security-finding` skills.
+Use the repository's available tracking tools or edit the authorized record
+directly. For a security finding, also use the `security-by-design` skill; this
+repository does not supply separate issue or security-finding slash commands.
 
 ---
 
 ## Reflection
 
 After non-trivial work lands with tests green and its commit recorded,
-use the `reflect` skill to capture any durable lesson before context is lost.
+use the `reflect` skill to identify any durable lesson before context is lost.
 Writing nothing is the common, correct outcome.
 
 Keep only transferable, non-obvious, load-bearing lessons, and store each at
-the narrowest scope that reaches every task where it applies.
+the narrowest scope that reaches every task where it applies. Proposing a lesson
+does not save it: memory writes need an explicit user request and standing-guidance
+changes need the appropriate authority.
