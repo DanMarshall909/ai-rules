@@ -79,6 +79,27 @@ The goal is the smallest sufficient trusted suite. Every retained test should
 add distinct regression protection, a necessary layer-specific law, or uniquely
 valuable cross-boundary evidence.
 
+## Make Oracles Independent and Falsifiable
+
+For serialization, compilation, mapping, reconstruction, and other multi-stage
+transformations, derive expected values from the original authoritative inputs
+and contract, not from another output of the production mapper. Assert the
+result after the final consumer or authority boundary. A round trip can prove
+compatibility while still hiding the same swapped, omitted, or defaulted field
+on both sides.
+
+Use distinguishable non-default values for mechanically distinct required
+fields so a swap, omission, duplication, or wrong default makes the test fail.
+Assert the contract's required outcomes rather than mirroring every incidental
+property of the current object shape.
+
+For diagnostic contracts, assert stable structured identities such as rule,
+requirement, task, source, path, category, or position instead of pinning prose.
+First prove the fixture produces nonempty, heterogeneous diagnostics. To test
+ordering or determinism, permute inputs whose failures have distinct identities
+and assert the resulting identity sequence. Empty results, identical failures,
+or fixtures that pass under the wrong permutation are vacuous oracles.
+
 ## Coverage Review Workflow
 
 Read `coverage-and-mutation` before interpreting uncovered code or mutants. It

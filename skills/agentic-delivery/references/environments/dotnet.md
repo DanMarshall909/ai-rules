@@ -69,6 +69,26 @@ command once for every eligible changed production assembly. Retain JSON or
 another machine-readable report and inspect survivor, timeout, no-coverage, and
 test-attribution details—not just the headline score.
 
+For Stryker JSON, obtain the test catalog from unique
+`testFiles.*.tests[].id` values and mutant attribution from `coveredBy` and
+`killedBy`. For the statuses the pinned version and project classify as tested
+outcomes, report effective test participation from the intersection of those
+IDs. `testFiles` may include tests that never reached a mutant, while mutant
+links may contain IDs absent from `testFiles`; list the latter separately and do
+not count them as source-resolvable tests. Do not derive participating-test
+counts by subtracting terminal discovery totals.
+
+A run with tested outcomes but no link to a catalogued test has not established
+usable attribution. Some unlisted IDs alongside valid intersections are a
+disclosed diagnostic, not automatically a corrupt report. Retain raw terminal
+output beside the JSON so report/terminal discrepancies remain inspectable.
+
+When a repository maintains a Stryker report reader or wrapper, exercise it
+against a real report from the pinned Stryker version as well as synthetic
+missing, mixed-link, and no-outcome cases. Real reports can contain link IDs not
+represented in `testFiles`; a synthetic-only parser can therefore pass while
+rejecting every production report.
+
 Calibrate the harness by applying one representative fault, proving it reached
 the intended source, and watching the named test reject it. Restore the source
 and verify the diff afterward. Confirm both that configured tests were

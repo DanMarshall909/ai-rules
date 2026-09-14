@@ -145,6 +145,28 @@ Where supported, running the full suite per mutant can diagnose attribution
 failures. It does not fix genuinely unexecuted code. Verify the installed tool's
 mode and cost before launching a potentially much slower run.
 
+## Mutation attribution is linkage, not arithmetic
+
+When a machine-readable mutation report provides both a catalog of tests and
+test IDs linked to mutants, effective source-resolvable participation is the
+intersection of those sets. A catalog entry alone does not show that the test
+covered a mutant, and a link absent from the catalog cannot be resolved to the
+reported source test. Count neither by subtracting discovery totals printed in
+the terminal.
+
+Disclose unlisted link IDs and retain both the machine report and raw terminal
+output. Some real tool reports contain a mixture of listed and unlisted IDs;
+that is attribution evidence to investigate, not permission to count the
+unlisted IDs or to reject an otherwise usable report automatically. A nonempty
+set of tested outcomes with zero source-resolvable links cannot prove that the
+configured tests participated, even when the tool exits successfully.
+
+Calibrate any report parser against at least one real artifact from the pinned
+tool/version as well as synthetic edge fixtures. Synthetic reports prove chosen
+branches; they do not prove that the assumed schema relationships occur in
+actual output. Prefer a minimal scrubbed fixture or a read-only retained report
+so calibration stays fast and does not publish source or test data unnecessarily.
+
 **Coverage first, then mutation.** They answer questions in order — coverage asks
 whether a line ran in scope, mutation asks whether tests detect changed behavior.
 Separate unreached code from executed-but-unchecked behavior. Establish coverage,
