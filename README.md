@@ -65,13 +65,20 @@ and never twice — a layered set arrives in repos that already have both.
 | Rule | What it does |
 |------|-------------|
 | `rules/breaks.md` | 30-min + 2-hour break reminders with cross-project check-in |
-| `rules/tdd.md` | Red → Green → Refactor → Coverage, one AC at a time |
+| `rules/tdd.md` | Criterion-led RED → GREEN → COVERAGE → REFACTOR |
 | `rules/coverage.md` | Code must justify itself; never call a branch unreachable |
 | `rules/guardrails.md` | Turn a repeatable mistake into a test that fails at build time |
 | `rules/security.md` | Concentrate security decisions behind one narrow, intent-named boundary |
 | `rules/git.md` | pull --rebase, backup before force-push, staged diff review |
 | `rules/issues.md` | GitHub and/or canonical `docs/issues/[open\|resolved]/[area]/` tracking |
 | `rules/reflection.md` | Capture durable lessons when work lands; route them to the right scope |
+
+For non-trivial autonomous feature delivery, use `agentic-delivery`. It binds
+accepted scope to criterion-led TDD, quality evidence, independent completion
+review, exact publication, cleanup, and owner-confirmed workflow lessons. Its
+environment modules keep the core portable while adapting test, coverage, and
+mutation mechanics for .NET and JavaScript/TypeScript; repositories can provide
+stricter local modules for other stacks.
 
 ## Install a skill
 
@@ -145,8 +152,9 @@ the hook below means you never forget to regenerate.
 
 The base installation also links its detailed workflows into
 `~/.agents/skills`, with Claude compatibility links under `~/.claude/skills`.
-This keeps the always-loaded rule set concise without making its TDD, coverage,
-security, break, or reflection procedures undiscoverable.
+This keeps the always-loaded rule set concise without making its agentic
+delivery, TDD, coverage, security, break, or reflection procedures
+undiscoverable.
 
 For Claude the installer appends one line to `~/.claude/CLAUDE.md`, keeping
 whatever is already there, and won't add it twice.
@@ -229,6 +237,7 @@ rules/
   tool-repos/*.md                      ← fragments of the tool-repos set
 skills/
   ai-rules/SKILL.md             ← how to work on this repo itself
+  agentic-delivery/SKILL.md     ← scope-to-publication delivery workflow
   break-reminders/SKILL.md      ← auto-schedules break reminders
   behavior-first-tdd/SKILL.md   ← behaviour-first TDD
   reflect/SKILL.md              ← capture lessons when work lands

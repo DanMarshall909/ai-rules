@@ -1,16 +1,17 @@
-# TDD Protocol
+# Agentic TDD Protocol
 
-**Tidy → Red → Green → Refactor → Coverage**
+**Tidy → RED → GREEN → COVERAGE → REFACTOR → next RED**
 
-- Never write production code before a failing test exists
-- Work one acceptance criterion at a time — no batching
-- Commit at each phase: `test(red)`, `feat(...)`, `refactor(...)`
-- After implementation: check coverage, run mutation testing if available
-- End of session: offer to squash the *green* commits into one. Never fold a
-  `test(red)` commit into the `feat` that makes it pass: the failing test
-  standing alone is the evidence that the test can fail, and squashing it away
-  destroys exactly that. A red commit that does not compile is expected. It is
-  not a broken trunk, and git.md's "trunk stays green" does not override this.
+- Work one observable acceptance criterion at a time; do not batch behaviours.
+- Review adjacent tests before RED; consolidate only when confidence survives.
+- Preserve evidence that RED failed for the missing behaviour, then implement
+  only enough for GREEN.
+- Use COVERAGE to find unprotected behaviour and unearned code; percentages do
+  not finish this phase.
+- REFACTOR production code and tests, or record why each genuinely needs no
+  improvement, before starting the next RED.
+- Preserve RED through the project's driver or a separate commit when permitted;
+  never break shared trunk merely to manufacture evidence.
 
-For any behavior change, use the `behavior-first-tdd` skill (Claude command:
-`/behavior-first-tdd`).
+For behaviour changes use the `behavior-first-tdd` skill (`/behavior-first-tdd`);
+use `agentic-delivery` for non-trivial work.

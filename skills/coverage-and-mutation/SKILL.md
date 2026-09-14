@@ -8,6 +8,13 @@ description: Use when reviewing coverage, mutation-test results, dead code, comp
 Aim for 100% coverage of core code through behaviour-driven tests that drive real
 code paths and assert observable output.
 
+When this skill is used through `agentic-delivery`, first read its matching
+environment modules. Mutation implementations are not flag-compatible:
+Stryker.NET `--since` produces a changed-mutant subset, while StrykerJS
+`--incremental` reuses an incremental report and still produces a full report.
+Prefer repository-local drivers and verify options against the installed
+version.
+
 ## Code must justify itself
 
 - Code that cannot be justified is removed, not covered. Code that exists only to

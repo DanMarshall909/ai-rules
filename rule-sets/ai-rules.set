@@ -15,6 +15,7 @@ rule: git
 rule: issues
 rule: reflection
 
+skill: agentic-delivery
 skill: behavior-first-tdd
 skill: coverage-and-mutation
 skill: security-by-design

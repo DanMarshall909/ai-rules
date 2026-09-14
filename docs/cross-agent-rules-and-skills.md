@@ -231,8 +231,9 @@ implement the portable path and ownership changes:
    `.github/copilot-instructions.md`, routing it through the project-owned root
    `AGENTS.md` without duplicating the pointer.
 7. The always-loaded base policy is capped below 200 lines. Its manifest ships
-   the `behavior-first-tdd`, `coverage-and-mutation`, `security-by-design`,
-   `break-reminders`, and `reflect` workflows into the matching profile.
+   the `agentic-delivery`, `behavior-first-tdd`, `coverage-and-mutation`,
+   `security-by-design`, `break-reminders`, and `reflect` workflows into the
+   matching profile.
 
 The suites cover discovery paths, idempotence, existing-file preservation,
 symlink behavior, adapter generation, and context size on Linux and native
