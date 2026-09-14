@@ -30,16 +30,26 @@ or unrelated project files. A layered set is additional project guidance; it
 does not replace the base policy. Read the maintained installation contract in
 the checkout's `README.md` when destinations or scope are uncertain.
 
+Follow every `layer:` declaration from the selected manifest to its standalone
+base. Verify that each prerequisite set is already active for the same agents
+and target. If one is missing, preview and install the chain from the base
+outward before installing the selected layer. A layer-only installation is not
+a complete first adoption.
+
 ## Inventory before changing anything
 
 Use the repository's list and dry-run modes for the selected agents and target,
 for example:
 
 ```bash
-scripts/install-rules.sh --list --rule-set <set>
-scripts/install-rules.sh --rule-set <set> --agent <agents> --project <target> --dry-run
-scripts/install-skill.sh --list
+<ai-rules>/scripts/install-rules.sh --list --rule-set <set> --project <target>
+<ai-rules>/scripts/install-rules.sh --rule-set <set> --agent <agents> --project <target> --dry-run
+<ai-rules>/scripts/install-skill.sh --list --project <target>
 ```
+
+Invoke the installers from their durable checkout, but always pass the selected
+project explicitly when inspecting project-scoped agents. Otherwise `--list`
+describes the checkout itself and can miss the target's existing packages.
 
 Inspect every reported instruction adapter and skill destination. Resolve links
 to their sources and distinguish real directories, junctions, symlinks, broken
@@ -71,10 +81,11 @@ Before mutation, show:
    meaningful differences, proposed action and recovery method; and
 4. unresolved instruction conflicts that installation alone cannot settle.
 
-Ordinary installation or repointing of already-owned links may proceed when the
-user requested adoption or update and the dry run matches that scope. Stop for
-confirmation before `--force`, removal, replacement of project-owned content,
-or any cleanup whose target was not explicitly confirmed.
+After the required base/layer chain is active, ordinary installation or
+repointing of already-owned links may proceed when the user requested adoption
+or update and the dry run matches that scope. Stop for confirmation before
+`--force`, removal, replacement of project-owned content, or any cleanup whose
+target was not explicitly confirmed.
 
 Ask for confirmation against exact paths, not a category such as “old skills.”
 If several targets share one proof and recovery plan, they may be confirmed as
