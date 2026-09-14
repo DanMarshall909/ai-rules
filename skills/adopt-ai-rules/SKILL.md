@@ -44,12 +44,16 @@ for example:
 ```bash
 <ai-rules>/scripts/install-rules.sh --list --rule-set <set> --project <target>
 <ai-rules>/scripts/install-rules.sh --rule-set <set> --agent <agents> --project <target> --dry-run
+<ai-rules>/scripts/install-skill.sh --list
 <ai-rules>/scripts/install-skill.sh --list --project <target>
 ```
 
-Invoke the installers from their durable checkout, but always pass the selected
-project explicitly when inspecting project-scoped agents. Otherwise `--list`
-describes the checkout itself and can miss the target's existing packages.
+Invoke the installers from their durable checkout. Skill inventory requires both
+list commands: the unscoped command shows packages in profile destinations for
+profile-scoped agents, while the command with `--project` shows packages in the
+selected project's destinations. Do not use the unscoped Cursor or Cline results
+as the project inventory; without `--project`, those paths describe the invoking
+checkout and can miss the target's existing packages.
 
 Inspect every reported instruction adapter and skill destination. Resolve links
 to their sources and distinguish real directories, junctions, symlinks, broken
