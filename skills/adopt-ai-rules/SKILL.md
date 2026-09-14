@@ -55,6 +55,13 @@ selected project's destinations. Do not use the unscoped Cursor or Cline results
 as the project inventory; without `--project`, those paths describe the invoking
 checkout and can miss the target's existing packages.
 
+Treat installer listing as canonical-package status, not a complete inventory.
+Separately enumerate the direct child entries in every in-scope profile and
+project skill discovery directory named by the installation contract. Include
+packages whose names do not exist in the `ai-rules` checkout, because copied,
+renamed, independently owned, stale and broken packages are otherwise invisible
+to `install-skill.sh --list`.
+
 Inspect every reported instruction adapter and skill destination. Resolve links
 to their sources and distinguish real directories, junctions, symlinks, broken
 links and generated adapters. Include complete skill packages in the comparison:
