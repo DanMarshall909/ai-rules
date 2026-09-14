@@ -25,6 +25,18 @@ and single-file skill adapters lose access to package references.
 The series starts from `f08ebbe`. Each later PR depends on the preceding PR.
 The retained `feat/consolidate-global-rules` worktree is outside this scope.
 
+## Decisions
+
+- Keep the scaffold's standalone-set capability and honor explicit selection.
+- Install complete native skill packages for Cursor and Cline, retaining their
+  existing project scope. Do not generate a second copy of the skill body.
+- Migrate only exact old flat links to this checkout, after the new package is
+  successfully linked. Report and preserve any unowned legacy rule.
+- Native paths are documented by [Cursor](https://cursor.com/docs/skills) and
+  [Cline](https://docs.cline.bot/customization/skills); Cline enables discovered
+  skills by default and manages them through its Skills tab.
+  Filesystem tests establish package reachability, not an interactive client smoke test.
+
 ## Evidence
 
 The initial review reproduced AC1 and AC2 in dry runs. The existing Windows

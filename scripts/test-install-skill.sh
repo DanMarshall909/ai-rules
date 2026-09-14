@@ -135,13 +135,13 @@ links_to "copilot installs a discoverable skill directory" \
 
 sandbox
 "${INSTALL}" --agent cursor reflect >/dev/null 2>&1
-links_to "cursor installs SKILL.md as an .mdc rule" \
-  "${PWD}/.cursor/rules/reflect.mdc" "${REPO}/skills/reflect/SKILL.md"
+links_to "cursor installs a native skill package" \
+  "${PWD}/.cursor/skills/reflect" "${REPO}/skills/reflect"
 
 sandbox
 "${INSTALL}" --agent cline reflect >/dev/null 2>&1
-links_to "cline installs SKILL.md as a .clinerules file" \
-  "${PWD}/.clinerules/reflect.md" "${REPO}/skills/reflect/SKILL.md"
+links_to "cline installs a native skill package" \
+  "${PWD}/.clinerules/skills/reflect" "${REPO}/skills/reflect"
 
 # --- scope -----------------------------------------------------------------
 
@@ -150,7 +150,7 @@ sandbox
 project="${PWD}"
 "${INSTALL}" --agent cursor reflect >/dev/null 2>&1
 links_to "project agent installs under cwd" \
-  "${project}/.cursor/rules/reflect.mdc" "${REPO}/skills/reflect/SKILL.md"
+  "${project}/.cursor/skills/reflect" "${REPO}/skills/reflect"
 absent "project agent does not touch HOME" "${HOME}/.cursor"
 
 # --- --project -------------------------------------------------------------
@@ -193,8 +193,8 @@ sandbox
 mkdir -p "${SANDBOX_ELSEWHERE:=${PWD}/../elsewhere}"
 "${INSTALL}" --project "${PWD}/../elsewhere" --agent cursor reflect >/dev/null 2>&1
 links_to "a project agent follows --project too" \
-  "${PWD}/../elsewhere/.cursor/rules/reflect.mdc" "${REPO}/skills/reflect/SKILL.md"
-absent "leaves the working directory alone" "${PWD}/.cursor/rules/reflect.mdc"
+  "${PWD}/../elsewhere/.cursor/skills/reflect" "${REPO}/skills/reflect"
+absent "leaves the working directory alone" "${PWD}/.cursor/skills/reflect"
 
 sandbox
 if "${INSTALL}" --project "${PWD}/nowhere" --agent claude reflect >/dev/null 2>&1; then
@@ -214,8 +214,8 @@ links_to "all: opencode" "${HOME}/.agents/skills/reflect"                 "${REP
 links_to "all: copilot"  "${HOME}/.agents/skills/reflect"                 "${REPO}/skills/reflect"
 absent "all: no OpenCode command adapter" \
   "${XDG_CONFIG_HOME}/opencode/command/reflect.md"
-links_to "all: cursor"   "${PWD}/.cursor/rules/reflect.mdc"               "${REPO}/skills/reflect/SKILL.md"
-links_to "all: cline"    "${PWD}/.clinerules/reflect.md"                  "${REPO}/skills/reflect/SKILL.md"
+links_to "all: cursor"   "${PWD}/.cursor/skills/reflect"                 "${REPO}/skills/reflect"
+links_to "all: cline"    "${PWD}/.clinerules/skills/reflect"              "${REPO}/skills/reflect"
 if grep -qF "copilot:" <<<"${out}"; then
   ok "all selects Copilot"
 else

@@ -68,6 +68,15 @@ sandbox_git() {
   sandbox
   git init -q . >/dev/null 2>&1
   git add -A >/dev/null 2>&1
+  # NTFS copies do not carry Git's executable mode. Recreate the source index
+  # modes so a clean fixture is clean on Windows before injecting a fault.
+  local metadata file
+  while IFS=$'\t' read -r metadata file; do
+    [[ -f "${file}" ]] || continue
+    if [[ "${metadata}" == 100755\ * ]]; then
+      git update-index --chmod=+x "${file}"
+    fi
+  done < <(git -C "${REPO}" ls-files -s scripts/)
 }
 
 run_check() {

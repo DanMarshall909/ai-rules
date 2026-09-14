@@ -16,7 +16,7 @@ run_install() {
 
 echo "explicit project keeps rules and project skills together"
 run_install --agent cursor,cline,codex --project "${fixture}/target" >/dev/null
-for path in .cursor/rules/agentic-delivery.mdc .clinerules/agentic-delivery.md; do
+for path in .cursor/skills/agentic-delivery/SKILL.md .clinerules/skills/agentic-delivery/SKILL.md; do
   [[ -f "${fixture}/target/${path}" ]] || {
     echo "FAIL: bundled skill missing from explicit project: ${path}" >&2; exit 1;
   }

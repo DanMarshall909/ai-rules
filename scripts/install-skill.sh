@@ -32,16 +32,15 @@ canonical_target() { # <skill>
   fi
 }
 
-# Where a skill has to appear for each agent to see it. Claude Code, Codex,
-# OpenCode, and Copilot read a skill directory, preserving any resources beside
-# SKILL.md. The rest read a single markdown file directly. Roots and scopes
-# live in agents.sh.
+# Every agent receives a directory so references resolve beside SKILL.md.
+# Cursor and Cline retain their existing project scope; Cline supports the
+# .clinerules/skills directory when its Skills feature is enabled.
 user_target() { # <agent> <skill>
   case "$1" in
     claude)                   printf '%s' "${HOME}/.claude/skills/$2" ;;
     codex|opencode|copilot)   canonical_target "$2" ;;
-    cursor)                   printf '%s' "${PROJECT}/.cursor/rules/$2.mdc" ;;
-    cline)                    printf '%s' "${PROJECT}/.clinerules/$2.md" ;;
+    cursor)                   printf '%s' "${PROJECT}/.cursor/skills/$2" ;;
+    cline)                    printf '%s' "${PROJECT}/.clinerules/skills/$2" ;;
   esac
 }
 
@@ -56,8 +55,8 @@ project_target() { # <agent> <skill>
   case "$1" in
     claude)                   printf '%s' "${PROJECT}/.claude/skills/$2" ;;
     codex|opencode|copilot)   canonical_target "$2" ;;
-    cursor)                   printf '%s' "${PROJECT}/.cursor/rules/$2.mdc" ;;
-    cline)                    printf '%s' "${PROJECT}/.clinerules/$2.md" ;;
+    cursor)                   printf '%s' "${PROJECT}/.cursor/skills/$2" ;;
+    cline)                    printf '%s' "${PROJECT}/.clinerules/skills/$2" ;;
   esac
 }
 
@@ -70,10 +69,30 @@ agent_target() { # <agent> <skill>
 }
 
 agent_source() { # <agent> <skill>
+  printf '%s' "${SKILLS_DIR}/$2"
+}
+
+# Retire only the old flat link whose exact source proves it came from this
+# checkout. An unrelated link or real rule remains the user's property.
+retire_flat_rule() { # <agent> <skill>
+  local legacy=""
   case "$1" in
-    claude|codex|opencode|copilot) printf '%s' "${SKILLS_DIR}/$2" ;;
-    *)                             printf '%s' "${SKILLS_DIR}/$2/SKILL.md" ;;
+    cursor) legacy="${PROJECT}/.cursor/rules/$2.mdc" ;;
+    cline) legacy="${PROJECT}/.clinerules/$2.md" ;;
   esac
+  [[ -n "${legacy}" ]] || return 0
+  if [[ -L "${legacy}" && "$(readlink "${legacy}")" == "${SKILLS_DIR}/$2/SKILL.md" ]]; then
+    if [[ ${DRY_RUN} -eq 1 ]]; then
+      printf '  - %s (owned flat link, dry run)\n' "${legacy}"
+    elif rm -f "${legacy}"; then
+      printf '  - %s (migrated to skill package)\n' "${legacy}"
+    else
+      err "could not retire ${legacy}"
+      failures=$((failures + 1))
+    fi
+  elif [[ -e "${legacy}" || -L "${legacy}" ]]; then
+    printf '  retained existing rule: %s (ownership not established)\n' "${legacy}" >&2
+  fi
 }
 
 available_skills() {
@@ -218,9 +237,11 @@ for skill in "${SKILLS[@]}"; do
         continue
       fi
     fi
-    link_to "$(agent_source "${agent}" "${skill}")" \
+    if link_to "$(agent_source "${agent}" "${skill}")" \
             "$(agent_target "${agent}" "${skill}")" \
-            "${agent}: $(agent_target "${agent}" "${skill}")"
+            "${agent}: $(agent_target "${agent}" "${skill}")"; then
+      retire_flat_rule "${agent}" "${skill}"
+    fi
   done
 done
 

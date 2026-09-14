@@ -17,9 +17,14 @@ work are documented in
 ## Rule sets
 
 A rule set is a manifest (`rule-sets/<name>.set`) naming the rule fragments it
-ships, and the markdown file generated from it. `ai-rules` is the base set every
-project gets; a set that *layers* on it is an addition for one kind of repo,
+ships, and the markdown file generated from it. `ai-rules` is the default base
+set; a set that *layers* on it is an addition for one kind of repo,
 read alongside the base rather than instead of it.
+
+A manifest without `layer:` is standalone. Selecting it with `--rule-set`
+installs that policy in the agent's native instruction location. Standalone sets
+use profile scope where the agent supports it; `--project` selects the destination
+for project-scoped agents. `--list --rule-set <name>` reports the selected set.
 
 | Set | For | Layers on |
 |-----|-----|-----------|
@@ -106,19 +111,29 @@ scripts\install-skill.ps1 -Agent codex reflect
 |-------|----------------|-------|
 | `claude` | `~/.agents/skills/<skill>/`, plus `~/.claude/skills/<skill>/` | user |
 | `codex`, `opencode`, `copilot` | `~/.agents/skills/<skill>/` | user |
-| `cursor` | `.cursor/rules/<skill>.mdc` | project |
-| `cline` | `.clinerules/<skill>.md` | project |
+| `cursor` | `.cursor/skills/<skill>/` | project |
+| `cline` | `.clinerules/skills/<skill>/` | project |
 
 With no `--agent`, it installs for every agent it finds a config directory for
 and skips the rest. `--force` is needed only to replace a file you wrote
 yourself; an existing symlink is repointed without asking.
 
-**Skills are symlinked, not copied.** Portable packages are canonical under
+**Complete skill packages are linked.** Portable personal packages are canonical under
 `~/.agents/skills`; Claude receives the one compatibility link it needs under
 `~/.claude/skills`. Editing `skills/<name>/SKILL.md` in the checkout takes
-effect everywhere at once. The installer refuses to leave a copy behind even
-when the shell hands it one, so on Windows it needs Developer Mode or an
-elevated shell; it names the setting when it can't link.
+effect everywhere at once, including changes to references and scripts. Git Bash
+requires Windows Developer Mode or elevation to create native symlinks. The
+PowerShell installer can fall back to directory junctions without either.
+
+Cursor uses its native skill directory. Cline supports `.clinerules/skills`;
+discovered skills are enabled by default and managed in its Skills tab.
+Reinstallation retires old
+flat skill-rule links only when they point to the matching `SKILL.md` in this
+checkout. It reports and preserves other links and user-authored rules; inspect
+those manually if they duplicate the newly installed skill.
+
+See the official [Cursor skill locations](https://cursor.com/docs/skills) and
+[Cline skill locations and management](https://docs.cline.bot/customization/skills).
 
 Then run `/break-reminders` at the start of any Claude Code session.
 
