@@ -67,6 +67,12 @@ else
 fi
 
 new_fixture
+fetch_before="$(fetch_state)"
+git -C "$REPO" fetch -q origin HEAD
+fetch_after="$(fetch_state)"
+if [[ "$fetch_after" != "$fetch_before" ]]; then ok "FETCH_HEAD oracle rejects a fetch fault"; else no "FETCH_HEAD oracle rejects a fetch fault" "FETCH_HEAD stayed $fetch_before"; fi
+
+new_fixture
 tracking_before="$(git -C "$REPO" rev-parse refs/remotes/origin/main)"
 fetch_before="$(fetch_state)"
 printf 'two\n' >> "$SEED/content.txt"

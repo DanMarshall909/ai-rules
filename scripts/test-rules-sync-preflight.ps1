@@ -65,6 +65,12 @@ try {
   if ($code -eq 0 -and -not $output) { Ok 'installed junction resolves silently' } else { No 'installed junction resolves silently' "code=$code output=$output" }
 
   New-Fixture
+  $fetchBefore = Get-FetchState
+  & git -C $repo fetch -q origin HEAD
+  $fetchAfter = Get-FetchState
+  if ($fetchAfter -ne $fetchBefore) { Ok 'FETCH_HEAD oracle rejects a fetch fault' } else { No 'FETCH_HEAD oracle rejects a fetch fault' "FETCH_HEAD stayed $fetchBefore" }
+
+  New-Fixture
   $trackingBefore = (& git -C $repo rev-parse refs/remotes/origin/main).Trim()
   $fetchBefore = Get-FetchState
   Add-Content -LiteralPath (Join-Path $seed 'content.txt') -Value 'two'
