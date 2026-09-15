@@ -23,17 +23,19 @@ new_fixture() {
   git init -q "$SEED"
   git -C "$SEED" config user.name Test
   git -C "$SEED" config user.email test@example.invalid
+  git -C "$SEED" config core.autocrlf false
   printf 'one\n' > "$SEED/content.txt"
-  git -C "$SEED" add content.txt
+  mkdir -p "$SEED/skills/upgrade-global-skills/scripts"
+  cp "$SOURCE" "$SEED/skills/upgrade-global-skills/scripts/check-rules-sync.sh"
+  git -C "$SEED" add content.txt skills/upgrade-global-skills/scripts/check-rules-sync.sh
   git -C "$SEED" commit -qm initial
   git -C "$SEED" branch -M main
   git -C "$SEED" remote add origin "$REMOTE"
   git -C "$SEED" push -qu origin main
-  git clone -q "$REMOTE" "$REPO"
+  git -c core.autocrlf=false clone -q "$REMOTE" "$REPO"
   git -C "$REPO" config user.name Test
   git -C "$REPO" config user.email test@example.invalid
-  mkdir -p "$REPO/skills/upgrade-global-skills/scripts"
-  cp "$SOURCE" "$REPO/skills/upgrade-global-skills/scripts/check-rules-sync.sh"
+  git -C "$REPO" config core.autocrlf false
   CHECK="$REPO/skills/upgrade-global-skills/scripts/check-rules-sync.sh"
 }
 
@@ -47,6 +49,16 @@ echo "rules sync preflight (bash)"
 new_fixture
 run_check
 if [[ $CODE -eq 0 && -z "$OUTPUT" ]]; then ok "exact sync is silent"; else no "exact sync is silent" "code=$CODE output=$OUTPUT"; fi
+
+new_fixture
+ln -s "$REPO/skills/upgrade-global-skills" "$ROOT/installed-skill"
+if [[ -L "$ROOT/installed-skill" ]]; then
+  CHECK="$ROOT/installed-skill/scripts/check-rules-sync.sh"
+  run_check
+  if [[ $CODE -eq 0 && -z "$OUTPUT" ]]; then ok "installed symlink resolves silently"; else no "installed symlink resolves silently" "code=$CODE output=$OUTPUT"; fi
+else
+  ok "installed symlink check skipped (host did not create a symlink)"
+fi
 
 new_fixture
 printf 'two\n' >> "$SEED/content.txt"

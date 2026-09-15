@@ -21,18 +21,21 @@ function New-Fixture {
   & git init -q $script:seed
   & git -C $script:seed config user.name Test
   & git -C $script:seed config user.email test@example.invalid
+  & git -C $script:seed config core.autocrlf false
   Set-Content -LiteralPath (Join-Path $script:seed 'content.txt') -Value 'one'
-  & git -C $script:seed add content.txt
+  $seedCheck = Join-Path $script:seed 'skills\upgrade-global-skills\scripts\check-rules-sync.ps1'
+  New-Item -ItemType Directory -Force -Path (Split-Path -Parent $seedCheck) | Out-Null
+  Copy-Item -LiteralPath $source -Destination $seedCheck
+  & git -C $script:seed add content.txt skills/upgrade-global-skills/scripts/check-rules-sync.ps1
   & git -C $script:seed commit -qm initial
   & git -C $script:seed branch -M main
   & git -C $script:seed remote add origin $script:remote
   & git -C $script:seed push -qu origin main
-  & git clone -q $script:remote $script:repo
+  & git -c core.autocrlf=false clone -q $script:remote $script:repo
   & git -C $script:repo config user.name Test
   & git -C $script:repo config user.email test@example.invalid
+  & git -C $script:repo config core.autocrlf false
   $script:check = Join-Path $script:repo 'skills\upgrade-global-skills\scripts\check-rules-sync.ps1'
-  New-Item -ItemType Directory -Force -Path (Split-Path -Parent $script:check) | Out-Null
-  Copy-Item -LiteralPath $source -Destination $script:check
 }
 
 function Invoke-Check {
@@ -47,6 +50,13 @@ try {
   New-Fixture
   Invoke-Check
   if ($code -eq 0 -and -not $output) { Ok 'exact sync is silent' } else { No 'exact sync is silent' "code=$code output=$output" }
+
+  New-Fixture
+  $installed = Join-Path $root 'installed-skill'
+  New-Item -ItemType Junction -Path $installed -Target (Join-Path $repo 'skills\upgrade-global-skills') | Out-Null
+  $script:check = Join-Path $installed 'scripts\check-rules-sync.ps1'
+  Invoke-Check
+  if ($code -eq 0 -and -not $output) { Ok 'installed junction resolves silently' } else { No 'installed junction resolves silently' "code=$code output=$output" }
 
   New-Fixture
   Add-Content -LiteralPath (Join-Path $seed 'content.txt') -Value 'two'
