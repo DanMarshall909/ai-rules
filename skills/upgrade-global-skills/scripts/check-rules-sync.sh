@@ -27,7 +27,10 @@ if ! git -C "${repo}" remote get-url "${remote}" >/dev/null 2>&1; then
 fi
 
 status="$(git -C "${repo}" status --porcelain --untracked-files=normal 2>/dev/null)"
-if [[ -n "${status}" ]]; then
+status_code=$?
+if [[ ${status_code} -ne 0 ]]; then
+  alert "could not inspect the durable checkout's status."
+elif [[ -n "${status}" ]]; then
   alert "the durable checkout has local changes that are not committed or pushed."
 fi
 
