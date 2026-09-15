@@ -44,6 +44,12 @@ function Invoke-Check {
   $script:output = ($result | Out-String).Trim()
 }
 
+function Get-FetchState {
+  $fetchHead = (& git -C $repo rev-parse --git-path FETCH_HEAD).Trim()
+  if (Test-Path -LiteralPath $fetchHead) { return (& git hash-object --no-filters $fetchHead).Trim() }
+  return 'absent'
+}
+
 try {
   Write-Host 'rules sync preflight (PowerShell)'
 
@@ -59,11 +65,16 @@ try {
   if ($code -eq 0 -and -not $output) { Ok 'installed junction resolves silently' } else { No 'installed junction resolves silently' "code=$code output=$output" }
 
   New-Fixture
+  $trackingBefore = (& git -C $repo rev-parse refs/remotes/origin/main).Trim()
+  $fetchBefore = Get-FetchState
   Add-Content -LiteralPath (Join-Path $seed 'content.txt') -Value 'two'
   & git -C $seed commit -qam remote-change
   & git -C $seed push -q
   Invoke-Check
   if ($code -ne 0 -and $output -match 'remote') { Ok 'remote movement alerts' } else { No 'remote movement alerts' "code=$code output=$output" }
+  $trackingAfter = (& git -C $repo rev-parse refs/remotes/origin/main).Trim()
+  $fetchAfter = Get-FetchState
+  if ($trackingAfter -eq $trackingBefore -and $fetchAfter -eq $fetchBefore) { Ok 'remote check changes no refs or FETCH_HEAD' } else { No 'remote check changes no refs or FETCH_HEAD' "tracking=$trackingBefore->$trackingAfter FETCH_HEAD=$fetchBefore->$fetchAfter" }
 
   New-Fixture
   Add-Content -LiteralPath (Join-Path $repo 'content.txt') -Value 'local'
@@ -75,6 +86,11 @@ try {
   Add-Content -LiteralPath (Join-Path $repo 'content.txt') -Value 'dirty'
   Invoke-Check
   if ($code -ne 0 -and $output -match 'not committed') { Ok 'uncommitted work alerts' } else { No 'uncommitted work alerts' "code=$code output=$output" }
+
+  New-Fixture
+  Set-Content -LiteralPath (Join-Path $repo '.git\index') -Value 'invalid index'
+  Invoke-Check
+  if ($code -ne 0 -and $output -match 'could not inspect') { Ok 'failed status inspection alerts' } else { No 'failed status inspection alerts' "code=$code output=$output" }
 
   New-Fixture
   & git -C $repo remote set-url origin (Join-Path $root 'missing.git')

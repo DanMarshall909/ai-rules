@@ -44,6 +44,12 @@ run_check() {
   CODE=$?
 }
 
+fetch_state() {
+  local fetch_head
+  fetch_head="$(git -C "$REPO" rev-parse --git-path FETCH_HEAD)"
+  if [[ -f "$fetch_head" ]]; then git hash-object --no-filters "$fetch_head"; else printf 'absent'; fi
+}
+
 echo "rules sync preflight (bash)"
 
 new_fixture
@@ -61,11 +67,16 @@ else
 fi
 
 new_fixture
+tracking_before="$(git -C "$REPO" rev-parse refs/remotes/origin/main)"
+fetch_before="$(fetch_state)"
 printf 'two\n' >> "$SEED/content.txt"
 git -C "$SEED" commit -qam remote-change
 git -C "$SEED" push -q
 run_check
 if [[ $CODE -ne 0 && "$OUTPUT" == *remote* ]]; then ok "remote movement alerts"; else no "remote movement alerts" "code=$CODE output=$OUTPUT"; fi
+tracking_after="$(git -C "$REPO" rev-parse refs/remotes/origin/main)"
+fetch_after="$(fetch_state)"
+if [[ "$tracking_after" == "$tracking_before" && "$fetch_after" == "$fetch_before" ]]; then ok "remote check changes no refs or FETCH_HEAD"; else no "remote check changes no refs or FETCH_HEAD" "tracking=$tracking_before->$tracking_after FETCH_HEAD=$fetch_before->$fetch_after"; fi
 
 new_fixture
 printf 'local\n' >> "$REPO/content.txt"
@@ -77,6 +88,11 @@ new_fixture
 printf 'dirty\n' >> "$REPO/content.txt"
 run_check
 if [[ $CODE -ne 0 && "$OUTPUT" == *"not committed"* ]]; then ok "uncommitted work alerts"; else no "uncommitted work alerts" "code=$CODE output=$OUTPUT"; fi
+
+new_fixture
+printf 'invalid index\n' > "$REPO/.git/index"
+run_check
+if [[ $CODE -ne 0 && "$OUTPUT" == *"could not inspect"* ]]; then ok "failed status inspection alerts"; else no "failed status inspection alerts" "code=$CODE output=$OUTPUT"; fi
 
 new_fixture
 git -C "$REPO" remote set-url origin "$ROOT/missing.git"
