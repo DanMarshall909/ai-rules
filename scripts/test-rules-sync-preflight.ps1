@@ -111,3 +111,4 @@ finally {
 Write-Host ""
 Write-Host "$pass passed, $fail failed"
 if ($fail -gt 0) { exit 1 }
+exit 0
