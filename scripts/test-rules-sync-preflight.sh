@@ -47,7 +47,8 @@ run_check() {
 fetch_state() {
   local fetch_head
   fetch_head="$(git -C "$REPO" rev-parse --git-path FETCH_HEAD)"
-  if [[ -f "$fetch_head" ]]; then git hash-object --no-filters "$fetch_head"; else printf 'absent'; fi
+  [[ "$fetch_head" == /* ]] || fetch_head="$REPO/$fetch_head"
+  if [[ -f "$fetch_head" ]]; then git -C "$REPO" hash-object --no-filters "$fetch_head"; else printf 'absent'; fi
 }
 
 echo "rules sync preflight (bash)"

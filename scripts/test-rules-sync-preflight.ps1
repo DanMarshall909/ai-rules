@@ -46,7 +46,8 @@ function Invoke-Check {
 
 function Get-FetchState {
   $fetchHead = (& git -C $repo rev-parse --git-path FETCH_HEAD).Trim()
-  if (Test-Path -LiteralPath $fetchHead) { return (& git hash-object --no-filters $fetchHead).Trim() }
+  if (-not [System.IO.Path]::IsPathRooted($fetchHead)) { $fetchHead = Join-Path $repo $fetchHead }
+  if (Test-Path -LiteralPath $fetchHead) { return (& git -C $repo hash-object --no-filters $fetchHead).Trim() }
   return 'absent'
 }
 
