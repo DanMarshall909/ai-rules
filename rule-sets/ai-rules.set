@@ -7,6 +7,7 @@ title: AI Rules
 blurb: Lean, agent-agnostic rules for any coding assistant.
 
 rule: authority
+rule: sync
 rule: breaks
 rule: tdd
 rule: coverage
@@ -23,3 +24,5 @@ skill: security-by-design
 skill: break-reminders
 skill: reflect
 skill: adopt-ai-rules
+skill: upgrade-global-skills
+skill: make-repository-skills-portable

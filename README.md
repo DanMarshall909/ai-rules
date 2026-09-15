@@ -128,6 +128,7 @@ and never twice — a layered set arrives in repos that already have both.
 | `rules/issues.md` | GitHub and/or canonical `docs/issues/[open\|resolved]/[area]/` tracking |
 | `rules/reflection.md` | Capture durable lessons when work lands; route them to the right scope |
 | `rules/authority.md` | Instruction precedence, task authority, and proportionate scope |
+| `rules/sync.md` | Quiet remote and unpublished-work preflight for the shared checkout |
 
 For non-trivial autonomous feature delivery, use `agentic-delivery`. It binds
 accepted scope to criterion-led TDD, quality evidence, independent completion
@@ -143,6 +144,8 @@ adapters do not add authority.
 | Decision | Procedural owner |
 |---|---|
 | Adopt or reconcile rule and skill installations | [adopt-ai-rules](skills/adopt-ai-rules/SKILL.md) |
+| Upgrade the durable checkout and global skill links | [upgrade-global-skills](skills/upgrade-global-skills/SKILL.md) |
+| Make repository-owned skills portable across agents | [make-repository-skills-portable](skills/make-repository-skills-portable/SKILL.md) |
 | Deliver accepted implementation scope | [agentic-delivery](skills/agentic-delivery/SKILL.md) |
 | Design tests and complete each TDD cycle | [behavior-first-tdd](skills/behavior-first-tdd/SKILL.md) |
 | Interpret coverage, mutants and pruning evidence | [coverage-and-mutation](skills/coverage-and-mutation/SKILL.md) |
@@ -299,6 +302,7 @@ scripts/test-build-agents.sh       # the generator's behaviour
 scripts/test-install-skill.sh      # the skill installer's behaviour
 scripts/test-install-rules.sh      # the rules installer's behaviour
 scripts/test-install-contracts.sh  # cross-installer destinations and packages
+scripts/test-rules-sync-preflight.sh # quiet rules-sync preflight behaviour
 scripts/test-new-skill.sh          # the skill scaffold's behaviour
 scripts/test-new-rule-set.sh       # the rule and rule-set scaffolds
 scripts/check-conventions.sh       # skills load, installers agree, rules registered
@@ -306,6 +310,7 @@ scripts/check-conventions.sh       # skills load, installers agree, rules regist
 
 ```powershell
 scripts\test-install-skill.ps1
+scripts\test-rules-sync-preflight.ps1
 ```
 
 All of these run in CI. Tests isolate home/profile and project destinations, so
@@ -339,6 +344,8 @@ skills/
   coverage-and-mutation/SKILL.md ← interpretation and pruning evidence
   security-by-design/SKILL.md   ← sensitive boundaries and secure design
   reflect/SKILL.md              ← capture lessons when work lands
+  upgrade-global-skills/SKILL.md ← update the checkout and global packages
+  make-repository-skills-portable/SKILL.md ← portable project skill ownership
   refresh-tool-surface/SKILL.md ← shipped with the tool-repos set
 scripts/
   build-agents.sh               ← regenerates AGENTS.md and every rule set

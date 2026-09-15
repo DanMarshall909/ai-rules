@@ -21,6 +21,8 @@ jobs:
         run: scripts/test-install-rules.sh
       - name: installation contracts hold
         run: scripts/test-install-contracts.sh
+      - name: rules sync preflight behaves
+        run: scripts/test-rules-sync-preflight.sh
       - name: scaffold behaves
         run: scripts/test-new-skill.sh
       - name: rule-set scaffolds behave
@@ -35,3 +37,6 @@ jobs:
       - name: PowerShell installer behaves
         shell: pwsh
         run: scripts/test-install-skill.ps1
+      - name: PowerShell rules sync preflight behaves
+        shell: pwsh
+        run: scripts/test-rules-sync-preflight.ps1
