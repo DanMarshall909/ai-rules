@@ -55,30 +55,27 @@ class EstimateDeliveryTests(unittest.TestCase):
                 "first\nsecond\n", encoding="utf-8", newline="\n"
             )
 
-            output = run(
-                [
-                    sys.executable,
-                    str(SCRIPT),
-                    "--repo",
-                    str(repository),
-                    "--sample",
-                    "reviewed-slice",
-                    start,
-                    end,
-                    "--base-ref",
-                    base,
-                    "--include-untracked",
-                    "--remaining",
-                    "open-work",
-                    "10",
-                    "20",
-                    "--overhead-hours",
-                    "1",
-                    "2",
-                    "--json",
-                ],
-                repository,
-            )
+            command = [
+                sys.executable,
+                str(SCRIPT),
+                "--repo",
+                str(repository),
+                "--sample",
+                "reviewed-slice",
+                start,
+                end,
+                "--base-ref",
+                base,
+                "--include-untracked",
+                "--remaining",
+                "open-work",
+                "10",
+                "20",
+                "--overhead-hours",
+                "1",
+                "2",
+            ]
+            output = run([*command, "--json"], repository)
             report = json.loads(output)
 
             self.assertEqual(2, report["samples"][0]["churn"])
@@ -91,6 +88,10 @@ class EstimateDeliveryTests(unittest.TestCase):
             self.assertEqual(20.0, report["forecast"]["implementation_hours_max"])
             self.assertEqual(11.0, report["forecast"]["total_hours_min"])
             self.assertEqual(22.0, report["forecast"]["total_hours_max"])
+
+            human_output = run(command, repository)
+            self.assertTrue(human_output.isascii())
+            self.assertIn("- Total: 11.00-22.00 active hours", human_output)
 
     @staticmethod
     def _commit(repository: Path, message: str, timestamp: str) -> None:
