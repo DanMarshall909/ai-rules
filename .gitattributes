@@ -21,6 +21,7 @@ scripts/hooks/* text eol=lf
 *.md text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
+*.py text eol=lf
 
 # Rule-set manifests are parsed by Bash and must not acquire a carriage return
 # as part of a rule, layer or skill name on Windows.

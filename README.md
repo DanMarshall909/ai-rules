@@ -149,6 +149,7 @@ adapters do not add authority.
 | Freeze, independently review and publish a candidate | [completion-review](skills/agentic-delivery/references/completion-review.md) |
 | Select stack-specific commands | [environment modules](skills/agentic-delivery/references/environments/index.md) |
 | Pace a requested session | [break-reminders](skills/break-reminders/SKILL.md) |
+| Estimate repository delivery time from changed-line evidence | [loc-delivery-estimation](skills/loc-delivery-estimation/SKILL.md) |
 | Propose or save a lesson with authority | [reflect](skills/reflect/SKILL.md) |
 
 Rules state boundaries and route to these owners; they do not repeat the full
@@ -337,6 +338,8 @@ skills/
   break-reminders/SKILL.md      ← host-aware requested session pacing
   behavior-first-tdd/SKILL.md   ← behaviour-first TDD
   coverage-and-mutation/SKILL.md ← interpretation and pruning evidence
+  loc-delivery-estimation/SKILL.md ← Git changed-line delivery forecasts
+    scripts/estimate_delivery.py  ← portable report generator
   security-by-design/SKILL.md   ← sensitive boundaries and secure design
   reflect/SKILL.md              ← capture lessons when work lands
   refresh-tool-surface/SKILL.md ← shipped with the tool-repos set
