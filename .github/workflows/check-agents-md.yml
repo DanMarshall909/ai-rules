@@ -27,6 +27,8 @@ jobs:
         run: scripts/test-new-rule-set.sh
       - name: conventions hold
         run: scripts/check-conventions.sh
+      - name: LOC delivery estimator behaves
+        run: python skills/loc-delivery-estimation/scripts/test_estimate_delivery.py
 
   windows-installer:
     runs-on: windows-latest
@@ -35,3 +37,5 @@ jobs:
       - name: PowerShell installer behaves
         shell: pwsh
         run: scripts/test-install-skill.ps1
+      - name: LOC delivery estimator behaves
+        run: python skills/loc-delivery-estimation/scripts/test_estimate_delivery.py
