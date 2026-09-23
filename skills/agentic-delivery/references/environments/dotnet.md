@@ -40,7 +40,7 @@ dotnet stryker
 Use the repository wrapper when it has one, especially when multiple production
 assemblies need distinct test projects or configurations.
 
-For fast iteration, current Stryker.NET supports:
+For one-off changed-code iteration, current Stryker.NET supports:
 
 ```text
 dotnet stryker --since:<accepted-base-committish>
@@ -63,6 +63,14 @@ It reuses saved results for unaffected mutants and returns a full report.
 storage must be proven before reuse is accepted. The default provider is local
 disk; Dashboard, Azure, and S3 providers introduce credentials, privacy, cost,
 and lifecycle decisions requiring project authority.
+
+When optimizing recurring developer feedback, baseline persistence, changed-test
+handling or CI compute, read and follow
+[Stryker.NET Persistent Fast Feedback](stryker-net-fast-feedback.md). It owns the
+provider-first calibration scenarios, safe wrapper fallback, cache identity and
+invalidation contract, fast/full commands, measurement protocol and lifecycle.
+Do not build custom mutation scheduling when Stryker's own per-test coverage,
+mixing, bail and mutation filters can retain correctness.
 
 Before completion review, run the project's unfiltered configured mutation
 command once for every eligible changed production assembly. Retain JSON or
