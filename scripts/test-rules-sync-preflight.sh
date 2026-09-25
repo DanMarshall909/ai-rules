@@ -80,7 +80,7 @@ printf 'two\n' >> "$SEED/content.txt"
 git -C "$SEED" commit -qam remote-change
 git -C "$SEED" push -q
 run_check
-if [[ $CODE -ne 0 && "$OUTPUT" == *remote* ]]; then ok "remote movement alerts"; else no "remote movement alerts" "code=$CODE output=$OUTPUT"; fi
+if [[ $CODE -ne 0 && "$OUTPUT" == *"differ; fetch and reconcile"* ]]; then ok "remote movement alerts"; else no "remote movement alerts" "code=$CODE output=$OUTPUT"; fi
 tracking_after="$(git -C "$REPO" rev-parse refs/remotes/origin/main)"
 fetch_after="$(fetch_state)"
 if [[ "$tracking_after" == "$tracking_before" && "$fetch_after" == "$fetch_before" ]]; then ok "remote check changes no refs or FETCH_HEAD"; else no "remote check changes no refs or FETCH_HEAD" "tracking=$tracking_before->$tracking_after FETCH_HEAD=$fetch_before->$fetch_after"; fi

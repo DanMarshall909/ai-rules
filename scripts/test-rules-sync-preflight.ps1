@@ -78,7 +78,7 @@ try {
   & git -C $seed commit -qam remote-change
   & git -C $seed push -q
   Invoke-Check
-  if ($code -ne 0 -and $output -match 'remote') { Ok 'remote movement alerts' } else { No 'remote movement alerts' "code=$code output=$output" }
+  if ($code -ne 0 -and $output -match 'differ; fetch and reconcile') { Ok 'remote movement alerts' } else { No 'remote movement alerts' "code=$code output=$output" }
   $trackingAfter = (& git -C $repo rev-parse refs/remotes/origin/main).Trim()
   $fetchAfter = Get-FetchState
   if ($trackingAfter -eq $trackingBefore -and $fetchAfter -eq $fetchBefore) { Ok 'remote check changes no refs or FETCH_HEAD' } else { No 'remote check changes no refs or FETCH_HEAD' "tracking=$trackingBefore->$trackingAfter FETCH_HEAD=$fetchBefore->$fetchAfter" }
