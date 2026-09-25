@@ -18,6 +18,41 @@ Stryker.NET `--since` produces a changed-mutant subset, while StrykerJS
 Prefer repository-local drivers and verify options against the installed
 version.
 
+## Mutation knowledge should survive the build
+
+Optimise for behavioural confidence per unit of compute, not for the number of
+mutants rerun. A previously established result is useful evidence only while its
+invalidation contract remains sound. A stale killed result is worse than an
+unnecessary rerun because it creates false confidence without a visible failure.
+
+Maintain two explicit workflows where the tool supports them:
+
+- a default fast workflow that reuses proven results, evaluates changed source
+  and tests, runs only relevant mutants and covering tests, and stops after the
+  first killing failure; and
+- an explicit full workflow for initial seeding, periodic verification, major
+  tool/compiler/test-infrastructure changes, and recovery from uncertain state.
+
+Persist reusable mutation state outside `bin`, `obj`, transient generated-report
+trees and other ephemeral build output. Key it by repository and mutation target,
+and invalidate it for changes to the mutation tool, configuration,
+compiler/framework, project graph, relevant dependencies, shared test
+infrastructure, generators and test inputs. Keep generated reports out of Git
+unless a repository has a documented, deterministic reason to version one.
+
+Do not call a zero-mutant tool run “reuse” merely because it exited successfully.
+Prove which prior outcomes remain valid and why nothing needed execution. When a
+tool's baseline or changed-test behavior is uncertain, calibrate the pinned
+version with full, unchanged, source-change and test-only scenarios before making
+it the default. Keep a full run available; incremental convenience never replaces
+periodic end-to-end evidence.
+
+Measure before claiming improvement: generated, executed, reused, killed,
+survived, timed out, uncovered and ignored mutants; coverage-analysis and
+execution time; and total wall time. Include no-change, small-source, test-only
+and representative-feature scenarios. Report full-run variance rather than
+selecting the fastest sample.
+
 ## Code must justify itself
 
 - Code that cannot be justified is removed, not covered. Code that exists only to
