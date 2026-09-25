@@ -35,7 +35,7 @@ function Resolve-PhysicalPath([string]$Path) {
 }
 
 function Invoke-GitRemoteProbe([string]$Repository, [string]$Remote, [int]$TimeoutSeconds) {
-  $gitCommand = (Get-Command git -CommandType Application -ErrorAction Stop).Source
+  $gitCommand = Get-Command git -CommandType Application -ErrorAction Stop | Select-Object -First 1 -ExpandProperty Source
   $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
   $startInfo.FileName = $gitCommand
   $startInfo.UseShellExecute = $false
