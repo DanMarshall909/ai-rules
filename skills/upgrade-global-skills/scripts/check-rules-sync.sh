@@ -3,10 +3,27 @@ set -uo pipefail
 export GIT_TERMINAL_PROMPT=0
 
 alerted=0
+remote_pid=""
+remote_output_file=""
+
 alert() {
   printf 'AI rules sync attention: %s\n' "$1"
   alerted=1
 }
+
+cleanup_remote_probe() {
+  if [[ -n "${remote_pid}" ]]; then
+    kill -TERM -- "-${remote_pid}" 2>/dev/null || kill -TERM "${remote_pid}" 2>/dev/null || true
+    kill -KILL -- "-${remote_pid}" 2>/dev/null || kill -KILL "${remote_pid}" 2>/dev/null || true
+    wait "${remote_pid}" 2>/dev/null || true
+    remote_pid=""
+  fi
+  [[ -n "${remote_output_file}" ]] && rm -f "${remote_output_file}"
+}
+
+trap cleanup_remote_probe EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 script_dir="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 if [[ -z "${script_dir}" ]]; then
@@ -34,8 +51,50 @@ elif [[ -n "${status}" ]]; then
   alert "the durable checkout has local changes that are not committed or pushed."
 fi
 
-remote_info="$(git -C "${repo}" ls-remote --symref "${remote}" HEAD 2>/dev/null)"
-if [[ $? -ne 0 || -z "${remote_info}" ]]; then
+remote_timeout_seconds="${AI_RULES_SYNC_TIMEOUT_SECONDS:-10}"
+if [[ ! "${remote_timeout_seconds}" =~ ^([1-9]|[1-5][0-9]|60)$ ]]; then
+  remote_timeout_seconds=10
+fi
+
+remote_output_file="$(mktemp "${TMPDIR:-/tmp}/ai-rules-sync.XXXXXX" 2>/dev/null)"
+if [[ -z "${remote_output_file}" ]]; then
+  alert "could not create temporary storage for the '${remote}' query."
+  exit 1
+fi
+
+set -m
+git -C "${repo}" ls-remote --symref "${remote}" HEAD >"${remote_output_file}" 2>/dev/null &
+remote_pid=$!
+set +m
+
+deadline=$((SECONDS + remote_timeout_seconds))
+timed_out=0
+while [[ " $(jobs -pr) " == *" ${remote_pid} "* ]]; do
+  if [[ ${SECONDS} -ge ${deadline} ]]; then
+    timed_out=1
+    kill -TERM -- "-${remote_pid}" 2>/dev/null || kill -TERM "${remote_pid}" 2>/dev/null || true
+    for _ in {1..10}; do
+      kill -0 -- "-${remote_pid}" 2>/dev/null || break
+      sleep 0.1
+    done
+    kill -KILL -- "-${remote_pid}" 2>/dev/null || kill -KILL "${remote_pid}" 2>/dev/null || true
+    break
+  fi
+  sleep 0.1
+done
+wait "${remote_pid}" 2>/dev/null
+remote_code=$?
+remote_pid=""
+remote_info="$(<"${remote_output_file}")"
+
+if [[ ${timed_out} -eq 1 ]]; then
+  alert "query of '${remote}' timed out after ${remote_timeout_seconds} seconds; sync is unverified."
+  exit 1
+fi
+rm -f "${remote_output_file}"
+remote_output_file=""
+
+if [[ ${remote_code} -ne 0 || -z "${remote_info}" ]]; then
   alert "could not query the '${remote}' remote; sync is unverified."
   exit 1
 fi

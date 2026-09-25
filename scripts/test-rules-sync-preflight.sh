@@ -106,6 +106,44 @@ git -C "$REPO" remote set-url origin "$ROOT/missing.git"
 run_check
 if [[ $CODE -ne 0 && "$OUTPUT" == *"could not query"* ]]; then ok "unverifiable remote alerts"; else no "unverifiable remote alerts" "code=$CODE output=$OUTPUT"; fi
 
+new_fixture
+git -C "$REPO" remote set-url origin "ssh://example.invalid/repo"
+hang_pid_file="$ROOT/hang.pid"
+hang_ssh="$ROOT/hang-ssh.sh"
+cat > "$hang_ssh" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$$" > "$HANG_PID_FILE"
+exec sleep 6
+EOF
+chmod +x "$hang_ssh"
+started=$SECONDS
+old_git_ssh_command_set="${GIT_SSH_COMMAND+x}"
+old_git_ssh_command="${GIT_SSH_COMMAND:-}"
+old_hang_pid_file_set="${HANG_PID_FILE+x}"
+old_hang_pid_file="${HANG_PID_FILE:-}"
+old_timeout_set="${AI_RULES_SYNC_TIMEOUT_SECONDS+x}"
+old_timeout="${AI_RULES_SYNC_TIMEOUT_SECONDS:-}"
+export GIT_SSH_COMMAND="$hang_ssh"
+export HANG_PID_FILE="$hang_pid_file"
+export AI_RULES_SYNC_TIMEOUT_SECONDS=1
+run_check
+elapsed=$((SECONDS - started))
+if [[ -n "$old_git_ssh_command_set" ]]; then export GIT_SSH_COMMAND="$old_git_ssh_command"; else unset GIT_SSH_COMMAND; fi
+if [[ -n "$old_hang_pid_file_set" ]]; then export HANG_PID_FILE="$old_hang_pid_file"; else unset HANG_PID_FILE; fi
+if [[ -n "$old_timeout_set" ]]; then export AI_RULES_SYNC_TIMEOUT_SECONDS="$old_timeout"; else unset AI_RULES_SYNC_TIMEOUT_SECONDS; fi
+hang_pid="$(cat "$hang_pid_file" 2>/dev/null || true)"
+for _ in {1..10}; do
+  [[ -z "$hang_pid" ]] || ! kill -0 "$hang_pid" 2>/dev/null || sleep 0.1
+done
+transport_alive=0
+[[ -n "$hang_pid" ]] && kill -0 "$hang_pid" 2>/dev/null && transport_alive=1
+if [[ $CODE -eq 1 && "$OUTPUT" == *"timed out"* && "$OUTPUT" == *"sync is unverified"* && $elapsed -lt 5 && -n "$hang_pid" && $transport_alive -eq 0 ]]; then
+  ok "stalled remote times out and stops its transport"
+else
+  no "stalled remote times out and stops its transport" "code=$CODE elapsed=${elapsed}s pid=${hang_pid:-missing} output=$OUTPUT"
+  [[ $transport_alive -eq 1 ]] && kill -KILL "$hang_pid" 2>/dev/null || true
+fi
+
 echo ""
 echo "$pass passed, $fail failed"
 [[ $fail -eq 0 ]]

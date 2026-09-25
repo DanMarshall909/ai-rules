@@ -34,6 +34,48 @@ function Resolve-PhysicalPath([string]$Path) {
   return $current
 }
 
+function Invoke-GitRemoteProbe([string]$Repository, [string]$Remote, [int]$TimeoutSeconds) {
+  $gitCommand = (Get-Command git -CommandType Application -ErrorAction Stop).Source
+  $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+  $startInfo.FileName = $gitCommand
+  $startInfo.UseShellExecute = $false
+  $startInfo.CreateNoWindow = $true
+  $startInfo.RedirectStandardOutput = $true
+  $startInfo.RedirectStandardError = $true
+  foreach ($argument in @('-C', $Repository, 'ls-remote', '--symref', $Remote, 'HEAD')) {
+    [void]$startInfo.ArgumentList.Add($argument)
+  }
+
+  $process = [System.Diagnostics.Process]::new()
+  $process.StartInfo = $startInfo
+  try {
+    [void]$process.Start()
+    $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+    $stderrTask = $process.StandardError.ReadToEndAsync()
+    if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
+      if (-not $process.HasExited) {
+        try {
+          $process.Kill($true)
+        } catch {
+          if (-not $process.HasExited) { throw }
+        }
+      }
+      $process.WaitForExit()
+      [void]$stdoutTask.GetAwaiter().GetResult()
+      [void]$stderrTask.GetAwaiter().GetResult()
+      return [pscustomobject]@{ TimedOut = $true; ExitCode = -1; Lines = @() }
+    }
+
+    $stdout = $stdoutTask.GetAwaiter().GetResult()
+    [void]$stderrTask.GetAwaiter().GetResult()
+    $lines = @($stdout -split "`r?`n" | Where-Object { $_ })
+    return [pscustomobject]@{ TimedOut = $false; ExitCode = $process.ExitCode; Lines = $lines }
+  }
+  finally {
+    $process.Dispose()
+  }
+}
+
 try {
   $physicalScript = Resolve-PhysicalPath $PSCommandPath
 } catch {
@@ -65,8 +107,24 @@ if ($LASTEXITCODE -ne 0) {
   Write-Alert 'the durable checkout has local changes that are not committed or pushed.'
 }
 
-$remoteInfo = @(& git -C $repo ls-remote --symref $remote HEAD 2>$null)
-if ($LASTEXITCODE -ne 0 -or $remoteInfo.Count -eq 0) {
+$remoteTimeoutSeconds = 10
+$requestedTimeout = 0
+if ([int]::TryParse($env:AI_RULES_SYNC_TIMEOUT_SECONDS, [ref]$requestedTimeout) -and $requestedTimeout -ge 1 -and $requestedTimeout -le 60) {
+  $remoteTimeoutSeconds = $requestedTimeout
+}
+
+try {
+  $remoteProbe = Invoke-GitRemoteProbe -Repository $repo -Remote $remote -TimeoutSeconds $remoteTimeoutSeconds
+} catch {
+  Write-Alert "could not query the '$remote' remote; sync is unverified."
+  exit 1
+}
+if ($remoteProbe.TimedOut) {
+  Write-Alert "query of '$remote' timed out after $remoteTimeoutSeconds seconds; sync is unverified."
+  exit 1
+}
+$remoteInfo = @($remoteProbe.Lines)
+if ($remoteProbe.ExitCode -ne 0 -or $remoteInfo.Count -eq 0) {
   Write-Alert "could not query the '$remote' remote; sync is unverified."
   exit 1
 }

@@ -103,6 +103,44 @@ try {
   & git -C $repo remote set-url origin (Join-Path $root 'missing.git')
   Invoke-Check
   if ($code -ne 0 -and $output -match 'could not query') { Ok 'unverifiable remote alerts' } else { No 'unverifiable remote alerts' "code=$code output=$output" }
+
+  New-Fixture
+  & git -C $repo remote set-url origin 'ssh://example.invalid/repo'
+  $hangPidFile = Join-Path $root 'hang.pid'
+  $hangSsh = Join-Path $root 'hang-ssh.ps1'
+  @'
+Set-Content -LiteralPath $env:HANG_PID_FILE -Value $PID
+Start-Sleep -Seconds 6
+'@ | Set-Content -LiteralPath $hangSsh
+  $timer = [System.Diagnostics.Stopwatch]::StartNew()
+  $oldGitSshCommand = $env:GIT_SSH_COMMAND
+  $oldHangPidFile = $env:HANG_PID_FILE
+  $oldTimeout = $env:AI_RULES_SYNC_TIMEOUT_SECONDS
+  $env:GIT_SSH_COMMAND = "pwsh -NoProfile -File `"$hangSsh`""
+  $env:HANG_PID_FILE = $hangPidFile
+  $env:AI_RULES_SYNC_TIMEOUT_SECONDS = '1'
+  try {
+    Invoke-Check
+  }
+  finally {
+    $env:GIT_SSH_COMMAND = $oldGitSshCommand
+    $env:HANG_PID_FILE = $oldHangPidFile
+    $env:AI_RULES_SYNC_TIMEOUT_SECONDS = $oldTimeout
+  }
+  $timer.Stop()
+  $hangPid = if (Test-Path -LiteralPath $hangPidFile) { [int](Get-Content -LiteralPath $hangPidFile | Select-Object -First 1) } else { 0 }
+  $transport = $null
+  for ($attempt = 0; $attempt -lt 10 -and $hangPid; $attempt++) {
+    $transport = Get-Process -Id $hangPid -ErrorAction SilentlyContinue
+    if (-not $transport) { break }
+    Start-Sleep -Milliseconds 100
+  }
+  if ($code -eq 1 -and $output -match 'timed out' -and $output -match 'sync is unverified' -and $timer.Elapsed.TotalSeconds -lt 5 -and $hangPid -and -not $transport) {
+    Ok 'stalled remote times out and stops its transport'
+  } else {
+    No 'stalled remote times out and stops its transport' "code=$code elapsed=$($timer.Elapsed.TotalSeconds)s pid=$hangPid output=$output"
+    if ($transport) { Stop-Process -Id $hangPid -Force -ErrorAction SilentlyContinue }
+  }
 }
 finally {
   foreach ($path in $sandboxes) { Remove-Item -LiteralPath $path -Recurse -Force -ErrorAction SilentlyContinue }
