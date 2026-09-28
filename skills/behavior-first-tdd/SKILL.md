@@ -100,6 +100,13 @@ ordering or determinism, permute inputs whose failures have distinct identities
 and assert the resulting identity sequence. Empty results, identical failures,
 or fixtures that pass under the wrong permutation are vacuous oracles.
 
+For retry loops, polling and asynchronous calls that can stall under a fault, an
+assertion after the call returns may never execute. When a test owns a fake
+collaborator, make it fail promptly at the contract's finite invocation or
+attempt bound, with an expected count independent of the observed result. Keep
+the post-return assertions of public behavior as well. Verify the guard with a
+direct repeated-call fault; a broad elapsed-time timeout alone is a weak oracle.
+
 ## Coverage Review Workflow
 
 Read `coverage-and-mutation` before interpreting uncovered code or mutants. It

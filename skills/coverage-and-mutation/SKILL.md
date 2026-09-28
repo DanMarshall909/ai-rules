@@ -53,6 +53,19 @@ execution time; and total wall time. Include no-change, small-source, test-only
 and representative-feature scenarios. Report full-run variance rather than
 selecting the fastest sample.
 
+Use historical runtimes as estimates only when the tool and compiler versions,
+mutated source, selected tests, hardware, concurrency and host load are comparable.
+If they differ, record setup/discovery time, per-target progress and completed
+report times before estimating the remaining run or assigning a cause to a
+slowdown. A terminal mutant count is not a measure of completed throughput.
+
+On a shared host, mutation work can exhaust the output filesystem even when its
+own report directory is small. Check free space on that filesystem and competing
+heavy jobs before launch, then sample disk headroom during the run; launch-time
+space is not reserved. Set a task-owned disk guard for long runs and record the
+process identities it may stop. If the limit is crossed, stop only that owned
+process tree and retain the resource and stop receipts for diagnosis.
+
 ## Code must justify itself
 
 - Code that cannot be justified is removed, not covered. Code that exists only to
