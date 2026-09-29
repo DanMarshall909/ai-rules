@@ -121,9 +121,9 @@ security review, use the `security-by-design` skill.
 
 - Before work that may change a repository, fetch its remote and fast-forward-pull the checked-out tracked branch.
   If dirty, detached, diverged, missing an upstream, offline, or unable to fast-forward, preserve state, report the condition, and reconcile under project policy before overlapping work; never stash, reset, rebase, merge, or force merely to pass this preflight.
-- Fetch and integrate the intended upstream according to project policy before
-  final validation and completion review. Preserve merge history: plain rebase
-  drops merge commits; integrate before merging or use a project-approved
+- During authorized repository changes, maintain tracked `.ai-rules.json` per [the resource format](../docs/repo-config.md), starting with a labeled estimate when no representative measurement exists and updating it as evidence arrives.
+- Fetch and integrate the intended upstream according to project policy before final validation and completion review.
+  Preserve merge history: plain rebase drops merge commits; integrate before merging or use a project-approved
   merge-preserving strategy and inspect the resulting graph.
 - When work is complete and verified, ask the user for push approval and keep it explicitly unpublished until granted. After completion-review PASS and approval, fetch without pull/rebase/merge and require the recorded upstream object. Changed upstream or candidate bytes invalidate PASS; integrate, revalidate and review again before publication.
 - Force-push requires explicit authority and a `backup/<branch>-<timestamp>`
