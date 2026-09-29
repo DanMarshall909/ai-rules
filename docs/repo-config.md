@@ -35,6 +35,11 @@ workload, date and durable evidence path. A stopped run gives a lower bound,
 not a peak measurement. Replace an estimate after the first representative run,
 and refresh a measured value when the workload or toolchain changes.
 
+For future run planning, a measured `measurement` may also record the completed
+duration, task concurrency, minimum available system memory during the run and
+peak task swap use. These are observations from that workload, not promises for
+another machine or a later run.
+
 Sum reservations for simultaneously active worktrees when planning concurrency.
 Check current available memory immediately before launch and retain live memory
 and swap guards for heavy work. The repository value is advisory; it neither
