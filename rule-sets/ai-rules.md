@@ -57,14 +57,13 @@ capabilities and relevant session context; report unsupported scheduling honestl
 
 ## Agentic TDD Protocol
 
-For behaviour changes use the `behavior-first-tdd` skill:
-**Tidy → RED → GREEN → COVERAGE → REFACTOR → next RED**, one observable acceptance
-criterion at a time. GREEN alone does not complete the criterion.
+For behaviour changes use the `behavior-first-tdd` skill: **Tidy → RED → GREEN → COVERAGE → REFACTOR → next RED**; one observable criterion at a time. GREEN alone does not complete it.
+Keep routine TDD feedback within a few seconds; question tests >1.5× peer median. Move slow integration assertions to real business-rule unit tests where possible; retain boundary evidence, never mock away the rule.
 
-Preserve the intended RED through the project's driver or a separate commit
-when permitted; never break shared trunk merely to manufacture evidence.
-Use `agentic-delivery` to coordinate non-trivial implementation, not to impose
-implementation steps on read-only reviews or genuine one-off experiments.
+Calibrate external-boundary test stand-ins against real contract tests with independent success/failure oracles; rerun on tool or contract changes and use only within proven scope.
+
+Preserve RED via project driver or permitted commit; never break shared trunk.
+Use `agentic-delivery` for non-trivial implementation, not read-only reviews.
 
 ---
 
@@ -78,8 +77,8 @@ use the `coverage-and-mutation` skill.
   instrumentation); a covered line was not necessarily checked by an assertion.
 - Remove code that has no useful caller or contract instead of covering it for
   its own sake.
-- Establish coverage before mutation testing, and calibrate the mutation harness
-  with a fault you have watched the relevant test reject.
+- Establish coverage first; calibrate mutation testing with a fault you saw a relevant test reject.
+- Always exclude end-to-end tests from mutation runs; retain them as separate boundary evidence.
 
 ---
 

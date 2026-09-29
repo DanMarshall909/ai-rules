@@ -79,6 +79,44 @@ The goal is the smallest sufficient trusted suite. Every retained test should
 add distinct regression protection, a necessary layer-specific law, or uniquely
 valuable cross-boundary evidence.
 
+## Keep Routine TDD Feedback Fast
+
+Set a project-specific wall-clock budget for the regular TDD suite, aiming for
+the entire routine suite to finish in a few seconds on representative hardware.
+Measure each test's median elapsed time, including setup and teardown, over
+comparable runs. Compare peers in the same test tier; question a test when its
+median exceeds 1.5 times that tier's median. This triggers investigation, not
+automatic failure or exclusion. Ignore trivial timing noise, and investigate
+suite-level slowness even when every test has similar duration.
+
+For a slow integration test, first ask whether its business rule can be tested
+at unit level with real production logic and deterministic inputs. If it can,
+move the rule assertion there and retain a focused integration test for the
+boundary contract. Do not mock away the business behaviour or replace its
+observable outcome with interaction-only mock assertions. If a real boundary
+is essential, improve fixture/setup cost or document its value and place the
+test in a named slower verification lane. A slower lane still runs at required
+checkpoints and before final publication; do not defer the sole oracle for the
+current criterion beyond that criterion's completion.
+
+## Calibrate Test Abstractions Against Real Boundaries
+
+When a fixture, fake, stub, recording or in-memory adapter stands in for an
+external tool or system, establish the subset of its behavior on which fast
+tests rely. Write a focused integration contract test that exercises the real
+boundary, independently observes representative successful and material
+failure outcomes, and checks that the stand-in preserves the contract-bearing
+inputs, outputs and relationships. Do not use the production parser or the
+stand-in itself as the sole oracle; two matching mistakes are not calibration.
+Keep malformed and edge-case variants in fast tests, but do not claim a stand-in
+models external behavior it has not been checked against.
+
+Run this calibration in the boundary lane at required checkpoints and whenever
+the tool version or boundary contract changes. The fast suite may then use the
+calibrated stand-in within that established scope; it does not replace the
+real-boundary test. Prefer reusing an existing real-boundary run over duplicating
+an expensive setup solely for calibration.
+
 ## Make Oracles Independent and Falsifiable
 
 For serialization, compilation, mapping, reconstruction, and other multi-stage

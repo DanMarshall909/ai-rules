@@ -11,6 +11,13 @@ code paths and assert observable output.
 For review-only requests, report evidence and propose changes; do not implement
 deletions or tests without authority. Scores never expand the accepted scope.
 
+Always exclude end-to-end tests from mutation runs. Configure and verify the
+runner's test selection explicitly; run end-to-end tests separately for real
+boundary and regression evidence. Mutation evidence should come from unit,
+component, or suitable in-process integration tests whose execution and source
+attribution the runner can verify. Exclusion from mutation is not permission to
+skip end-to-end verification at required checkpoints.
+
 When this skill is used through `agentic-delivery`, first read its matching
 environment modules. Mutation implementations are not flag-compatible:
 Stryker.NET `--since` produces a changed-mutant subset, while StrykerJS
