@@ -156,6 +156,7 @@ adapters do not add authority.
 | Freeze, independently review and publish a candidate | [completion-review](skills/agentic-delivery/references/completion-review.md) |
 | Select stack-specific commands | [environment modules](skills/agentic-delivery/references/environments/index.md) |
 | Pace a requested session | [break-reminders](skills/break-reminders/SKILL.md) |
+| Create a project website from the Astro starter | [create-astro-site](skills/create-astro-site/SKILL.md) |
 | Assess findings during work and aggregate lessons at handoff | [reflect](skills/reflect/SKILL.md) |
 
 Rules state boundaries and route to these owners; they do not repeat the full
