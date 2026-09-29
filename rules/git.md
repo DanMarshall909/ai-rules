@@ -6,7 +6,7 @@
 - Fetch and integrate the intended upstream according to project policy before final validation and completion review.
   Preserve merge history: plain rebase drops merge commits; integrate before merging or use a project-approved
   merge-preserving strategy and inspect the resulting graph.
-- When work is complete and verified, ask the user for push approval and keep it explicitly unpublished until granted. After completion-review PASS and approval, fetch without pull/rebase/merge and require the recorded upstream object. Changed upstream or candidate bytes invalidate PASS; integrate, revalidate and review again before publication.
+- Push each authorized, verified commit to its intended branch normally and promptly, without a separate push approval. Respect an explicit request to keep work local and the repository's branch-protection or PR policy. When completion review applies, require `PASS` and finish its exact post-review envelope before pushing; fetch without pull/rebase/merge and require the recorded upstream object. Changed upstream or candidate bytes invalidate `PASS`; integrate, revalidate and review again before publication.
 - Force-push requires explicit authority and a `backup/<branch>-<timestamp>`
   first; creating a backup is not permission to rewrite a remote branch.
 - Review the staged diff before committing. Use present-tense, imperative commit

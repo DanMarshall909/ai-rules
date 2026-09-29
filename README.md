@@ -128,7 +128,7 @@ and never twice — a layered set arrives in repos that already have both.
 | `rules/coverage.md` | Code must justify itself; establish reachability before excluding branches |
 | `rules/guardrails.md` | Turn a repeatable mistake into a test that fails at build time |
 | `rules/security.md` | Concentrate security decisions behind one narrow, intent-named boundary |
-| `rules/git.md` | Sync before work; ask before push; preserve approved bytes and merge history |
+| `rules/git.md` | Sync before work; promptly push verified work without force; preserve reviewed bytes and merge history |
 | `rules/issues.md` | GitHub and/or canonical `docs/issues/[open\|resolved]/[area]/` tracking |
 | `rules/reflection.md` | Capture durable lessons when work lands; route them to the right scope |
 | `rules/authority.md` | Instruction precedence, task authority, and proportionate scope |

@@ -3,7 +3,9 @@
 Read this reference when a non-trivial feature or product-behaviour change is
 candidate-complete. Explicit task and scoped project review contracts refine these
 defaults within the host's instruction hierarchy. Name any unresolved conflict
-before the affected action; this procedure does not grant publication authority.
+before the affected action. Publication authority comes from the task and Git
+workflow; this procedure supplies the independent review gate and requires no
+separate permission to push.
 
 ## Review boundary
 
@@ -20,7 +22,7 @@ readiness claim are outside this gate unless project instructions say otherwise.
 
 ## Integrate before freezing
 
-Approval must cover the upstream state publication will extend. Immediately
+The review verdict must cover the upstream state publication will extend. Immediately
 before freezing the packet:
 
 1. Record the current branch, full upstream ref, upstream object ID, and merge or
