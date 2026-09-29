@@ -39,6 +39,9 @@ For future run planning, a measured `measurement` may also record the completed
 duration, task concurrency, minimum available system memory during the run and
 peak task swap use. These are observations from that workload, not promises for
 another machine or a later run.
+Use `completedRunDurationsSeconds` for every comparable finished run so the
+observed time range is visible. Exclude stopped attempts from that list and
+explain them in `notes` when they matter to planning.
 
 Sum reservations for simultaneously active worktrees when planning concurrency.
 Check current available memory immediately before launch and retain live memory
