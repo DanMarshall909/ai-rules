@@ -1,9 +1,9 @@
 # Repository resource configuration
 
-Add a tracked `.ai-rules.json` when working in a repository that needs a measured
-resource reservation. Use [the versioned schema](../schemas/ai-rules.schema.json).
-Do not create a guessed reservation merely to fill the file; omit `resources.memory`
-until a representative workload has been measured.
+Add a tracked `.ai-rules.json` when work starts in a repository. Use
+[the versioned schema](../schemas/ai-rules.schema.json). Prefer a measured
+reservation; if there is no representative run yet, record a conservative
+estimate with its reason and replace it when evidence becomes available.
 
 ```json
 {
@@ -11,6 +11,7 @@ until a representative workload has been measured.
   "resources": {
     "memory": {
       "reserveMiBPerActiveWorktree": 6144,
+      "basis": "measured",
       "observedPeakMiB": 4999,
       "measurement": {
         "workload": "scoped mutation run",
@@ -22,12 +23,17 @@ until a representative workload has been measured.
 }
 ```
 
+For an unmeasured repository, use `"basis": "estimated"` and replace
+`observedPeakMiB` and `measurement` with an `estimateReason` explaining the
+expected workload and allowance. Do not present an estimate as a measured peak.
+
 The reservation is an admission-planning allowance for a worktree running a
 build, test, mutation or other heavy producer. An idle worktree does not consume
 it. Measure the peak task/process-group memory of a representative successful
 run, round the reservation upward to allow headroom, and record the exact
 workload, date and durable evidence path. A stopped run gives a lower bound,
-not a peak measurement. Refresh the value when the workload or toolchain changes.
+not a peak measurement. Replace an estimate after the first representative run,
+and refresh a measured value when the workload or toolchain changes.
 
 Sum reservations for simultaneously active worktrees when planning concurrency.
 Check current available memory immediately before launch and retain live memory

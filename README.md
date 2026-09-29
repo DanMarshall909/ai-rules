@@ -13,9 +13,9 @@ The distribution decisions and dated migration research are documented in
 [`docs/cross-agent-rules-and-skills.md`](docs/cross-agent-rules-and-skills.md).
 The installation sections below are the maintained usage contract.
 
-Repository-specific measured resource reservations can be recorded in a tracked
+Repository-specific resource reservations can be recorded in a tracked
 `.ai-rules.json` as work proceeds. See [the config format](docs/repo-config.md);
-unmeasured repositories do not need a placeholder file.
+start with a labeled estimate if no representative measurement exists.
 
 ## Start here
 
