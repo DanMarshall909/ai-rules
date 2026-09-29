@@ -13,7 +13,7 @@ test runner, or Git policy. Reviews and diagnoses do not activate implementation
 
 This skill coordinates the work. Use `behavior-first-tdd` for test design,
 `coverage-and-mutation` for evidence strength and code pruning, and `reflect`
-after the work lands.
+quietly throughout execution, consolidating findings at the normal handoff.
 
 ## Establish authority and a bounded goal
 
@@ -161,9 +161,11 @@ containers, ports, databases, logs, and caches. Remove only state proven task-
 owned, completed, merged, pushed, and no longer needed as evidence. Report and
 retain anything active, unrelated, unmerged, unpushed, or ambiguous.
 
-Finally use `reflect`. Propose only transferable, non-obvious, load-bearing
-lessons, including their evidence, target rule or skill, behavioural change, and
-cost. Require owner confirmation before changing standing guidance.
+Consolidate the observations gathered through `reflect` when control returns to
+the user. Keep material findings and proposed guidance changes in the completion
+report, after the outcome and evidence. Do not create a separate interruption or
+expand the task to implement a new lesson. Changes to standing guidance still
+need owner agreement unless already requested.
 
 ## Completion report
 
@@ -175,6 +177,7 @@ Report the outcome and evidence, not merely activity:
 - independent verdict and candidate identity;
 - commit and publication result;
 - cleanup performed and ambiguous state retained;
+- material aggregated findings and the disposition of guidance proposals;
 - remaining risk; and
 - the next dependency-ready task, without starting a new goal boundary.
 

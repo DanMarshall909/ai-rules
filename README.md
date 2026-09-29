@@ -126,13 +126,13 @@ and never twice — a layered set arrives in repos that already have both.
 | `rules/security.md` | Concentrate security decisions behind one narrow, intent-named boundary |
 | `rules/git.md` | Integrate before review; preserve approved bytes and merge history |
 | `rules/issues.md` | GitHub and/or canonical `docs/issues/[open\|resolved]/[area]/` tracking |
-| `rules/reflection.md` | Capture durable lessons when work lands; route them to the right scope |
+| `rules/reflection.md` | Reflect quietly during work; aggregate material findings at handoff |
 | `rules/authority.md` | Instruction precedence, task authority, and proportionate scope |
 | `rules/sync.md` | Quiet remote and unpublished-work preflight for the shared checkout |
 
 For non-trivial autonomous feature delivery, use `agentic-delivery`. It binds
 accepted scope to criterion-led TDD, quality evidence, independent completion
-review, exact publication, cleanup, and owner-confirmed workflow lessons. Its
+review, exact publication, cleanup, continuous background reflection, and owner-authorized guidance changes. Its
 environment modules keep the core portable while adapting test, coverage, and
 mutation mechanics for .NET and JavaScript/TypeScript; repositories can provide
 local modules for other stacks. Explicit task and scoped project instructions
@@ -152,7 +152,7 @@ adapters do not add authority.
 | Freeze, independently review and publish a candidate | [completion-review](skills/agentic-delivery/references/completion-review.md) |
 | Select stack-specific commands | [environment modules](skills/agentic-delivery/references/environments/index.md) |
 | Pace a requested session | [break-reminders](skills/break-reminders/SKILL.md) |
-| Propose or save a lesson with authority | [reflect](skills/reflect/SKILL.md) |
+| Assess findings during work and aggregate lessons at handoff | [reflect](skills/reflect/SKILL.md) |
 
 Rules state boundaries and route to these owners; they do not repeat the full
 procedures. A named skill is a package name, not a guarantee that every client
@@ -343,7 +343,7 @@ skills/
   behavior-first-tdd/SKILL.md   ← behaviour-first TDD
   coverage-and-mutation/SKILL.md ← interpretation and pruning evidence
   security-by-design/SKILL.md   ← sensitive boundaries and secure design
-  reflect/SKILL.md              ← capture lessons when work lands
+  reflect/SKILL.md              ← background reflection and aggregated handoff findings
   upgrade-global-skills/SKILL.md ← update the checkout and global packages
   make-repository-skills-portable/SKILL.md ← portable project skill ownership
   refresh-tool-surface/SKILL.md ← shipped with the tool-repos set

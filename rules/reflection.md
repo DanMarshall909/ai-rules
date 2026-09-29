@@ -1,10 +1,10 @@
 # Reflection
 
-After non-trivial work lands with tests green and its commit recorded,
-use the `reflect` skill to identify any durable lesson before context is lost.
-Writing nothing is the common, correct outcome.
-
-Keep only transferable, non-obvious, load-bearing lessons, and store each at
-the narrowest scope that reaches every task where it applies. Proposing a lesson
-does not save it: memory writes need an explicit user request and standing-guidance
-changes need the appropriate authority.
+Use the `reflect` skill during material corrections, surprising results, tool
+fallbacks and completed slices. Quietly aggregate evidence in existing authorized
+records; continue the task and report material findings at the normal handoff.
+Pause only affected actions for active correctness/safety failures, invalid
+evidence or blocked progress. Resolve within authority; ask only for needed decisions.
+Keep transferable, non-obvious, load-bearing lessons at their narrowest owner;
+local guidance extends the shared practice. No compulsory journal or read-only writes.
+Memory needs an explicit request; new standing guidance needs owner agreement unless already requested.

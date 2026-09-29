@@ -46,7 +46,7 @@ Provide raw, falsifiable evidence rather than an argument for approval:
   manual evidence that applies;
 - explicit unrelated paths excluded from review;
 - evidence gaps and unresolved decisions;
-- prior findings and an accumulated lesson ledger on repair rounds; and
+- prior findings and deduplicated lesson candidates, if any, in the existing repair record; and
 - the proposed post-`PASS` envelope.
 
 The manifest must deterministically identify the candidate. At minimum, record
@@ -95,7 +95,7 @@ matrices, then assesses:
 5. **Better alternatives.** A materially simpler, safer, clearer, more
    deterministic, or cheaper in-scope design is considered. Style preferences
    and speculative extensibility do not justify failure.
-6. **Reusable lessons.** Systemic findings are recorded as candidates with
+6. **Reusable lessons.** Systemic findings are recorded in the existing review record, when supported, as candidates with
    evidence, a proposed owner, guidance change, downside, and disposition.
 7. **Publication soundness.** The integration identity, manifest, evidence, and
    finite finalization/cleanup envelope are reproducible.
@@ -110,6 +110,9 @@ Return exactly one result:
 - `BLOCKED`: missing access, evidence, or authority prevents a defensible
   decision.
 
+A future guidance proposal alone is not a failing finding unless the current
+candidate violates an in-scope requirement.
+
 There is no “pass with required changes.” Each failing finding names the file or
 symbol, requirement or task, evidence, consequence, and required outcome.
 
@@ -117,7 +120,7 @@ symbol, requirement or task, evidence, consequence, and required outcome.
 
 After `FAIL` or `BLOCKED`:
 
-1. Persist the packet, manifest, verdict, findings, lesson ledger, and a concise
+1. Persist the packet, manifest, verdict, findings, any lesson candidates, and a concise
    repair capsule outside conversational memory.
 2. Preserve unrelated paths and maintain one writer for the candidate.
 3. Correct findings through the ordinary specification, TDD, coverage,
