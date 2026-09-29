@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Repository .ai-rules.json",
+  "type": "object",
+  "required": ["schemaVersion", "resources"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "memory": {
+          "type": "object",
+          "required": ["reserveMiBPerActiveWorktree", "observedPeakMiB", "measurement"],
+          "additionalProperties": false,
+          "properties": {
+            "reserveMiBPerActiveWorktree": { "type": "integer", "minimum": 1 },
+            "observedPeakMiB": { "type": "integer", "minimum": 1 },
+            "measurement": {
+              "type": "object",
+              "required": ["workload", "date", "evidence"],
+              "additionalProperties": false,
+              "properties": {
+                "workload": { "type": "string", "minLength": 1 },
+                "date": { "type": "string", "format": "date" },
+                "evidence": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}
