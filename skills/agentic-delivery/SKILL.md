@@ -158,8 +158,13 @@ reviewed candidate outside that envelope. Publication still needs task authority
 
 After a successful push, inspect status, branches, worktrees, processes,
 containers, ports, databases, logs, and caches. Remove only state proven task-
-owned, completed, merged, pushed, and no longer needed as evidence. Report and
-retain anything active, unrelated, unmerged, unpushed, or ambiguous.
+owned, completed, merged, pushed, and no longer needed as evidence or for likely
+future work. A generated or ignored path can still be valuable: preserve warm
+build trees, compiled targets, dependency installs, and caches when recreating
+them would take substantial time. Clean disposable per-run output first. If
+reclaiming reusable state is necessary, explain its size and rebuild cost and
+get explicit direction before deleting it. Report and retain anything active,
+unrelated, unmerged, unpushed, reusable, or ambiguous.
 
 Finally use `reflect`. Propose only transferable, non-obvious, load-bearing
 lessons, including their evidence, target rule or skill, behavioural change, and

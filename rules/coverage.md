@@ -8,5 +8,5 @@ use the `coverage-and-mutation` skill.
   instrumentation); a covered line was not necessarily checked by an assertion.
 - Remove code that has no useful caller or contract instead of covering it for
   its own sake.
-- Establish coverage before mutation testing, and calibrate the mutation harness
-  with a fault you have watched the relevant test reject.
+- Establish coverage first; calibrate mutation testing with a fault you saw a relevant test reject.
+- Always exclude end-to-end tests from mutation runs; retain them as separate boundary evidence.

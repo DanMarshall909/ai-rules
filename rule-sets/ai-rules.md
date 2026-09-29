@@ -18,6 +18,7 @@ additional authority. If applicable instructions still conflict, name the confli
 
 - Review, explanation and diagnosis authorize relevant read-only checks, not implementation or publication. Persistence language does not expand scope.
 - Preserve unrelated work. It blocks only operations that overlap or could change, hide or destroy it; follow the project's worktree and Git policy.
+- Cleanup only disposable run output by default; ignored or generated builds, dependencies and caches may be reusable, so explain their size and rebuild cost and get explicit direction before deleting them.
 - Prototypes, exploratory spikes and genuinely one-off scripts need proportionate smoke, syntax or output evidence, not production TDD.
   Production, maintained, reused or recurring operational code follows the normal testing workflow.
 - Perform routine in-scope work under existing authority. Ask before expanding scope, destructive actions not already authorized,
@@ -56,14 +57,13 @@ capabilities and relevant session context; report unsupported scheduling honestl
 
 ## Agentic TDD Protocol
 
-For behaviour changes use the `behavior-first-tdd` skill:
-**Tidy → RED → GREEN → COVERAGE → REFACTOR → next RED**, one observable acceptance
-criterion at a time. GREEN alone does not complete the criterion.
+For behaviour changes use the `behavior-first-tdd` skill: **Tidy → RED → GREEN → COVERAGE → REFACTOR → next RED**; one observable criterion at a time. GREEN alone does not complete it.
+Keep routine TDD feedback within a few seconds; question tests >1.5× peer median. Move slow integration assertions to real business-rule unit tests where possible; retain boundary evidence, never mock away the rule.
 
-Preserve the intended RED through the project's driver or a separate commit
-when permitted; never break shared trunk merely to manufacture evidence.
-Use `agentic-delivery` to coordinate non-trivial implementation, not to impose
-implementation steps on read-only reviews or genuine one-off experiments.
+Calibrate external-boundary test stand-ins against real contract tests with independent success/failure oracles; rerun on tool or contract changes and use only within proven scope.
+
+Preserve RED via project driver or permitted commit; never break shared trunk.
+Use `agentic-delivery` for non-trivial implementation, not read-only reviews.
 
 ---
 
@@ -77,8 +77,8 @@ use the `coverage-and-mutation` skill.
   instrumentation); a covered line was not necessarily checked by an assertion.
 - Remove code that has no useful caller or contract instead of covering it for
   its own sake.
-- Establish coverage before mutation testing, and calibrate the mutation harness
-  with a fault you have watched the relevant test reject.
+- Establish coverage first; calibrate mutation testing with a fault you saw a relevant test reject.
+- Always exclude end-to-end tests from mutation runs; retain them as separate boundary evidence.
 
 ---
 
@@ -119,13 +119,13 @@ security review, use the `security-by-design` skill.
 
 ## Git Workflow
 
+- Before work that may change a repository, fetch its remote and fast-forward-pull the checked-out tracked branch.
+  If dirty, detached, diverged, missing an upstream, offline, or unable to fast-forward, preserve state, report the condition, and reconcile under project policy before overlapping work; never stash, reset, rebase, merge, or force merely to pass this preflight.
 - Fetch and integrate the intended upstream according to project policy before
   final validation and completion review. Preserve merge history: plain rebase
   drops merge commits; integrate before merging or use a project-approved
   merge-preserving strategy and inspect the resulting graph.
-- After completion-review PASS, fetch without pull/rebase/merge and require the
-  recorded upstream object. Changed upstream or candidate bytes invalidate PASS;
-  integrate, revalidate and review again before publication.
+- When work is complete and verified, ask the user for push approval and keep it explicitly unpublished until granted. After completion-review PASS and approval, fetch without pull/rebase/merge and require the recorded upstream object. Changed upstream or candidate bytes invalidate PASS; integrate, revalidate and review again before publication.
 - Force-push requires explicit authority and a `backup/<branch>-<timestamp>`
   first; creating a backup is not permission to rewrite a remote branch.
 - Review the staged diff before committing. Use present-tense, imperative commit
