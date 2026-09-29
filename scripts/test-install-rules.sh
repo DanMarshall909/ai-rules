@@ -109,6 +109,19 @@ links_to "codex links AGENTS.md into its profile" \
   "${HOME}/.codex/AGENTS.md" "${REPO}/AGENTS.md"
 links_to "codex links the rule set beside AGENTS.md" \
   "${HOME}/.codex/rule-sets/ai-rules.md" "${REPO}/rule-sets/ai-rules.md"
+resource_rule="$(grep -F '.ai-rules.json' "${HOME}/.codex/rule-sets/ai-rules.md" | head -n 1)"
+resource_fields=(schemaVersion resources.memory reserveMiBPerActiveWorktree basis measured estimated)
+resource_missing=""
+for field in "${resource_fields[@]}"; do
+  [[ "${resource_rule}" == *"${field}"* ]] || resource_missing+=" ${field}"
+done
+if [[ -n "${resource_rule}" && -z "${resource_missing}" &&
+      "${resource_rule}" != *'](../'* ]]; then
+  ok "installed resource rule is self-contained"
+else
+  no "installed resource rule is self-contained" \
+    "missing:${resource_missing:- none}; rule: ${resource_rule:-missing}"
+fi
 absent "codex leaves the project's AGENTS.md alone" "${PWD}/AGENTS.md"
 
 sandbox

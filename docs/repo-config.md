@@ -1,7 +1,8 @@
 # Repository resource configuration
 
-Add a tracked `.ai-rules.json` when work starts in a repository. Use
-[the versioned schema](../schemas/ai-rules.schema.json). Prefer a measured
+Add a tracked `.ai-rules.json` when work starts in a repository. Version 1
+requires a `resources.memory` reservation and accepts no other resource
+categories. Use [the versioned schema](../schemas/ai-rules.schema.json). Prefer a measured
 reservation; if there is no representative run yet, record a conservative
 estimate with its reason and replace it when evidence becomes available.
 
@@ -16,7 +17,8 @@ estimate with its reason and replace it when evidence becomes available.
       "measurement": {
         "workload": "scoped mutation run",
         "date": "2026-09-29",
-        "evidence": "path to retained run receipt"
+        "evidence": "path to retained run receipt",
+        "completedRunDurationsSeconds": [735]
       }
     }
   }

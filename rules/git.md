@@ -2,7 +2,7 @@
 
 - Before work that may change a repository, fetch its remote and fast-forward-pull the checked-out tracked branch.
   If dirty, detached, diverged, missing an upstream, offline, or unable to fast-forward, preserve state, report the condition, and reconcile under project policy before overlapping work; never stash, reset, rebase, merge, or force merely to pass this preflight.
-- During authorized repository changes, maintain tracked `.ai-rules.json` per [the resource format](../docs/repo-config.md), starting with a labeled estimate when no representative measurement exists and updating it as evidence arrives.
+- During authorized repository changes, maintain tracked `.ai-rules.json` with `schemaVersion: 1` and `resources.memory`: a positive `reserveMiBPerActiveWorktree` and `basis` of `measured` (requiring `observedPeakMiB` and `measurement` with workload, date and evidence) or `estimated` (requiring `estimateReason`). See `docs/repo-config.md` in the source checkout for the full format; replace an estimate when representative measurements arrive.
 - Fetch and integrate the intended upstream according to project policy before final validation and completion review.
   Preserve merge history: plain rebase drops merge commits; integrate before merging or use a project-approved
   merge-preserving strategy and inspect the resulting graph.

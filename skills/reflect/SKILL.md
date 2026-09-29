@@ -1,12 +1,38 @@
 ---
 name: reflect
-description: Identify transferable lessons after non-trivial work or when the user asks what was learned. Propose the narrowest useful home; write memory or standing guidance only with the required authority.
+description: Reflect quietly during work and aggregate material findings at handoff. Route transferable lessons to the narrowest owner; change memory or standing guidance only with authority.
 ---
 
 # Reflect
 
-Reflection is a judgment pass, not an automatic memory write. Most work teaches
-nothing durable enough to retain; writing nothing is a normal result.
+Reflection supports the active task throughout execution. It does not start a
+separate retrospective or automatically write memory or standing guidance.
+Writing no durable lesson is a normal result.
+
+## Assess quietly and aggregate
+
+When a material correction, surprising result, tool fallback or completed slice
+changes what is known, consider what assumption changed, what evidence changed
+it, and what action should change now. Apply routine in-scope corrections under
+existing authority and continue the task.
+
+Capture useful evidence in an existing authorized task, review or tool-feedback
+record. Deduplicate repeated findings and preserve only enough context to
+reproduce the issue or justify the future decision. Do not introduce a mandatory
+journal, second tracker or record for every tool call. During read-only work,
+retain observations for the response rather than writing files.
+
+Do not interrupt progress with ordinary friction reports, reflection commentary
+or guidance proposals. Pause only the affected action when current correctness
+or safety is threatened, required evidence is invalid, or meaningful progress
+is blocked. Resolve it within authority; involve the user only for a decision
+that cannot be made autonomously.
+
+When control naturally returns to the user, report the task outcome first and
+then a concise aggregate of material findings. Distinguish resolved issues,
+remaining opportunities and proposed guidance changes; link detailed records
+instead of recounting the session. Revisit earlier candidates and omit those
+disproved, duplicated or already covered.
 
 ## Find a lesson that changes a future decision
 
@@ -68,6 +94,6 @@ Do not edit generated instruction bundles; update their authored source and
 regenerate using the project's workflow.
 
 Keep each lesson focused on when it applies and what decision changes. Verify
-the saved result through the supported mechanism. Report whether the lesson was
+the saved result through the supported mechanism. At the normal handoff, report whether the lesson was
 saved, merely proposed, or deliberately not retained; do not imply persistence
 from a suggestion in chat.

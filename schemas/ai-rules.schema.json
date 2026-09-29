@@ -8,6 +8,7 @@
     "schemaVersion": { "const": 1 },
     "resources": {
       "type": "object",
+      "required": ["memory"],
       "properties": {
         "memory": {
           "type": "object",
@@ -62,7 +63,7 @@
           ]
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     }
   }
 }
