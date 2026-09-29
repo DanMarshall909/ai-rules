@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "resources": {
+    "memory": {
+      "reserveMiBPerActiveWorktree": 1024,
+      "basis": "estimated",
+      "estimateReason": "Shell generator and installer checks are lightweight; allow 1 GiB for concurrent shell and Python subprocesses until a representative process-group peak is measured."
+    }
+  }
+}
