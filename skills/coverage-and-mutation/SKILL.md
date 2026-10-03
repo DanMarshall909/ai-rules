@@ -25,6 +25,14 @@ Stryker.NET `--since` produces a changed-mutant subset, while StrykerJS
 Prefer repository-local drivers and verify options against the installed
 version.
 
+## Long runs and agent token use
+
+Separate mutation compute from agent activity. Let useful runs continue within
+the user's runtime and resource budgets while keeping agent involvement small.
+For a long run, monitoring, cancellation or unexpectedly high token use, read
+[Long mutation runs](references/long-mutation-runs.md). Its monitoring and
+evidence rules preserve the project's required scope and completion gates.
+
 ## Mutation knowledge should survive the build
 
 Optimise for behavioural confidence per unit of compute, not for the number of

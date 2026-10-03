@@ -1,7 +1,6 @@
 # Coverage & Dead Code
 
-When reviewing coverage, mutation results, compatibility paths, or dead code,
-use the `coverage-and-mutation` skill.
+When reviewing coverage, mutation results, compatibility paths, or dead code, use the `coverage-and-mutation` skill.
 
 - Aim for 100% coverage of core code through externally observable behavior.
 - An uncovered line did not execute in the measured run (assuming sound
@@ -10,3 +9,4 @@ use the `coverage-and-mutation` skill.
   its own sake.
 - Establish coverage first; calibrate mutation testing with a fault you saw a relevant test reject.
 - Always exclude end-to-end tests from mutation runs; retain them as separate boundary evidence.
+- Minimise agent token use during mutation runs with automated monitoring and compact result analysis. Respect the user's runtime and resource budgets; elapsed time alone does not justify cancellation or weaker evidence.
