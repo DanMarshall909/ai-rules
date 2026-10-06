@@ -28,6 +28,18 @@ A portable module supplies safe defaults and questions to resolve. It never
 authorizes installing a dependency, bypassing a project driver, changing a
 threshold, uploading reports, or introducing a hosted service.
 
+## Inspect and invoke command entrypoints
+
+Before reading a resolved command entrypoint as text, establish its file type
+and link destination. An installed CLI may be a native binary; use its help or
+locate its authored wrapper/source for inspection. Keep raw logs outside model
+context and bound the orchestration result as well as the underlying command
+output; a child tool's limit may not bound a composed response.
+
+When a canonical script lacks executable permission, invoke that same script
+through its declared interpreter. Record the actual invocation and retain the
+launch failure as project-owned friction evidence.
+
 ## Module contract
 
 Every environment module should define:
