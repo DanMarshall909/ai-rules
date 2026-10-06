@@ -75,6 +75,28 @@ scope; owned calculation, branching, validation, state changes, persistence,
 security and business rules are not low-value merely because their mutants live.
 Never add an exclusion only to raise the score.
 
+## Bound static metadata execution with independent contracts
+
+Static initializers can make Stryker run every selected test for each mutant.
+An empty `coveredBy` list alone does not mean no tests executed. Check the native
+status, static marker, runner selection and timings before diagnosing coverage.
+
+When a small owner publishes metadata, first try a compact positive test profile
+with independent expected command, effect, authority, workspace, format and
+disclosure contracts. Shared-value parity tests cannot supply those oracles.
+Observe initializer defaults before a fixture resets them; use a fresh process
+or calibrated isolated assembly loading when process-wide state would mask them.
+Keep consumer, integration and end-to-end regression gates separately.
+
+Compare the exact configured owner files and eligible source-resolved mutations
+against the original run, including every previously detected fault. Report file
+inventory may also include ignored or compile-error files outside the configured
+owner. A smaller test profile must retain owned behavior, not merely improve a
+score. Calibrate faults the pinned mutation operators do not generate, and record
+initial, coverage and execution timings before adopting the profile. Prefer this
+measured reduction of unnecessary execution before adding workers or custom
+test-impact analysis.
+
 ## Try the supported disk baseline first
 
 Stryker.NET's baseline feature is experimental. It reuses unaffected results and
