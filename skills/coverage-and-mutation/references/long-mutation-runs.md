@@ -66,3 +66,32 @@ Label interrupted runs and pending or unknown outcomes explicitly. An
 interrupted run does not satisfy a required full gate. Accept reuse or resume
 only when the pinned tool's calibrated invalidation contract supports it;
 neither a log snapshot nor a successful prior run is proof of resumability.
+
+## Diagnose a slow run before repeating it
+
+Use a bounded diagnostic window before an authorized stop. Verify supervisor and
+worker identities, retain effective configuration/logs, and capture a short trace
+supported by the installed profiler or actual test-duration evidence. Record
+current test activity and CPU, memory and disk observations. Cancel through the
+owned supervisor, verify its workers exit, and label absent outcomes incomplete;
+a partial artifact does not establish resumability.
+
+Separate build, initial tests, coverage collection and mutation execution. Check
+static-initializer test expansion against the pinned runner's implementation,
+fixture/workspace setup, actual test selection, timeout/restart evidence and
+temporary-file cleanup. Distinguish measured causes from hypotheses: waiting
+threads are not proof of inactivity, directory counts are not ownership proof,
+and sampled thread time is not CPU time or a whole-run profile.
+
+Optimize the measured hot path first. Repeated construction of expensive reusable
+inputs can dominate tests; retain instance inputs when safe, while re-driving and
+asserting the behavior for each mutant. Never cache the system's answers. Verify
+thread safety, culture/options, finite cache keys and mutation activation.
+
+Compare compact representative pilots with whole-owner mutation scope and frozen
+independent assertions. Retain raw reports, mutant identities, survivors and phase
+timings outside model context. Disclose startup overhead and concurrent workloads;
+measure concurrency only after the bottleneck is understood. Present measured
+results and a defensible runtime estimate before repeating an expensive full run.
+Pilot results cannot replace its required full gate or justify weaker thresholds
+or missing controls.

@@ -80,6 +80,7 @@ When reviewing coverage, mutation results, compatibility paths, or dead code, us
 - Always exclude end-to-end tests from mutation runs; retain them as separate boundary evidence.
 - Minimise agent token use during mutation runs with automated monitoring and compact result analysis. Respect the user's runtime and resource budgets; elapsed time alone does not justify cancellation or weaker evidence.
 - Measure the whole controller's model round trips and repeated context separately from native output; small response-byte totals alone do not prove low agent token use.
+- Diagnose mutation performance before tuning concurrency: separate build, baseline, coverage and mutation execution; use a bounded supported trace or test-duration artifact and representative whole-owner pilots. Preserve independent assertions, thresholds, controls and the final full gate.
 
 ---
 
