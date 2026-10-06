@@ -9,7 +9,9 @@ a useful run or reducing its required scope.
 
 Prefer the repository driver with logs captured outside model context and a
 completion notification or blocking tool wait. Use tools to wait within the
-host's limits. When repeated short waits would require new model turns, prefer
+host's limits. Where a host wait wakes on new user input, use that capability to
+keep unattended waiting responsive without frequent model round trips.
+When repeated short waits would require new model turns, prefer
 an existing background runner that records terminal results for later collection.
 Where notifications are unavailable, use infrequent lightweight status checks. Each
 check should answer a concrete question and return a compact delta. Do useful
@@ -37,6 +39,14 @@ Record runtime, scope, tool/configuration identity, actual completed counts and
 resource observations in existing run evidence. Attribute token cost only when
 usage records support it; aggregate goal tokens cannot establish a mutation
 share or monetary cost.
+
+Measure the whole controller separately from the native process: include outer
+tool waits, automatic goal continuations, commentary and context supplied again
+on each model round trip. Label nested launch/collection call and response-byte
+counts with their narrower scope. Small native output does not establish low
+agent token use. Preserve host usage-counter snapshots and accounting timestamps;
+their difference is an observation until accounting boundaries and concurrent
+agent activity support attribution to the measured interval.
 
 ## Preserve evidence before cancellation
 

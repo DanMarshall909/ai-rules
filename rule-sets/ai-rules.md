@@ -79,6 +79,7 @@ When reviewing coverage, mutation results, compatibility paths, or dead code, us
 - Establish coverage first; calibrate mutation testing with a fault you saw a relevant test reject.
 - Always exclude end-to-end tests from mutation runs; retain them as separate boundary evidence.
 - Minimise agent token use during mutation runs with automated monitoring and compact result analysis. Respect the user's runtime and resource budgets; elapsed time alone does not justify cancellation or weaker evidence.
+- Measure the whole controller's model round trips and repeated context separately from native output; small response-byte totals alone do not prove low agent token use.
 
 ---
 
