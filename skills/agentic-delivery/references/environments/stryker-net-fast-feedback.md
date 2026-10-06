@@ -195,6 +195,10 @@ The configuration fingerprint should cover at least:
 - source generators and their schema/corpus inputs; and
 - any option that changes mutant generation, coverage, filtering or thresholds.
 
+Inventory explicitly selected inputs even when Git ignores their directory.
+An ignored configuration or response file still controls the run; a clean Git
+status or tracked-file scan cannot prove that its scope remained unchanged.
+
 A fingerprint change requires a new full seed. Do not copy an old report into a
 new fingerprint merely because the change looked harmless; either keep the
 fingerprint owner narrower by design or pay the one-time verification cost.
