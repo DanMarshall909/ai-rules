@@ -91,7 +91,15 @@ thread safety, culture/options, finite cache keys and mutation activation.
 Compare compact representative pilots with whole-owner mutation scope and frozen
 independent assertions. Retain raw reports, mutant identities, survivors and phase
 timings outside model context. Disclose startup overhead and concurrent workloads;
-measure concurrency only after the bottleneck is understood. Present measured
+measure concurrency only after the bottleneck is understood. A reduction in static
+mutant count does not prove a proportionate speedup: compare actual selected tests,
+paired runner sessions and complete elapsed phases. Keep concurrent session-time
+sums distinct from wall time, and disclose timestamp resolution. For a structural
+refactor, map faults by owner, operator, original source and replacement rather
+than numeric IDs or shifted coordinates; expose unmatched faults and changed
+outcomes instead of counting them as retained. Validate log-derived milestones
+against genuine runner records so instrumented source text cannot impersonate
+progress. Present measured
 results and a defensible runtime estimate before repeating an expensive full run.
 Pilot results cannot replace its required full gate or justify weaker thresholds
 or missing controls.
