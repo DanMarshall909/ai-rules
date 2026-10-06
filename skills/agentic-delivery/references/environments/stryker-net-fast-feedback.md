@@ -122,6 +122,15 @@ Inspect JSON outcomes and terminal diagnostics in every scenario. A successful
 exit, a zero-mutant report, or the existence of a baseline file does not prove
 reuse. Plant one representative fault when attribution remains uncertain.
 
+Calibrate terminal outcome preservation, not just the native provider's load
+message. In RT's pinned 4.14.1 probes, missing state and a loaded same-input
+report both returned exit zero while all 71 known eligible mutants became
+ignored. A standalone baseline reporter also failed after emitting the report.
+Neither result is an admissible seed. Retain these diagnostics and use a
+conservative validated-state wrapper when the producer cannot preserve outcomes.
+Check the actual worktree branch and diff anchor as well: RT's experimental
+worktree was reported as the primary `main` branch by the native provider.
+
 If the calibrated provider is correct but keeps required data beneath disposable
 `StrykerOutput`, a small wrapper may restore only the required baseline data from
 a stable cache before Stryker and copy it back after a successful run. Do not
@@ -189,6 +198,24 @@ The configuration fingerprint should cover at least:
 A fingerprint change requires a new full seed. Do not copy an old report into a
 new fingerprint merely because the change looked harmless; either keep the
 fingerprint owner narrower by design or pay the one-time verification cost.
+
+Bind the environment actually passed to the producer, including repository test
+switches and locale/runtime controls. Normalize incidental shell bookkeeping in
+that execution environment before fingerprinting it. Hash sensitive values;
+do not print them. Store the complete verification receipt and findings with the
+durable report, rather than linking only to disposable artifact files. Validate
+source hashes/spans, named test catalog and killer attribution against the pinned
+report schema; empty static `coveredBy` lists remain valid when named killer
+evidence resolves independently.
+
+Publish cache state only after complete native verification has been retained.
+Wait for child stdio closure before reading final diagnostics: parent exit does
+not guarantee drained streams or stopped workers. Track PID/start-time identities
+and stop only owned workers after cancellation or native terminal exit. Retain
+cleanup signals separately from user cancellation. Complete source-bound results
+can survive post-terminal worker cleanup when diagnostics drain and all workers
+stop; live workers, missing outcomes or interrupted verification cannot seed
+reuse. A run's elapsed duration alone is not a cancellation condition.
 
 ## Conservative fast-mode decision table
 
