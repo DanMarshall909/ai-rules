@@ -37,6 +37,13 @@ attribution and survivor clusters, retaining links to all raw findings. Open
 specific source or report details when a finding requires judgment. Full report
 review still covers the required scope; compact summaries must not hide cases.
 
+For paired reports, resolve each run's test IDs through its own source catalogue
+before comparing links. Separate fault outcomes, static flags, coverage and
+killing-test attribution. A runner that stops after a kill may name different
+killing tests; retain those differences and unresolved links. Matching outcomes
+alone do not prove attribution equivalence, and changed IDs alone do not prove
+a behavioral regression. Explain nondeterminism only to the extent observed.
+
 Reuse inspection results while their source, tests, configuration, tool and
 artifact bindings remain valid. Repeated unchanged status or duplicate stop
 hooks do not require rebuilding the same analysis. Changed evidence requires
@@ -69,6 +76,12 @@ only against identified owned processes within authority. Retain instrumented
 outputs needed for diagnosis, then restore or
 rebuild from source before using binaries for verification.
 
+Evaluate report completion, stream drain, source stability and owned-worker
+cleanup separately. Preserve the original terminal observation and cleanup
+signals, including a retained zombie identity. A later identity check is
+supplementary evidence; apply the repository's explicit completion/reuse contract
+without silently rewriting a failed terminal control as passed.
+
 Label interrupted runs and pending or unknown outcomes explicitly. An
 interrupted run does not satisfy a required full gate. Accept reuse or resume
 only when the pinned tool's calibrated invalidation contract supports it;
@@ -90,10 +103,21 @@ temporary-file cleanup. Distinguish measured causes from hypotheses: waiting
 threads are not proof of inactivity, directory counts are not ownership proof,
 and sampled thread time is not CPU time or a whole-run profile.
 
+Where supported, use a non-executing scope listing to calibrate selectors against
+the runner's path base. A zero exit does not prove that the intended owner or any
+eligible faults were selected; retain the effective scope before a costly run.
+
 Optimize the measured hot path first. Repeated construction of expensive reusable
 inputs can dominate tests; retain instance inputs when safe, while re-driving and
 asserting the behavior for each mutant. Never cache the system's answers. Verify
 thread safety, culture/options, finite cache keys and mutation activation.
+
+Before adding a fixture cache, inspect existing reuse and bound the avoidable
+aggregate cost with test durations or a supported trace. Account for repetition:
+a cheap individual setup can be expensive across many invocations. Cache
+immutable inputs only where measured savings justify the invalidation and
+isolation cost; each assertion must still re-drive the production behavior against
+the current mutant.
 
 Compare compact representative pilots with whole-owner mutation scope and frozen
 independent assertions. Retain raw reports, mutant identities, survivors and phase
