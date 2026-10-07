@@ -13,6 +13,13 @@ host's limits. Where a host wait wakes on new user input, use that capability to
 keep unattended waiting responsive without frequent model round trips.
 When repeated short waits would require new model turns, prefer
 an existing background runner that records terminal results for later collection.
+For a sequence that must advance while the agent is idle, prefer one owned OS
+process that records and launches its phases itself. A yielded host tool cell is
+not proof of independent phase advancement; verify it with persisted phase
+timestamps across an idle interval. Observe a single phase completion separately
+from completing the whole workflow. Pause automatic goal continuations only with
+the user's explicit instruction when the host requires it; preserve the authorized
+background process and do not silently restart it.
 Where notifications are unavailable, use infrequent lightweight status checks. Each
 check should answer a concrete question and return a compact delta. Do useful
 independent work or leave agents idle; do not recruit agents solely to watch a
@@ -93,7 +100,9 @@ independent assertions. Retain raw reports, mutant identities, survivors and pha
 timings outside model context. Disclose startup overhead and concurrent workloads;
 measure concurrency only after the bottleneck is understood. A reduction in static
 mutant count does not prove a proportionate speedup: compare actual selected tests,
-paired runner sessions and complete elapsed phases. Keep concurrent session-time
+paired runner sessions and complete elapsed phases. Include a pilot with the
+original wider test selection when static activation can force unrelated fixtures
+to rerun; a narrow matching test filter can mask that cost. Keep concurrent session-time
 sums distinct from wall time, and disclose timestamp resolution. For a structural
 refactor, map faults by owner, operator, original source and replacement rather
 than numeric IDs or shifted coordinates; expose unmatched faults and changed
