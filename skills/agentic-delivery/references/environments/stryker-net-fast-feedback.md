@@ -53,6 +53,19 @@ killed, survived, timed-out, no-coverage, ignored and compile-error counts. Reta
 the machine-readable report and raw terminal output; discrepancies are evidence,
 not numbers to reconcile by assumption.
 
+Configured file scope does not prove that startup work is narrowed. Check the
+pinned producer's phase order and compare generated with scheduled mutants.
+Stryker.NET 4.14.1 applies file filtering after mutation, compilation and coverage;
+a whole-owner pilot can therefore prepare the broader project and incur compile
+recovery outside its selected owner. Preserve whole-owner scope and representative
+test selection when measuring a proposed earlier filter.
+
+For a source-built or patched tool experiment, a version label is insufficient
+identity. Retain the producer revision, patch, resolved build inputs and binary
+digests before and after execution. Compare selected-owner faults, outcomes and
+source-resolvable test links; disclose omitted out-of-scope records, cache warming
+and timing boundaries. A successful prototype is separate from adopting the tool.
+
 ## Configure Stryker's execution controls explicitly
 
 Verify each option against the pinned version. For current Stryker.NET:
