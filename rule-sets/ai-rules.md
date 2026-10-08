@@ -11,18 +11,14 @@ Lean, agent-agnostic rules for any coding assistant.
 
 ## Authority and Scope
 
-Respect the host's instruction hierarchy. Within it, explicit task instructions and
-scoped project rules refine these shared defaults. Skills supply procedures, environment
-modules supply tool mechanics, and generated adapters expose the same policy; none grants
-additional authority. If applicable instructions still conflict, name the conflict and pause only the affected action.
+Respect the host's instruction hierarchy. Within it, explicit task instructions and scoped project rules refine these shared defaults.
+Skills supply procedures, environment modules supply tool mechanics, and generated adapters expose the same policy; none grants additional authority. If applicable instructions still conflict, name the conflict and pause only the affected action.
 
 - Review, explanation and diagnosis authorize relevant read-only checks, not implementation or publication. Persistence language does not expand scope.
 - Preserve unrelated work. It blocks only operations that overlap or could change, hide or destroy it; follow the project's worktree and Git policy.
 - Cleanup only disposable run output by default; ignored or generated builds, dependencies and caches may be reusable, so explain their size and rebuild cost and get explicit direction before deleting them.
-- Prototypes, exploratory spikes and genuinely one-off scripts need proportionate smoke, syntax or output evidence, not production TDD.
-  Production, maintained, reused or recurring operational code follows the normal testing workflow.
-- Perform routine in-scope work under existing authority. Ask before expanding scope, destructive actions not already authorized,
-  or external side effects not covered by the request. Creating a PR does not authorize merging it.
+- Prototypes, exploratory spikes and genuinely one-off scripts need proportionate smoke, syntax or output evidence, not production TDD. Production, maintained, reused or recurring operational code follows the normal testing workflow.
+- Perform routine in-scope work under existing authority. Ask before expanding scope, destructive actions not already authorized, or external side effects not covered by the request. Creating a PR does not authorize merging it.
 
 When the host supports parallel agents, delegate bounded, independent read-only investigations when likely to improve coverage or time; combine findings before deciding.
 Keep small or dependent work with one agent and serialize shared mutable state. Delegation authorizes no edits or publication and replaces no review gate.
@@ -123,6 +119,8 @@ security review, use the `security-by-design` skill.
 
 - Before work that may change a repository, fetch its remote and fast-forward-pull the checked-out tracked branch.
   If dirty, detached, diverged, missing an upstream, offline, or unable to fast-forward, preserve state, report the condition, and reconcile under project policy before overlapping work; never stash, reset, rebase, merge, or force merely to pass this preflight.
+- Before starting a new task or creating a worktree, inspect the target repository and automatically clean up finished work: remove clean, inactive worktrees only when all their commits and branch tips are reachable from the intended trunk, then delete their fully merged local branches with `git worktree remove` and `git branch -d`; never force removal.
+  Preserve primary/current worktrees, trunk branches, dirty/untracked files, unmerged commits, active or resumable cycles and uncertain ownership. Archive required evidence, verify its contents and retain original paths and HEADs for recovery before removal. Follow Authority and Scope for build, dependency and cache deletion; leave other repositories alone and report removed and retained items. Unsafe or unavailable cleanup does not block unrelated new work.
 - During authorized repository changes, maintain tracked `.ai-rules.json` with `schemaVersion: 1` and `resources.memory`: a positive `reserveMiBPerActiveWorktree` and `basis` of `measured` (requiring `observedPeakMiB` and `measurement` with workload, date and evidence) or `estimated` (requiring `estimateReason`). See `docs/repo-config.md` in the source checkout for the full format; replace an estimate when representative measurements arrive.
 - Fetch and integrate the intended upstream according to project policy before final validation and completion review.
   Preserve merge history: plain rebase drops merge commits; integrate before merging or use a project-approved
