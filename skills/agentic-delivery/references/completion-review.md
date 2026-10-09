@@ -59,7 +59,9 @@ indexes, special files, or content that cannot be represented as evidence gaps.
 
 ## Reviewer independence
 
-Use a separate high-capability agent or human reviewer. For an agent reviewer:
+Use a separate high-capability agent for independent completion review. Human
+review is optional; require it only when the user explicitly requests it. Honor
+the user's selected review model. For the agent reviewer:
 
 - start it without the implementer's conversational history when possible;
 - give it read-only repository access;
