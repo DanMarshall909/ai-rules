@@ -72,10 +72,14 @@ invalidation contract, fast/full commands, measurement protocol and lifecycle.
 Do not build custom mutation scheduling when Stryker's own per-test coverage,
 mixing, bail and mutation filters can retain correctness.
 
-Before completion review, run the project's unfiltered configured mutation
-command once for every eligible changed production assembly. Retain JSON or
-another machine-readable report and inspect survivor, timeout, no-coverage, and
-test-attribution details—not just the headline score.
+After the whole coding session and ordinary ticket completion, enqueue the
+project's unfiltered configured mutation command for every eligible changed
+production assembly against the final immutable snapshot. This run does not
+block review, integration or publication. Permit only one active mutation run
+per repository. When it completes, retain JSON or another machine-readable
+report, inspect survivor, timeout, no-coverage and test-attribution details,
+and start verified follow-up for actionable findings—not just the headline
+score.
 
 For Stryker JSON, obtain the test catalog from unique
 `testFiles.*.tests[].id` values and mutant attribution from `coveredBy` and
@@ -108,7 +112,8 @@ Official reference: <https://stryker-mutator.io/docs/stryker-net/configuration/>
 ## Completion evidence
 
 Retain the resolved SDK/tool versions, build result, exact targeted and full test
-commands, machine-readable test results, owning coverage reports, Stryker
-configuration and reports, and any discrepancy between terminal and report
-totals. Thresholds and exclusions are project policy; do not invent or lower
-them in this module.
+commands, machine-readable test results, owning coverage reports, and Stryker
+configuration. Record the post-session mutation job as pending until its report
+is available; then retain that report and any discrepancy between terminal and
+report totals. Thresholds and exclusions are project policy; do not invent or
+lower them in this module.

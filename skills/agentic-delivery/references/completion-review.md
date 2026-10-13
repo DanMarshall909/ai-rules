@@ -51,6 +51,11 @@ Provide raw, falsifiable evidence rather than an argument for approval:
 - prior findings and deduplicated lesson candidates, if any, in the existing repair record; and
 - the proposed post-`PASS` envelope.
 
+For post-session mutation, record its planned final snapshot and pending status.
+The absence of a fresh mutation report does not block this candidate's review,
+integration or publication; do not present pending work as passing evidence.
+Review and act on the report through the later mutation follow-up workflow.
+
 The manifest must deterministically identify the candidate. At minimum, record
 the base and current object IDs and, in bytewise path order, each path's change
 and index/worktree status, canonical mode, content digest or deletion marker,

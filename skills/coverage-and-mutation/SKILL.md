@@ -33,6 +33,23 @@ For a long run, monitoring, cancellation or unexpectedly high token use, read
 [Long mutation runs](references/long-mutation-runs.md). Its monitoring and
 evidence rules preserve the project's required scope and completion gates.
 
+Start the normal mutation run only after the whole coding session's final source
+commit and ordinary verification. Freeze an immutable snapshot and record its
+repository, source identity, selected tests, tool and configuration. Do not
+block ticket completion, integration or publication while mutation runs. Across
+processes and worktrees, permit at most one active mutation run per repository;
+queue a distinct later snapshot or record why it was superseded instead of
+starting a concurrent worker. A queued, running, failed or stale run is not
+passing mutation evidence.
+
+Arrange durable completion handling where supported: review the actual report,
+classify actionable survivors, missing coverage, timeouts and compile errors,
+then start a scoped verified repair or tracked follow-up. If the runner cannot
+schedule or consume results automatically, record that gap and a pending
+owner/action at handoff. Do not claim automation, a review or a repair occurred
+because a detached process was launched. Earlier mutation is an explicit
+project or user choice, not the normal ticket gate.
+
 ## Mutation knowledge should survive the build
 
 Optimise for behavioural confidence per unit of compute, not for the number of
@@ -237,11 +254,10 @@ and confirm the mutation tool can kill a fault you planted yourself, before read
 any score it produces. Hand-injection is not the crude approximation of mutation
 testing; it is what calibrates it.
 
-That ordering is between the two *questions*, not a schedule. It does not mean
-mutation belongs at the end, after the feature is finished and the design has set.
-Run it as soon as a slice is green and its lines are covered — the report's design
-signal is worth the most while the design is still soft enough to act on. See
-"Read the whole report early" below.
+That ordering is between the two *questions*, not a requirement to run mutation
+inside each slice. Preserve the completed slice's coverage and behavior evidence
+for the post-session run. A report may prompt a follow-up design or test change;
+bind any such work to the report's exact source snapshot.
 
 Which cuts both ways. Everything above is a false *survivor* — a test that never
 ran. But a reported *kill* can be as hollow: a test that failed without checking the
@@ -312,13 +328,12 @@ something you have decided not to own: the wording of an exception message, or a
 guard whose behaviour belongs to the standard library. Say so where the exclusion
 lives, or the next reader will read it as a lowered bar.
 
-## Read the whole report early — it is a design review
+## Read the whole report when it completes — it is a design review
 
-Run mutation analysis early in a green, coverage-understood slice, rather than
-only at the final release gate. Its most valuable output is not the score: it maps
-which code nothing can distinguish — and that is a finding about the design, worth
-having while the design is still cheap to change. A report read after the feature is
-finished can still improve the design, but earlier feedback is cheaper to use.
+The post-session report maps code that the selected tests cannot distinguish.
+Review it after completion and act on material findings through the ordinary
+verification and publication workflow. Its value is the design evidence, not
+the score; a later report must not silently qualify newer code.
 
 **Read it by clustering survivors across files, not file by file.** One survivor is a
 question about one test. The *same survivor shape* in seven types is a question about

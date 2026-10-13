@@ -129,12 +129,17 @@ Use the narrowest owning test during the inner loop, then widen proportionately:
 3. the fast unit suite;
 4. the complete suite;
 5. owning-package coverage;
-6. mutation analysis for changed core production areas; and
-7. applicable build, architecture, specification, generated-data, security,
+6. applicable build, architecture, specification, generated-data, security,
    rendering, performance, or manual-use gates.
 
 Do not narrow a completion gate to make it pass. If tooling requires composite
 runs, preserve the full intended scope and disclose the split.
+
+Mutation analysis of changed core production areas begins after the whole
+coding session, against its final immutable source snapshot. It does not hold
+up a verified ticket, integration, or publication. Report a queued or running
+job as pending, never as passing evidence; use the result-review and follow-up
+rules in `coverage-and-mutation` when it completes.
 
 For long commands, retain the exact command, working directory, complete output,
 duration, and exit status in a named log while showing concise progress and

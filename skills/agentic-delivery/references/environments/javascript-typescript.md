@@ -67,11 +67,14 @@ StrykerJS supports a combination such as:
 npx stryker run --incremental --force --mutate <pattern>
 ```
 
-Before completion review, run the project-approved full mutation command without
-incremental reuse, unless the repository has separately validated an
-authoritative baseline protocol. Retain the JSON report and inspect killed,
-survived, timeout, no-coverage, ignored, and error buckets. Verify that the
-configured runner discovered the intended tests and that attribution is real.
+After the whole coding session and ordinary ticket completion, enqueue the
+project-approved full mutation command against the final immutable snapshot,
+without incremental reuse unless the repository has separately validated an
+authoritative baseline protocol. This run does not block review, integration or
+publication. Permit only one active mutation run per repository. When it
+completes, retain the JSON report and inspect killed, survived, timeout,
+no-coverage, ignored and error buckets; verify test discovery and attribution,
+then start verified follow-up for actionable findings.
 
 Calibrate the harness by applying one representative fault, proving the source
 actually changed, and watching a named test reject it. Restore the source and
@@ -88,6 +91,7 @@ Official references:
 
 Retain the runtime and package-manager versions, lockfile identity, build and
 typecheck results, exact package/test commands, machine-readable test and
-coverage output, Stryker configuration and reports, incremental invalidation
-decision, and relevant browser/server evidence. Thresholds and exclusions are
-project policy; do not invent or lower them in this module.
+coverage output, Stryker configuration, incremental invalidation decision,
+and relevant browser/server evidence. Record post-session mutation as pending
+until its report is available, then retain the report. Thresholds and
+exclusions are project policy; do not invent or lower them in this module.
