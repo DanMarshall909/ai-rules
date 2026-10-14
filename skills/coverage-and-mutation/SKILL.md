@@ -18,6 +18,13 @@ component, or suitable in-process integration tests whose execution and source
 attribution the runner can verify. Exclusion from mutation is not permission to
 skip end-to-end verification at required checkpoints.
 
+Every maintained suite has explicit fast and slow lanes. Slow tests are ordinary
+regression evidence and never run in mutation baseline, coverage-capture or
+mutant-execution phases. Read [Test lanes and mutation lifecycle](references/test-lanes-and-lifecycle.md)
+when selecting lanes, deriving slow-only source exclusions or completing a
+mutation run. It owns repeated timing checks, ordinary per-lane coverage,
+exclusion calibration and required disk cleanup on every terminal path.
+
 When this skill is used through `agentic-delivery`, first read its matching
 environment modules. Mutation implementations are not flag-compatible:
 Stryker.NET `--since` produces a changed-mutant subset, while StrykerJS

@@ -67,6 +67,14 @@ StrykerJS supports a combination such as:
 npx stryker run --incremental --force --mutate <pattern>
 ```
 
+Apply the `coverage-and-mutation` lane protocol using the actual coverage
+provider and source maps. Match ordinary fast/slow coverage to the same
+production identity, calibrate source-range exclusions against the pinned
+StrykerJS/runner combination, and bind membership and coverage inputs to reusable
+state. Never run slow tests in Stryker's dry run, coverage capture or mutant
+execution. If attribution or supported exclusions cannot be verified, record
+the affected mutation scope as pending until its adapter is verified.
+
 After the whole coding session and ordinary ticket completion, enqueue the
 project-approved full mutation command against the final immutable snapshot,
 without incremental reuse unless the repository has separately validated an
@@ -75,6 +83,9 @@ publication. Permit only one active mutation run per repository. When it
 completes, retain the JSON report and inspect killed, survived, timeout,
 no-coverage, ignored and error buckets; verify test discovery and attribution,
 then start verified follow-up for actionable findings.
+Full retains all eligible scope after explicit slow-only exclusions and uses
+fast tests; it does not reintroduce slow or end-to-end tests. Complete owned-output
+cleanup after success, failure and cancellation.
 
 Calibrate the harness by applying one representative fault, proving the source
 actually changed, and watching a named test reject it. Restore the source and

@@ -2,6 +2,11 @@
 
 ## Keep waiting cheap
 
+Follow [Test lanes and mutation lifecycle](test-lanes-and-lifecycle.md) before
+launch and after every terminal outcome. Run no slow-lane tests inside mutation
+phases; derive slow-only exclusions from valid ordinary coverage instead. A
+background job is responsible for its own bounded cleanup as well as reporting.
+
 Respect the user's separate priorities for runtime, agent tokens, memory and
 disk. A local mutation process consumes compute; model calls to supervise and
 analyse it consume tokens. Long elapsed time alone does not warrant cancelling

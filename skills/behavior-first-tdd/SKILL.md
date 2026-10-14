@@ -81,6 +81,15 @@ valuable cross-boundary evidence.
 
 ## Keep Routine TDD Feedback Fast
 
+Maintain named fast and slow selections for every maintained suite, including
+suites whose slow selection is currently empty. On each ordinary run inspect
+test and setup/teardown timings for candidates to move in either direction.
+Confirm candidates with comparable non-mutated reruns before editing membership;
+a single timing spike is not grounds for moving a test. Use the lane protocol
+in `coverage-and-mutation` for repeat evidence, selection reconciliation and
+per-lane coverage. Ordinary fast feedback does not require repeating the entire
+slow suite; reuse valid retained timings and verify selected candidates.
+
 Set a project-specific wall-clock budget for the regular TDD suite, aiming for
 the entire routine suite to finish in a few seconds on representative hardware.
 Measure each test's median elapsed time, including setup and teardown, over

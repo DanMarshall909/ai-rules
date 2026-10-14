@@ -207,6 +207,8 @@ The configuration fingerprint should cover at least:
 - shared test infrastructure and non-code test inputs;
 - source generators and their schema/corpus inputs; and
 - any option that changes mutant generation, coverage, filtering or thresholds.
+- fast/slow lane membership, ordinary per-lane coverage identities and the
+  calibrated slow-only source exclusions.
 
 Inventory explicitly selected inputs even when Git ignores their directory.
 An ignored configuration or response file still controls the run; a clean Git

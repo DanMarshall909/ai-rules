@@ -54,7 +54,7 @@ capabilities and relevant session context; report unsupported scheduling honestl
 ## Agentic TDD Protocol
 
 For behaviour changes use the `behavior-first-tdd` skill: **Tidy → RED → GREEN → COVERAGE → REFACTOR → next RED**; one observable criterion at a time. GREEN alone does not complete it.
-Keep routine TDD feedback within a few seconds; question tests >1.5× peer median. Move slow integration assertions to real business-rule unit tests where possible; retain boundary evidence, never mock away the rule.
+Every maintained suite in every repository has explicit fast and slow lanes. Review timing/lane candidates on each ordinary run; move tests either way only after comparable reruns rule out an anomaly. Run slow at the final ticket checkpoint; `coverage-and-mutation` owns the procedure. Keep routine feedback within a few seconds; question tests >1.5× peer median. Move slow integration assertions to real business-rule unit tests where possible; retain boundary evidence, never mock away the rule.
 
 Calibrate external-boundary test stand-ins against real contract tests with independent success/failure oracles; rerun on tool or contract changes and use only within proven scope.
 
@@ -68,15 +68,15 @@ Use `agentic-delivery` for non-trivial implementation, not read-only reviews.
 When reviewing coverage, mutation results, compatibility paths, or dead code, use the `coverage-and-mutation` skill.
 
 - Aim for 100% coverage of core code through externally observable behavior.
-- An uncovered line did not execute in the measured run (assuming sound
-  instrumentation); a covered line was not necessarily checked by an assertion.
-- Remove code that has no useful caller or contract instead of covering it for
-  its own sake.
+- Coverage proves execution in the measured run with sound instrumentation, not a checked assertion; uncovered code did not execute in that run.
+- Remove code with no useful caller or contract instead of covering it for its own sake.
 - Establish coverage before mutation; calibrate with a fault a test rejects. After the whole session, run mutation on the final snapshot, one active job per repository; never block tickets or integration, and review and act on results later.
 - Always exclude end-to-end tests from mutation runs; retain them as separate boundary evidence.
+- Exclude slow-lane tests from every mutation phase. Use source-bound coverage from both ordinary lanes to exclude only sections covered by slow tests but no fast tests; keep fast-covered sections eligible and genuinely uncovered sections visible. Missing or stale lane attribution is a disclosed pending scope, never an invented exclusion or passing score.
 - Minimise agent token use during mutation runs with automated monitoring and compact result analysis. Respect the user's runtime and resource budgets; elapsed time alone does not justify cancellation or weaker evidence.
 - Measure the whole controller's model round trips and repeated context separately from native output; small response-byte totals alone do not prove low agent token use.
 - Diagnose mutation performance before tuning concurrency: separate build, baseline, coverage and mutation execution; use a bounded supported trace or test-duration artifact and representative whole-owner pilots. Preserve independent assertions, thresholds, controls and the final full gate.
+- Complete mutation cleanup after success, failure and cancellation: verify owned workers stopped, retain compact evidence and reusable baselines, remove owned disposable sandboxes/instrumented copies/temp output, and record disk space reclaimed. Inspect uncertain ownership; never use broad deletion of worktrees, builds or shared caches to recover space.
 
 ---
 

@@ -72,14 +72,25 @@ invalidation contract, fast/full commands, measurement protocol and lifecycle.
 Do not build custom mutation scheduling when Stryker's own per-test coverage,
 mixing, bail and mutation filters can retain correctness.
 
+Apply the `coverage-and-mutation` lane protocol: collect ordinary fast/slow
+coverage with matching production identities, calibrate the pinned runner's
+supported source-range exclusions, and bind lane membership and coverage inputs
+to reusable state. Never send the slow selection to Stryker's initial tests,
+coverage capture or mutant execution. Do not infer section coverage from a
+whole-file aggregate or invent an unsupported filter flag. If trustworthy
+attribution/exclusion is unavailable, record the affected mutation scope as
+pending until its adapter is verified.
+
 After the whole coding session and ordinary ticket completion, enqueue the
-project's unfiltered configured mutation command for every eligible changed
+project's full configured mutation command for every eligible changed
 production assembly against the final immutable snapshot. This run does not
 block review, integration or publication. Permit only one active mutation run
 per repository. When it completes, retain JSON or another machine-readable
 report, inspect survivor, timeout, no-coverage and test-attribution details,
 and start verified follow-up for actionable findings—not just the headline
-score.
+score. Full refers to all eligible production scope after explicit slow-only
+exclusions, using fast tests; it does not reintroduce slow or end-to-end tests.
+Complete the owned-output cleanup protocol on success, failure and cancellation.
 
 For Stryker JSON, obtain the test catalog from unique
 `testFiles.*.tests[].id` values and mutant attribution from `coveredBy` and
