@@ -25,6 +25,17 @@ when selecting lanes, deriving slow-only source exclusions or completing a
 mutation run. It owns repeated timing checks, ordinary per-lane coverage,
 exclusion calibration and required disk cleanup on every terminal path.
 
+Use copy-on-write mutation sandboxes backed by a pinned immutable source, tool
+and dependency base. Each attempt has an independent writable layer; reuse
+prepared dependencies instead of downloading or copying a full cache per run.
+Snapshots/reflinks and isolated overlays are suitable; symlinks or hardlinks to
+shared writable files are not isolation. Keep durable reports and recovery
+evidence outside disposable layers. Read the storage requirements in
+[Test lanes and mutation lifecycle](references/test-lanes-and-lifecycle.md)
+before preparing or recovering a sandbox. If safe CoW storage is unavailable,
+record a visible blocker; do not silently fall back to full copies or shared
+writes.
+
 When this skill is used through `agentic-delivery`, first read its matching
 environment modules. Mutation implementations are not flag-compatible:
 Stryker.NET `--since` produces a changed-mutant subset, while StrykerJS

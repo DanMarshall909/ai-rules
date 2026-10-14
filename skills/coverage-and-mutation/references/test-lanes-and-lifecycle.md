@@ -86,6 +86,36 @@ verification and publication can complete while post-session mutation remains
 explicitly pending. Lane moves, test edits, changed source/maps and tool/config
 changes invalidate affected exclusions and reusable mutation outcomes.
 
+## Use copy-on-write mutation storage
+
+Prepare one pinned immutable base for the selected source, tool and dependency
+versions, then give each attempt an independent writable view using filesystem
+snapshots/reflinks or an isolated overlay. A fresh empty package cache defeats
+sharing: populate and verify reusable starting data once. Do not substitute
+symlinks or hardlinks to a writable shared tree; a mutant or restore must never
+alter another attempt or its base.
+
+Record the base inventory and identity, storage backend, writable-layer paths,
+attempt identity and owned processes. Check filesystem support and capacity
+before large operations. Protect the base from writes within the run and
+validate its retained identity before execution and after exact worker cleanup.
+Calibrate with an actual isolated write and a named rejected assertion fault;
+a successful mount or a passing test alone does not establish isolation.
+
+Keep raw reports, logs, terminal outcomes and recovery descriptors outside
+disposable layers. Retain the required base and changed layer when inspection
+or recovery depends on them; seal their contents and relevant metadata before
+admitting evidence. Remount inspection read-only without replaying mutation,
+serialize reuse of writable layers, and fence interrupted ownership until
+exact cleanup is proven. Controller death must not leave an unowned mount or
+allow a second worker to reuse a live layer.
+
+If safe CoW storage is unavailable, report the affected run as blocked or pending
+and name the missing capability. Do not silently use full copies or shared
+writes. A user-authorized fallback must state its isolation and disk cost and
+retain the same verification and evidence requirements. Compare equivalent
+verification before claiming storage or runtime savings.
+
 ## Cleanup is part of every mutation run
 
 Before launch, record a run identity, owned process tree, output filesystem/free
