@@ -129,7 +129,7 @@ and never twice — a layered set arrives in repos that already have both.
 | `rules/guardrails.md` | Turn a repeatable mistake into a test that fails at build time |
 | `rules/security.md` | Concentrate security decisions behind one narrow, intent-named boundary |
 | `rules/git.md` | Sync before work; promptly push verified work without force; preserve reviewed bytes and merge history |
-| `rules/issues.md` | GitHub and/or canonical `docs/issues/[open\|resolved]/[area]/` tracking |
+| `rules/issues.md` | Declared GitHub, repository or external tracking with one authority per live fact |
 | `rules/reflection.md` | Reflect quietly during work; aggregate material findings at handoff |
 | `rules/authority.md` | Instruction precedence, task authority, and proportionate scope |
 | `rules/sync.md` | Quiet remote and unpublished-work preflight for the shared checkout |
@@ -150,6 +150,10 @@ adapters do not add authority.
 | Adopt or reconcile rule and skill installations | [adopt-ai-rules](skills/adopt-ai-rules/SKILL.md) |
 | Upgrade the durable checkout and global skill links | [upgrade-global-skills](skills/upgrade-global-skills/SKILL.md) |
 | Make repository-owned skills portable across agents | [make-repository-skills-portable](skills/make-repository-skills-portable/SKILL.md) |
+| Refine objectives and coordinate ready slices across agents/sessions | [project-orchestration](skills/project-orchestration/SKILL.md) |
+| Track work in GitHub Issues and optional Projects | [track-github-work](skills/track-github-work/SKILL.md) |
+| Track work or evidence in declared repository Markdown | [track-repository-work](skills/track-repository-work/SKILL.md) |
+| Track work in another declared work-item system | [track-external-work-items](skills/track-external-work-items/SKILL.md) |
 | Deliver accepted implementation scope | [agentic-delivery](skills/agentic-delivery/SKILL.md) |
 | Design tests and complete each TDD cycle | [behavior-first-tdd](skills/behavior-first-tdd/SKILL.md) |
 | Interpret coverage, mutants and pruning evidence | [coverage-and-mutation](skills/coverage-and-mutation/SKILL.md) |
@@ -158,6 +162,11 @@ adapters do not add authority.
 | Pace a requested session | [break-reminders](skills/break-reminders/SKILL.md) |
 | Create a project website from the Astro starter | [create-astro-site](skills/create-astro-site/SKILL.md) |
 | Assess findings during work and aggregate lessons at handoff | [reflect](skills/reflect/SKILL.md) |
+
+Use `project-orchestration` when a software objective needs discovery and rolling
+planning before delegated implementation. It hands ready slices to
+`agentic-delivery`; tracker skills can also be used independently. Preserve the
+project's declared tracker and accepted direction.
 
 Rules state boundaries and route to these owners; they do not repeat the full
 procedures. A named skill is a package name, not a guarantee that every client
@@ -308,6 +317,7 @@ scripts/test-install-skill.sh      # the skill installer's behaviour
 scripts/test-install-rules.sh      # the rules installer's behaviour
 scripts/test-install-contracts.sh  # cross-installer destinations and packages
 scripts/test-rules-sync-preflight.sh # quiet rules-sync preflight behaviour
+scripts/test-repo-config.sh        # repository resource configuration contract
 scripts/test-new-skill.sh          # the skill scaffold's behaviour
 scripts/test-new-rule-set.sh       # the rule and rule-set scaffolds
 scripts/check-conventions.sh       # skills load, installers agree, rules registered
@@ -343,6 +353,10 @@ rules/
 skills/
   ai-rules/SKILL.md             ← how to work on this repo itself
   adopt-ai-rules/SKILL.md       ← safe adoption and duplicate reconciliation
+  project-orchestration/SKILL.md ← discovery, rolling plans and coordination
+  track-github-work/SKILL.md    ← GitHub Issues and optional Projects tracking
+  track-repository-work/SKILL.md ← declared Markdown work/evidence records
+  track-external-work-items/SKILL.md ← native external tracker adaptation
   agentic-delivery/SKILL.md     ← scope-to-publication delivery workflow
   break-reminders/SKILL.md      ← host-aware requested session pacing
   behavior-first-tdd/SKILL.md   ← behaviour-first TDD
