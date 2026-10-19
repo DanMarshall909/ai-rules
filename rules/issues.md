@@ -1,40 +1,35 @@
 # Issue & Finding Tracking
 
-Projects may track work in GitHub Issues and Projects, in repository markdown,
-or in both. Follow the repository's declared tracker; do not introduce a second
-authority merely to mirror status.
+Follow the project's declared GitHub Issues/optional Projects, repository
+Markdown, external tracker or hybrid. Preserve declared paths and schemas;
+do not force migration or introduce a second authority to mirror status.
 
-When both are used, give them distinct jobs:
+Keep one authority per live fact. In a hybrid, assign distinct jobs: the chosen
+tracker owns live priority, assignment and status; repository files may hold
+durable investigation, evidence, decisions or security findings. Link stable
+item, criterion, dependency and evidence references without competing status
+fields. OpenSpec design/evidence is not automatically a workflow tracker.
 
-- GitHub owns live priority, assignment, and workflow status.
-- Repository files hold durable investigation, evidence, decisions, or security
-  findings that benefit from review and version history.
-- Link the two records. Do not duplicate an issue body or maintain competing
-  status fields in both places.
+Use the discoverable skill packages `track-github-work`,
+`track-repository-work` or `track-external-work-items` for mechanics.
+Missing packages or access require honest capability reporting; use available
+authorized tools without claiming a workflow loaded or synchronization succeeded.
 
-All file-backed issues and findings use this canonical folder structure:
-
-```
+Only if no tracker or repository layout is declared, use:
+```text
 docs/issues/
   open/[area]/[ticket-id]-[slug].md
   resolved/[area]/[ticket-id]-[slug].md
 ```
+Discover existing business-domain areas. For authoritative fallback files,
+resolution sets `status: Resolved`, records evidence in the decision log and
+moves the file to `resolved/[area]/`. For linked evidence files, open/resolved
+means investigation archival only; record that decision and link live status.
+Close work only under the project's completion rule; update linked evidence
+within the authorized change.
 
-- `area` = business domain (api, auth, payments, pii, booking, database, …)
-- Discover existing areas from the folder structure — don't hardcode them
-- If a file is linked to a GitHub issue, include the issue URL and use one stable
-  ticket identity in both records.
-- When the file is the authoritative tracker, resolution updates
-  `status: Resolved`, adds a decision-log entry and moves it to `resolved/[area]/`.
-- When GitHub owns workflow status, a linked file's open/resolved location tracks
-  only whether its investigation is archived. Do not add a duplicate task-status
-  field; record the archive decision and link to live status.
-- On resolution of a GitHub-tracked item: follow the project's completion rules
-  and update any linked durable file in the same change.
-
-If the repository declares neither approach, use `docs/issues/` rather than
-inventing another local folder.
-
-Use the repository's available tracking tools or edit the authorized record
-directly. For a security finding, also use the `security-by-design` skill; this
-repository does not supply separate issue or security-finding slash commands.
+Reread before narrow updates, preserve concurrent edits, use supported
+conditional writes and read back results. Unavailable access is not no work.
+Label unsynchronized drafts; never create a shadow tracker. Existing task-update
+authority covers routine in-scope maintenance; outreach needs separate authority.
+For security findings, also use `security-by-design`.
