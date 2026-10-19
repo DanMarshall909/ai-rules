@@ -16,8 +16,13 @@ Give a worker enough context to execute a bounded accepted slice:
 | Novelty | Named unproved decision, transition, persistence shape, authority boundary, interface or primitive. |
 | Capability | Role and qualified currently available model/effort, with reason tied to novelty/proof. |
 | Ownership | Absolute checkout, branch/base, owned paths, tests, contracts, schemas, generated data and mutable resources. |
-| Authority | Permitted edits, commands and side effects; actions still requiring a decision. |
+| Authority | Permitted edits, commands and side effects; decisions/repairs the worker may make; retry limits, stop/escalation triggers and decision owner. |
 | Delivery | Required test/evidence/review, handoff, integration and completion conditions. |
+
+Delegate routine in-scope repair decisions with the work, so workers need not ask
+the lead about every reversible choice. Escalate when a named trigger is reached,
+accepted behaviour or ownership would change, or required authority is absent.
+Retry budgets authorize neither new external actions nor weakening acceptance.
 
 Absence of known proof does not mean absence of implementation. Investigate
 before classifying. A dependency that is already used elsewhere still needs
@@ -45,6 +50,28 @@ make one shared service or build output safe for concurrent writers.
 Assign an integration owner and order. That owner assembles accepted changes,
 checks dependencies/contracts and runs the relevant combined validation.
 A worker's PASS does not prove the assembled candidate or authorize publication.
+
+## Evidence and communication cost
+
+Retain raw evidence once and link a compact summary of result, claim, exact inputs
+and known limits. Record which source/configuration, external contract and
+execution environment each result depends on. After a change, invalidate affected
+claims and run the required checks; reuse unaffected evidence only where the
+project permits and the input relationship is established. Unknown dependencies
+need qualification, not an assumed pass. This does not waive integration or
+independent-review gates owned by delivery.
+
+Load the current packet and relevant references instead of replaying full history.
+Within the same context, reuse already-read instructions when their revision is
+unchanged; after context loss, read applicable instructions and current decisions
+again rather than assuming they are remembered. Recheck mutable facts before acting.
+Ask workers for changed facts, decisions, blockers and evidence links, not repeated
+chronologies or complete logs. Keep required raw records intact outside the summary.
+
+For long commands, use completion notifications or bounded waits and the project's
+inspection cadence. Check again on a meaningful event or planned checkpoint;
+avoid frequent unchanged polls, duplicate watchers and narration of every poll.
+Keep any host-required responsiveness and progress updates.
 
 ## Explicit handback
 
@@ -77,6 +104,10 @@ authorized record or session handoff location:
 - criteria/evidence/review status, missing business or hosted acceptance;
 - the next ready action, its prerequisites and any required authorization.
 
+Lead with current status, blocker, owner and next action; link detailed history.
+Update that summary in place rather than appending another full narrative. Preserve
+superseded decisions and original evidence in their existing records, with links
+when needed to explain the current state. Keep tracker authority unchanged.
 Store references rather than duplicating sensitive inputs or complete logs.
 Checkpointing does not authorize new repository files or remote writes beyond
 the task's scope.

@@ -61,6 +61,41 @@ success/failure threshold and adopt/revise/defer result. Validate the assumption
 at the smallest useful real boundary. Do not treat a diagram or fake as runtime
 proof. Keep speculative future architecture provisional.
 
+## Qualify uncertain dependencies early
+
+When a real provider, model, service, device or integration could invalidate the
+approach, make its smallest representative end-to-end probe an early work item.
+A connectivity check or successful fake does not qualify the needed semantics.
+Reuse relevant current evidence; do not add a probe to every routine dependency.
+Use the testing/delivery owner for implementation and boundary calibration.
+
+Before running an experiment, record in the existing work item:
+
+- the question and decision it will inform, fixed cases/expected outcomes and
+  representative success, refusal and failure controls;
+- the input, source and environment identities, controlled variables and any
+  shared-resource ownership needed to compare conditions;
+- a justified repeat count or retry budget, time/compute/cost limits and stop
+  conditions, proportionate to uncertainty and consequence;
+- what result supports adoption, repair, restriction or escalation, who can
+  decide, and the next action if the experiment is inconclusive.
+
+Distinguish a successful demonstration from repeatable reliability. Define the
+required evidence from the product's needs before trials; do not invent a universal
+sample size or infer reliability from one success. Preserve all attempts and
+report the denominator, conditions and limits. A changed prompt, case or environment
+starts a new identified experiment; retain prior failures rather than searching
+for a passing example. A new experiment does not reset the overall work-package
+budget; exceeding it needs a decision from its authorized owner. Calibration
+cases are not held-out acceptance cases.
+
+When the budget or stop condition is reached, make the planned decision. Retry
+only under the assigned contract; changing models, services or shared state still
+requires the applicable authority. Correlation suggests a diagnostic, not a cause.
+For each remaining blocker, name the unresolved question, smallest discriminating
+next action, owner, prerequisite/authority and stopping condition. Pause only its
+dependents; do not leave an ownerless blocker or repeat an unchanged investigation.
+
 ## SME decisions and early heads-up
 
 Surface specialist dependencies as soon as they are visible, before their slice

@@ -31,8 +31,10 @@ Resolve only disagreements material to the next action. Ask for required
 inputs or material decisions with context and a recommendation; reuse accepted
 decisions and permissions. Silence is not consent.
 
-Respect an explicit planning-only gate. Without such a gate, routine refinement
-and in-scope execution do not need separate approval at each phase.
+Keep recommendations separate from execution authority: a request to identify
+next work does not itself authorize implementation. Respect planning-only and
+orchestration-only limits. Within an already authorized objective, routine
+refinement and execution do not need separate approval at each phase.
 
 ## Investigate and refine in rolling waves
 
@@ -51,7 +53,10 @@ across sessions, without completing all discovery before any delivery.
 A discovery result may narrow scope or create another bounded question.
 
 Read [references/discovery-and-decisions.md](references/discovery-and-decisions.md)
-when clarifying domain terms, UI, architecture or specialist decisions. Reuse
+when clarifying domain terms, UI, architecture, specialist decisions or uncertain
+external capabilities. Qualify a dependency that could invalidate the approach
+at the smallest useful real boundary before expanding dependent implementation.
+Use a bounded experiment with a decision at its end, not open-ended retries. Reuse
 accepted direction; do not recreate mockups or ADRs merely to satisfy a phase.
 Maintain enough shared vocabulary and design direction to prevent incompatible
 work packages, and prepare specialist decision requests early.
@@ -87,8 +92,8 @@ For every work package, record:
 
 - stable item/criterion IDs, outcome, exclusions, dependencies and order;
 - agent role, available model/effort choice and criterion-based reason;
-- authority and owned source, tests, contracts, schemas, generated files and
-  mutable resources;
+- delegated decision/repair authority, retry and escalation boundaries, and owned
+  source, tests, contracts, schemas, generated files and mutable resources;
 - independently accepted proof for the SAME criterion, with revision and review;
 - the smallest novel boundary needing a tracer, when existing proof is absent;
 - tests, evidence, independent review, handoff, integration and completion rules.
@@ -127,11 +132,18 @@ procedures, and leave unmet review or evidence gates outstanding.
 Validate the assembled candidate against the objective and slice criteria.
 Individually passing branches do not prove their combined behaviour.
 Retain independent review and exact candidate identity using the delivery owner.
+Link evidence to the inputs and boundaries it qualifies; use affected dependencies
+to decide what to revalidate while retaining every mandatory gate.
 
 Track local checks, review, commit, push, PR, CI, merge, deployment, hosted
 verification and business/SME acceptance as separate evidence states.
 Authority for each action is separate from evidence that it succeeded.
 Engineering or synthetic review does not stand in for accountable owner acceptance.
+An explicitly authorized partial integration follows the project's applicable
+integration/publication gates. Do not impose completion-only gates as though
+completion were claimed, or waive gates that also apply to unfinished work.
+Record its isolation or exposure, open criteria and next action. Merge never
+supplies missing acceptance or qualifies a dependency that requires completion.
 
 After each material result, update the authorized tracker narrowly, revise only
 affected future scope and save a durable resume packet. On resume, revalidate
