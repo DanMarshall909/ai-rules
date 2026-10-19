@@ -95,6 +95,10 @@ requires the applicable authority. Correlation suggests a diagnostic, not a caus
 For each remaining blocker, name the unresolved question, smallest discriminating
 next action, owner, prerequisite/authority and stopping condition. Pause only its
 dependents; do not leave an ownerless blocker or repeat an unchanged investigation.
+At a stop, leave an explicit resume condition: the decision needed, recommended
+option and rationale, decision owner, and evidence or renewed authority/budget
+required to resume. Name authorized independent work that can continue, or state
+that none is ready. Elapsed time or a new session does not satisfy that condition.
 
 ## SME decisions and early heads-up
 

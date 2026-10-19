@@ -68,6 +68,12 @@ again rather than assuming they are remembered. Recheck mutable facts before act
 Ask workers for changed facts, decisions, blockers and evidence links, not repeated
 chronologies or complete logs. Keep required raw records intact outside the summary.
 
+At meaningful checkpoints, record available orchestration cost evidence in the
+existing packet: token usage, agent/tool calls and repeated validation cost, with
+its source and scope. Separate orchestration overhead from native execution cost.
+Label estimates and proxies; unavailable usage is unknown, not zero. Do not claim
+savings without comparable measurements or add costly telemetry merely to fill fields.
+
 For long commands, use completion notifications or bounded waits and the project's
 inspection cadence. Check again on a meaningful event or planned checkpoint;
 avoid frequent unchanged polls, duplicate watchers and narration of every poll.
