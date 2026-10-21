@@ -25,6 +25,7 @@ skill: break-reminders
 skill: reflect
 skill: adopt-ai-rules
 skill: upgrade-global-skills
+skill: worktree-cleanup-audit
 skill: make-repository-skills-portable
 skill: create-astro-site
 skill: project-orchestration

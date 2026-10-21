@@ -47,3 +47,6 @@ jobs:
       - name: PowerShell rules sync preflight behaves
         shell: pwsh
         run: scripts/test-rules-sync-preflight.ps1
+      - name: PowerShell worktree cleanup report behaves
+        shell: pwsh
+        run: scripts/test-worktree-cleanup-report.ps1
