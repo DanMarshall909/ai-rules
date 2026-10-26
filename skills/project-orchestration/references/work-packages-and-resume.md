@@ -68,11 +68,10 @@ again rather than assuming they are remembered. Recheck mutable facts before act
 Ask workers for changed facts, decisions, blockers and evidence links, not repeated
 chronologies or complete logs. Keep required raw records intact outside the summary.
 
-At meaningful checkpoints, record available orchestration cost evidence in the
-existing packet: token usage, agent/tool calls and repeated validation cost, with
-its source and scope. Separate orchestration overhead from native execution cost.
-Label estimates and proxies; unavailable usage is unknown, not zero. Do not claim
-savings without comparable measurements or add costly telemetry merely to fill fields.
+When an actual handoff packet is needed, include readily available
+orchestration cost evidence if it informs a decision. Separate agent effort from
+native execution cost. Label estimates and proxies; unavailable usage is unknown,
+not zero. Do not run telemetry or create a status record merely to fill fields.
 
 For long commands, use completion notifications or bounded waits and the project's
 inspection cadence. Check again on a meaningful event or planned checkpoint;
@@ -81,15 +80,16 @@ Keep any host-required responsiveness and progress updates.
 
 ## Explicit handback
 
-Before ownership changes, the outgoing executor reports:
+Before ownership changes, the outgoing executor gives one compact handback:
 
-- checkout/path, branch, base and current revision; digests for uncommitted
-  files or artifacts needed to identify the exact handback;
-- changed/owned paths, commands with working directory, output/evidence and
-  exit status, findings and known gaps;
-- running/pending commands and ownership of outputs, caches, ports, services,
-  containers or other shared resources;
-- next action and whether each mutable scope is released or retained.
+- checkout/ref and changed paths; a digest only when needed to identify
+  uncommitted or generated content;
+- outcomes, gaps and links to existing command logs or receipts;
+- running commands and shared resources still owned;
+- next action and explicit release or retention of mutable scope.
+
+Do not create a handback manifest or repeat the assignment/history to convey
+these facts.
 
 The recipient acknowledges the exact snapshot and resources before taking
 ownership. Silence, timeouts, interruption and an agent's final prose alone do
@@ -99,8 +99,8 @@ work; resolve ownership under project policy before a replacement writes.
 
 ## Durable resume packet
 
-At meaningful checkpoints, keep a small versioned packet in the established
-authorized record or session handoff location:
+Only at an actual owner/session handoff, pause or context-loss risk, keep a
+small packet in an established authorized record or session handoff location:
 
 - objective and plan versions, accepted outcome, cut line and stopping condition;
 - decisions, glossary/design authority, source revisions and unresolved questions;

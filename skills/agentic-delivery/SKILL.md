@@ -133,7 +133,10 @@ Use the narrowest owning test during the inner loop, then widen proportionately:
    rendering, performance, or manual-use gates.
 
 Do not narrow a completion gate to make it pass. If tooling requires composite
-runs, preserve the full intended scope and disclose the split.
+runs, preserve the full intended scope and disclose the split. Run each applicable
+candidate gate once when its inputs are ready. After a repair, rerun affected
+checks and required combined gates; link unchanged source-bound results instead
+of repeating them or creating a separate evidence file for each ring.
 
 Mutation analysis of changed core production areas begins after the whole
 coding session, against its final immutable source snapshot. It does not hold
@@ -142,7 +145,8 @@ job as pending, never as passing evidence; use the result-review and follow-up
 rules in `coverage-and-mutation` when it completes.
 
 For long commands, retain the exact command, working directory, complete output,
-duration, and exit status in a named log while showing concise progress and
+duration, and exit status. Reuse the runner's log or receipt when it has these
+facts; create one named log only when it does not. Show concise progress and
 actionable failures. Silence, a partial artifact, or a coverage percentage is
 not proof of success.
 
