@@ -51,6 +51,11 @@ Provide raw, falsifiable evidence rather than an argument for approval:
 - prior findings and deduplicated lesson candidates, if any, in the existing repair record; and
 - the proposed post-`PASS` envelope.
 
+Keep one short packet that links existing task records, logs and artifacts. Do
+not duplicate raw output, write a new status document for each review step, or
+create per-agent or per-check manifests. Add a packaged-artifact manifest only
+when the package itself is part of the claimed outcome.
+
 For post-session mutation, record its planned final snapshot and pending status.
 The absence of a fresh mutation report does not block this candidate's review,
 integration or publication; do not present pending work as passing evidence.
@@ -59,8 +64,10 @@ Review and act on the report through the later mutation follow-up workflow.
 The manifest must deterministically identify the candidate. At minimum, record
 the base and current object IDs and, in bytewise path order, each path's change
 and index/worktree status, canonical mode, content digest or deletion marker,
-and staged object identity. Hash the serialized manifest itself. Treat unmerged
-indexes, special files, or content that cannot be represented as evidence gaps.
+and staged object identity. Hash the serialized manifest itself. Generate
+this manifest once for each frozen candidate; reuse it across handoffs and review
+reads. Treat unmerged indexes, special files, or content that cannot be
+represented as evidence gaps.
 
 ## Reviewer independence
 
@@ -87,7 +94,9 @@ not label self-review as independent review.
 ## Required review dimensions
 
 The reviewer creates explicit task-to-implementation and criterion-to-test
-matrices, then assesses:
+matrices, then assesses the dimensions below. Keep the matrices compact: group
+related criteria, link existing evidence and describe gaps; do not reproduce
+source, logs or a path-by-path narrative of the manifest.
 
 1. **Task and specification completion.** Every claim is implemented, evidenced,
    neither premature nor silently broadened, and synchronized only after it is
@@ -129,13 +138,14 @@ symbol, requirement or task, evidence, consequence, and required outcome.
 
 After `FAIL` or `BLOCKED`:
 
-1. Persist the packet, manifest, verdict, findings, any lesson candidates, and a concise
-   repair capsule outside conversational memory.
+1. Update one existing review record with the verdict, actionable findings and
+   next action; link the retained packet, manifest and raw evidence. Add a
+   repair capsule only when an owner or session handoff needs one.
 2. Preserve unrelated paths and maintain one writer for the candidate.
 3. Correct findings through the ordinary specification, TDD, coverage,
    refactoring, and mutation workflow.
-4. Rerun proportionate verification and rebuild the complete packet and
-   fingerprint.
+4. Rerun affected checks and required combined gates. Refresh the complete
+   candidate fingerprint and short packet index for the next review.
 5. Return the whole candidate to the retained reviewer, not merely the patch for
    the last finding.
 

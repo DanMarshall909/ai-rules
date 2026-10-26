@@ -58,6 +58,8 @@ external capabilities. Qualify a dependency that could invalidate the approach
 at the smallest useful real boundary before expanding dependent implementation.
 Use a bounded experiment with a decision at its end, not open-ended retries. Reuse
 accepted direction; do not recreate mockups or ADRs merely to satisfy a phase.
+Once direction is accepted, execute the next ready slice. Reopen delivery choices
+only when a user correction, changed constraint or failed gate invalidates them.
 Maintain enough shared vocabulary and design direction to prevent incompatible
 work packages, and prepare specialist decision requests early.
 
@@ -97,6 +99,9 @@ For every work package, record:
 - independently accepted proof for the SAME criterion, with revision and review;
 - the smallest novel boundary needing a tracer, when existing proof is absent;
 - tests, evidence, independent review, handoff, integration and completion rules.
+
+Put these facts in the assignment itself. A separate work-package document is
+needed only when it serves an actual owner or session handoff.
 
 Code existence, shared libraries and neighbouring tests are not same-criterion
 proof. Carve the smallest coherent tracer out of mixed work, then use the least
@@ -145,10 +150,12 @@ completion were claimed, or waive gates that also apply to unfinished work.
 Record its isolation or exposure, open criteria and next action. Merge never
 supplies missing acceptance or qualifies a dependency that requires completion.
 
-After each material result, update the authorized tracker narrowly, revise only
-affected future scope and save a durable resume packet. On resume, revalidate
-source, tracker, ownership and environment drift before affected actions; do
-focused replanning rather than restarting settled discovery.
+Update the authorized tracker when a result changes its live status, decision,
+owner or next dependency. Keep one durable resume packet only for an actual
+owner/session handoff, pause or context-loss risk; update it in place. Do not
+create a parallel status document for routine results. On resume, revalidate
+affected source, tracker, ownership and environment drift, then replan only what
+changed.
 Do not schedule recurring work unless requested.
 
 At the agreed stopping condition, report delivered outcomes, candidate and
