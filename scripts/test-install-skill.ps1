@@ -21,6 +21,8 @@ $install = Join-Path $PSScriptRoot 'install-skill.ps1'
 $script:pass = 0
 $script:fail = 0
 $script:sandboxes = @()
+$script:cleanupFailures = 0
+$fixtureTempRoot = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd([System.IO.Path]::DirectorySeparatorChar)
 
 function Ok($label) { $script:pass++; Write-Host "  ok   $label" }
 function No($label, $detail) {
@@ -31,7 +33,7 @@ function No($label, $detail) {
 
 # Fresh isolated profile + project cwd, so a test can never touch the real machine.
 function New-Sandbox {
-  $s = Join-Path ([System.IO.Path]::GetTempPath()) ("iskill-" + [guid]::NewGuid().ToString('N').Substring(0, 8))
+  $s = Join-Path $fixtureTempRoot ("iskill-" + [guid]::NewGuid().ToString('N').Substring(0, 8))
   New-Item -ItemType Directory -Force -Path "$s\home", "$s\project" | Out-Null
   $script:sandboxes += $s
   $env:USERPROFILE = "$s\home"
@@ -303,12 +305,29 @@ try {
   Set-Location $origLocation
   $env:USERPROFILE = $origProfile
   $env:XDG_CONFIG_HOME = $origXdg
-  foreach ($s in $script:sandboxes) {
-    Remove-Item -Recurse -Force $s -ErrorAction SilentlyContinue
+  foreach ($path in $script:sandboxes) {
+    try {
+      $absolute = [System.IO.Path]::GetFullPath($path)
+      $parent = [System.IO.Path]::GetDirectoryName($absolute)
+      if ($parent -ne $fixtureTempRoot -or -not ([System.IO.Path]::GetFileName($absolute)).StartsWith('iskill-')) {
+        throw 'refusing target outside the owned fixture root'
+      }
+      try { $item = Get-Item -LiteralPath $absolute -Force -ErrorAction Stop }
+      catch [System.Management.Automation.ItemNotFoundException] { continue }
+      if (-not $item.PSIsContainer -or ($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint)) {
+        throw 'refusing a replaced or linked fixture root'
+      }
+      Remove-Item -LiteralPath $absolute -Recurse -Force -ErrorAction Stop
+      if (Test-Path -LiteralPath $absolute) { throw 'target remains after removal' }
+    } catch {
+      $script:cleanupFailures++
+      Write-Host "  FAIL fixture cleanup: $path : $($_.Exception.Message)"
+    }
   }
 }
 
 Write-Host ""
 Write-Host "$($script:pass) passed, $($script:fail) failed"
-if ($script:fail -gt 0) { exit 1 }
+Write-Host "$($script:cleanupFailures) fixture cleanup failures"
+if ($script:fail -gt 0 -or $script:cleanupFailures -gt 0) { exit 1 }
 exit 0

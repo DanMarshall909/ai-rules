@@ -308,6 +308,64 @@ checkout. Optional installation makes it discoverable in your agent:
 scripts/install-skill.sh ai-rules
 ```
 
+## Work tracking and measurements
+
+[GitHub Issues](https://github.com/DanMarshall909/ai-rules/issues) owns the live
+backlog, priority and completion state. Start with the
+[quality and measurement roadmap](https://github.com/DanMarshall909/ai-rules/issues/10).
+Files under `docs/issues/` retain historical design and evidence; their old
+status fields are not a second live tracker. Link issues from changes and close
+them only when their stated acceptance evidence is satisfied.
+
+The optional [skill-metrics](skills/skill-metrics/SKILL.md) package records local,
+explicitly declared skill use and task outcomes. Install it independently with
+`scripts/install-skill.sh skill-metrics` or the PowerShell installer; it is not
+added to the always-loaded base policy. Python 3.10+ and its standard library are
+sufficient. A copy pinned as a project submodule resolves its own checked-out
+rules revision; there is no automatic update of consumer projects.
+
+```text
+python skills/skill-metrics/scripts/skill_metrics.py start --run-id task-11-a --project ai-rules --skill agentic-delivery
+python skills/skill-metrics/scripts/skill_metrics.py finish --run-id task-11-a --outcome completed
+python skills/skill-metrics/scripts/skill_metrics.py report
+```
+
+Choose a unique stable ID before actual measured work; these are usage examples,
+not collected evidence. Data defaults to the user's local state directory outside
+the repository. Recording is opt-in and captures no prompts or host history.
+Reports separate exposure, task outcomes and unknown measurements. For a policy
+change, the [comparison contract](skills/skill-metrics/references/measurement-contract.md)
+defines source identities, matched cohorts, sample floors and safety/quality
+regressions; it does not infer effectiveness from simple usage counts.
+
+## Storage budgets and retained output
+
+The bundled [storage-budget](skills/storage-budget/SKILL.md) workflow measures
+selected output locations, checks disk headroom before heavy operations and
+runs commands with a fresh disposable output directory. Existing version-1
+memory configurations remain valid; version 2 adds workload disk budgets.
+See the [configuration contract](docs/repo-config.md) for estimates, reserves
+and per-volume admission.
+
+Admission blocks only a command that cannot fit. It does not intercept arbitrary
+commands launched outside the workflow. Successful, failed and cancelled managed
+runs retain a compact receipt and verify cleanup after their workers stop.
+Reusable builds, dependencies, caches and existing output require review before
+deletion. Inventory size never grants cleanup authority.
+
+The [worktree cleanup audit](skills/worktree-cleanup-audit/SKILL.md) can include
+bounded storage observations alongside its Git preservation checks. Logical
+file size, shared storage and reclaimable disk space are different facts;
+inaccessible or incomplete measurements stay unknown. Source, dependency,
+build and evidence categories describe content, not permission to remove it.
+
+Use storage receipts with the local tracker to compare retained growth and
+sampled peak footprint alongside quality, time and cost. Declare storage
+tolerances before a matched run and compare equivalent cache conditions.
+Faster execution with materially worse storage is mixed; missing required
+observations are insufficient. Sampled peaks are lower bounds, and unrelated
+host free-space changes are not attributable to the measured task.
+
 ## Checks
 
 ```bash
@@ -321,11 +379,18 @@ scripts/test-repo-config.sh        # repository resource configuration contract
 scripts/test-new-skill.sh          # the skill scaffold's behaviour
 scripts/test-new-rule-set.sh       # the rule and rule-set scaffolds
 scripts/check-conventions.sh       # skills load, installers agree, rules registered
+python3 scripts/test-skill-metrics.py --lane combined # local metrics and comparison contracts
+python3 scripts/test-storage-budget.py --lane combined # inventory, admission and managed cleanup
+python3 scripts/test-fixture-cleanup.py # cleanup failures are visible
 ```
 
 ```powershell
 scripts\test-install-skill.ps1
 scripts\test-rules-sync-preflight.ps1
+python scripts/test-skill-metrics.py --lane combined
+python scripts/test-storage-budget.py --lane combined
+python scripts/test-fixture-cleanup.py
+scripts\test-worktree-cleanup-report.ps1
 ```
 
 All of these run in CI. Tests isolate home/profile and project destinations, so

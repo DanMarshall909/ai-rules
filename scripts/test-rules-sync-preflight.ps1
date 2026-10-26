@@ -4,6 +4,8 @@ param()
 $ErrorActionPreference = 'Stop'
 $source = Join-Path (Split-Path -Parent $PSScriptRoot) 'skills\upgrade-global-skills\scripts\check-rules-sync.ps1'
 $sandboxes = @()
+$script:cleanupFailures = 0
+$fixtureTempRoot = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath()).TrimEnd([System.IO.Path]::DirectorySeparatorChar)
 $pass = 0
 $fail = 0
 
@@ -11,7 +13,7 @@ function Ok([string]$Label) { $script:pass++; Write-Host "  ok   $Label" }
 function No([string]$Label, [string]$Detail) { $script:fail++; Write-Host "  FAIL $Label"; Write-Host "       $Detail" }
 
 function New-Fixture {
-  $script:root = Join-Path ([System.IO.Path]::GetTempPath()) ("rules-sync-" + [guid]::NewGuid().ToString('N').Substring(0, 8))
+  $script:root = Join-Path $fixtureTempRoot ("rules-sync-" + [guid]::NewGuid().ToString('N').Substring(0, 8))
   $script:sandboxes += $script:root
   $script:remote = Join-Path $script:root 'remote.git'
   $script:seed = Join-Path $script:root 'seed'
@@ -143,10 +145,29 @@ Start-Sleep -Seconds 6
   }
 }
 finally {
-  foreach ($path in $sandboxes) { Remove-Item -LiteralPath $path -Recurse -Force -ErrorAction SilentlyContinue }
+  foreach ($path in $script:sandboxes) {
+    try {
+      $absolute = [System.IO.Path]::GetFullPath($path)
+      $parent = [System.IO.Path]::GetDirectoryName($absolute)
+      if ($parent -ne $fixtureTempRoot -or -not ([System.IO.Path]::GetFileName($absolute)).StartsWith('rules-sync-')) {
+        throw 'refusing target outside the owned fixture root'
+      }
+      try { $item = Get-Item -LiteralPath $absolute -Force -ErrorAction Stop }
+      catch [System.Management.Automation.ItemNotFoundException] { continue }
+      if (-not $item.PSIsContainer -or ($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint)) {
+        throw 'refusing a replaced or linked fixture root'
+      }
+      Remove-Item -LiteralPath $absolute -Recurse -Force -ErrorAction Stop
+      if (Test-Path -LiteralPath $absolute) { throw 'target remains after removal' }
+    } catch {
+      $script:cleanupFailures++
+      Write-Host "  FAIL fixture cleanup: $path : $($_.Exception.Message)"
+    }
+  }
 }
 
 Write-Host ""
 Write-Host "$pass passed, $fail failed"
-if ($fail -gt 0) { exit 1 }
+Write-Host "$($script:cleanupFailures) fixture cleanup failures"
+if ($fail -gt 0 -or $script:cleanupFailures -gt 0) { exit 1 }
 exit 0

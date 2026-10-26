@@ -5,7 +5,7 @@ Skills supply procedures, environment modules supply tool mechanics, and generat
 
 - Review, explanation and diagnosis authorize relevant read-only checks, not implementation or publication. Persistence language does not expand scope.
 - Preserve unrelated work. Apply the Git startup gate before new independent work; otherwise it blocks only operations that overlap or could change, hide or destroy it. Worktree isolation does not bypass the gate.
-- Cleanup only disposable run output by default; ignored or generated builds, dependencies and caches may be reusable, so explain their size and rebuild cost and get explicit direction before deleting them.
+- Automatically clean only verified task-owned disposable run output after its workers stop; verify removal and report cleanup failures. Review retained builds, dependencies and caches against a storage budget, explaining measured size and rebuild cost before obtaining direction to delete reusable state. Unknown ownership, active work and storage estimates never supply deletion authority.
 - Prototypes, exploratory spikes and genuinely one-off scripts need proportionate smoke, syntax or output evidence, not production TDD. Production, maintained, reused or recurring operational code follows the normal testing workflow.
 - Perform routine in-scope work under existing authority. Ask before expanding scope, destructive actions not already authorized, or external side effects not covered by the request. Creating a PR does not authorize merging it.
 

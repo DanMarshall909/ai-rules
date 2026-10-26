@@ -17,6 +17,7 @@ INSTALL="${REPO}/scripts/install-skill.sh"
 pass=0
 fail=0
 SANDBOXES=()
+FIXTURE_TEMP_ROOT="$(cd "${TMPDIR:-/tmp}" && pwd -P)" || exit 1
 
 ok() {
   pass=$((pass + 1))
@@ -30,18 +31,32 @@ no() {
 }
 
 cleanup() {
-  cd "${REPO}"
+  local status=$? cleanup_failed=0 s parent
+  trap - EXIT
+  cd "${REPO}" || cleanup_failed=1
   for s in "${SANDBOXES[@]:-}"; do
-    [[ -n "${s}" ]] && chmod -R u+w "${s}" 2>/dev/null
-    [[ -n "${s}" ]] && rm -rf "${s}" 2>/dev/null
+    [[ -n "${s}" ]] || continue
+    [[ -e "${s}" || -L "${s}" ]] || continue
+    parent="$(cd -- "$(dirname -- "${s}")" && pwd -P)" || parent=""
+    if [[ "${parent}" != "${FIXTURE_TEMP_ROOT}" || "$(basename -- "${s}")" != ai-rules-test.* || -L "${s}" || ! -d "${s}" ]]; then
+      printf '  FAIL fixture cleanup: refusing unexpected target %s\n' "${s}" >&2
+      cleanup_failed=1
+      continue
+    fi
+    if ! rm -rf -- "${s}" || [[ -e "${s}" || -L "${s}" ]]; then
+      printf '  FAIL fixture cleanup: target remains or removal failed: %s\n' "${s}" >&2
+      cleanup_failed=1
+    fi
   done
+  if [[ ${cleanup_failed} -ne 0 && ${status} -eq 0 ]]; then status=1; fi
+  exit "${status}"
 }
 trap cleanup EXIT
 
 # Fresh isolated HOME + project cwd, so a test can never touch the real machine.
 sandbox() {
   local s
-  s="$(mktemp -d)"
+  s="$(mktemp -d "${FIXTURE_TEMP_ROOT}/ai-rules-test.XXXXXXXX")" || exit 1
   SANDBOXES+=("${s}")
   export HOME="${s}/home"
   export XDG_CONFIG_HOME="${s}/home/.config"

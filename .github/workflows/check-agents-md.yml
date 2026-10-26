@@ -34,6 +34,18 @@ jobs:
         run: scripts/test-new-skill.sh
       - name: rule-set scaffolds behave
         run: scripts/test-new-rule-set.sh
+      - name: metrics fast lane
+        run: python scripts/test-skill-metrics.py --lane fast
+      - name: metrics slow lane
+        run: python scripts/test-skill-metrics.py --lane slow
+      - name: storage fast lane
+        run: python scripts/test-storage-budget.py --lane fast
+      - name: storage slow lane
+        run: python scripts/test-storage-budget.py --lane slow
+      - name: fixture cleanup fast lane
+        run: python scripts/test-fixture-cleanup.py --lane fast
+      - name: fixture cleanup slow lane
+        run: python scripts/test-fixture-cleanup.py --lane slow
       - name: conventions hold
         run: scripts/check-conventions.sh
 
@@ -47,3 +59,24 @@ jobs:
       - name: PowerShell rules sync preflight behaves
         shell: pwsh
         run: scripts/test-rules-sync-preflight.ps1
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: metrics fast lane
+        run: python scripts/test-skill-metrics.py --lane fast
+      - name: metrics slow lane
+        run: python scripts/test-skill-metrics.py --lane slow
+      - name: Install schema validator
+        run: python -m pip install jsonschema==4.26.0
+      - name: storage fast lane
+        run: python scripts/test-storage-budget.py --lane fast
+      - name: storage slow lane
+        run: python scripts/test-storage-budget.py --lane slow
+      - name: fixture cleanup fast lane
+        run: python scripts/test-fixture-cleanup.py --lane fast
+      - name: fixture cleanup slow lane
+        run: python scripts/test-fixture-cleanup.py --lane slow
+      - name: Worktree cleanup reporter behaves
+        shell: pwsh
+        run: scripts/test-worktree-cleanup-report.ps1

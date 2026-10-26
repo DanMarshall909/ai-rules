@@ -31,3 +31,5 @@ skill: project-orchestration
 skill: track-github-work
 skill: track-repository-work
 skill: track-external-work-items
+skill: worktree-cleanup-audit
+skill: storage-budget
