@@ -88,6 +88,20 @@ class MetricsCase(unittest.TestCase):
 
 
 class FastTests(MetricsCase):
+    def test_unknown_dirty_metadata_requires_digest_selection_without_rewriting_records(self):
+        with patch.object(metrics, "git_identity", return_value=("a" * 40, False)):
+            baseline = self.trial("b", "base", "one", seconds="10")
+        with patch.object(metrics, "git_identity", return_value=("b" * 40, None)):
+            candidate = self.trial("c", "candidate", "one", seconds="5")
+        before = self.db.read_bytes()
+        error = self.call("compare", "--baseline", "a" * 40, "--candidate", "b" * 40, "--min-pairs", "1", code=2)
+        self.assertIn("exact digest", error)
+        result = self.call("compare", "--baseline", baseline, "--candidate", candidate, "--min-pairs", "1")
+        self.assertEqual("improved", result["verdict"])
+        self.assertEqual(1, result["matched_pairs"])
+        self.assertEqual(2, self.call("report")["runs"]["total"])
+        self.assertEqual(before, self.db.read_bytes())
+
     def test_exact_fractional_threshold_is_unchanged(self):
         baseline = self.trial("b", "base", "one", seconds="0.1")
         candidate = self.trial("c", "candidate", "one", seconds="0.095")
@@ -473,6 +487,34 @@ class SlowTests(MetricsCase):
         result = self.command("compare", "--baseline", clean["revision"], "--candidate", changed["digest"])
         self.assertEqual(2, result.returncode)
         self.assertIn("multiple content", result.stderr)
+
+    def test_lone_dirty_git_cohort_requires_digest_but_clean_commit_selection_works(self):
+        def git(*args):
+            return subprocess.run(["git", "-C", str(self.rules), *args], check=True, capture_output=True, text=True).stdout.strip()
+        policy = self.rules / "rule-sets" / "ai-rules.md"
+        policy.write_text("# Policy base", encoding="utf-8")
+        git("init", "--initial-branch=main")
+        git("config", "user.name", "Metrics Test")
+        git("config", "user.email", "metrics@example.invalid")
+        git("add", ".")
+        git("commit", "-m", "baseline fixture")
+        baseline_commit = git("rev-parse", "HEAD")
+        baseline = self.trial("b", "base", "one", seconds="10")
+        policy.write_text("# Policy committed-candidate-base", encoding="utf-8")
+        git("add", ".")
+        git("commit", "-m", "candidate base fixture")
+        candidate_commit = git("rev-parse", "HEAD")
+        candidate = self.trial("c", "candidate", "one", seconds="5")
+        sources = self.call("report")["sources"]
+        self.assertEqual([False], [source["dirty"] for source in sources if source["revision"] == baseline_commit])
+        self.assertEqual([True], [source["dirty"] for source in sources if source["revision"] == candidate_commit])
+        error = self.call("compare", "--baseline", baseline_commit, "--candidate", candidate_commit, "--min-pairs", "1", code=2)
+        self.assertIn("exact digest", error)
+        digest_result = self.call("compare", "--baseline", baseline, "--candidate", candidate, "--min-pairs", "1")
+        self.assertEqual("improved", digest_result["verdict"])
+        clean_result = self.call("compare", "--baseline", baseline_commit, "--candidate", candidate, "--min-pairs", "1")
+        self.assertEqual("improved", clean_result["verdict"])
+        self.assertEqual(1, clean_result["matched_pairs"])
 
 class TimedResult(unittest.TextTestResult):
     def startTest(self, test):

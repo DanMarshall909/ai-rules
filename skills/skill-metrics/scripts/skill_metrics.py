@@ -417,6 +417,8 @@ def select_source(runs, selector):
     selected = [run for run in runs if selector in (run["source"]["digest"], run["source"]["revision"])]
     if len({run["source"]["digest"] for run in selected}) > 1:
         raise MetricsError("revision contains multiple content identities; select an exact digest")
+    if any(selector == run["source"]["revision"] and run["source"].get("dirty") is not False for run in selected):
+        raise MetricsError("revision includes dirty or unknown source state; select an exact digest")
     return selected
 
 STORAGE_CONTEXT = ("scope", "workload", "method", "provenance", "cache_state")

@@ -18,8 +18,12 @@ source must be the source actually used; the recorder does not inspect clients. 
 Actual checked-out Git revision and relevant dirty state are recorded when
 available. A plain exported package can still be identified by content digest,
 with Git identity unknown. A revision associated with several recorded digests
-is ambiguous: select an exact digest for comparison. No source contents or raw
-checkout paths are stored. This is local observational data, not an attestation.
+is ambiguous: select an exact digest for comparison. A Git revision selector
+also requires every selected record to have known clean source state. Stable
+uncommitted content, or unknown dirty state, must be selected by its exact
+content digest; the checked-out commit does not identify those bytes. Historical
+records and digest-based comparisons remain available without rewriting data.
+No source contents or raw checkout paths are stored. This is local observational data, not an attestation.
 
 Project, task-class, scenario/version, cohort, pair, model/environment, host and
 session labels are short opaque IDs. Do not put personal information or secrets
