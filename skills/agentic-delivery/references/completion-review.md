@@ -1,176 +1,162 @@
 # Independent Completion Review and Publication
 
 Read this reference when a non-trivial feature or product-behaviour change is
-candidate-complete. Explicit task and scoped project review contracts refine these
-defaults within the host's instruction hierarchy. Name any unresolved conflict
-before the affected action. Publication authority comes from the task and Git
-workflow; this procedure supplies the independent review gate and requires no
-separate permission to push.
+candidate-complete. Explicit task and scoped project review contracts refine
+these defaults. Publication authority comes from the task and Git workflow;
+this procedure supplies the independent review gate.
 
 ## Review boundary
 
-Run review after implementation and proportionate verification, but before:
+Run review after implementation and proportionate verification, before claiming
+completion, publishing the completed candidate, synchronizing implemented
+baseline specifications, archiving the change or deleting its review evidence.
+Local checkpoint commits may precede review: they preserve work without claiming
+approval or authorizing a push. Documentation-only maintenance and isolated
+experiments making no product-readiness claim are outside this gate unless
+project instructions say otherwise.
 
-- declaring the feature complete;
-- making the final completion commit or push;
-- synchronizing proposed behaviour into implemented baseline specifications;
-- archiving the owning change; or
-- deleting the evidence needed to assess it.
+## Integrate and identify the candidate
 
-Documentation-only maintenance and isolated experiments making no product-
-readiness claim are outside this gate unless project instructions say otherwise.
+Fetch and integrate the intended upstream using the repository's declared policy.
+Resolve conflicts and rerun affected checks before freezing the candidate.
+Record the branch, full upstream ref/object ID and integration base, plus the
+publication remote/ref and its expected current object ID (or expected absence).
 
-## Integrate before freezing
+Prefer a local checkpoint commit containing every intended source, test and
+configuration change, including previously untracked inputs. Record its full
+commit and tree IDs. Confirm the tested inputs match that tree and that no
+uncommitted in-scope input remains. Preserve unrelated work and exclude it from
+the checkpoint; if it affects the checks, isolate it or disclose the evidence gap.
+Git records the paths, contents, modes and deletions; a second source manifest is
+unnecessary.
 
-The review verdict must cover the upstream state publication will extend. Immediately
-before freezing the packet:
+If repository policy prevents a checkpoint or the candidate must remain
+uncommitted, use one deterministic manifest instead: base/current object IDs,
+each in-scope path's change and index/worktree status, canonical mode, digest or
+deletion marker, and staged object identity. Include untracked inputs, sort paths
+bytewise and hash the manifest. Unresolved merges or unidentifiable inputs are
+evidence gaps. Do not stage unrelated work merely to create a snapshot.
 
-1. Record the current branch, full upstream ref, upstream object ID, and merge or
-   integration base.
-2. Pull/rebase or otherwise integrate using the repository's declared policy.
-3. Resolve conflicts and rerun every affected check.
-4. Freeze every in-scope path and build the candidate packet and manifest.
+Identify relevant outputs outside Git separately, such as the exact packaged
+binary when package behaviour is claimed. Reuse existing build receipts and
+artifact hashes. Do not create per-agent or per-check source manifests.
 
-Do not pull, rebase, or merge after `PASS`. Publication uses an unchanged-
-upstream fetch check instead.
+## Candidate record
 
-## Candidate packet
+Use an existing task or review record as a short index to:
 
-Provide raw, falsifiable evidence rather than an argument for approval:
-
-- feature identity and accepted scope;
-- tasks, requirements, criteria, and status claims;
-- base/current/upstream/integration object identities;
-- complete changed-path content, including untracked in-scope files;
-- test commands and results with revision, working directory, exit status, and
-  retained output;
-- coverage, mutation, architecture, security, generated-data, performance, and
-  manual evidence that applies;
-- explicit unrelated paths excluded from review;
-- evidence gaps and unresolved decisions;
-- prior findings and deduplicated lesson candidates, if any, in the existing repair record; and
+- accepted scope, tasks and criteria;
+- candidate, upstream and integration identities, with access to the full diff;
+- commands, tested revision/inputs, working directory, exit status and retained
+  output, plus applicable coverage, architecture, security or manual evidence;
+- relevant artifacts outside Git, excluded unrelated work and evidence gaps;
+- prior findings and their disposition; and
 - the proposed post-`PASS` envelope.
 
-For post-session mutation, record its planned final snapshot and pending status.
-The absence of a fresh mutation report does not block this candidate's review,
-integration or publication; do not present pending work as passing evidence.
-Review and act on the report through the later mutation follow-up workflow.
+Link existing records and raw results once. The ownership, handback and recovery
+record may be the same document; each live fact still has one authoritative
+owner. Do not duplicate status or logs to satisfy different procedure names.
 
-The manifest must deterministically identify the candidate. At minimum, record
-the base and current object IDs and, in bytewise path order, each path's change
-and index/worktree status, canonical mode, content digest or deletion marker,
-and staged object identity. Hash the serialized manifest itself. Treat unmerged
-indexes, special files, or content that cannot be represented as evidence gaps.
+Post-session mutation may remain pending without blocking review or publication.
+Record its intended snapshot and follow up through the mutation workflow; never
+present a pending result as passing evidence.
 
 ## Reviewer independence
 
-Use a separate high-capability agent for independent completion review. Human
-review is optional; require it only when the user explicitly requests it. Honor
-the user's selected review model. For the agent reviewer:
+Use a separate high-capability agent. Human review is required only when the
+user requests it. Honor the user's selected review model. The agent reviewer:
 
-- start it without the implementer's conversational history when possible;
-- give it read-only repository access;
-- supply the packet and authoritative project instructions;
-- do not supply the implementer's desired verdict or defensive reasoning;
-- require independent reconstruction of the manifest and integration identity;
-  and
-- prohibit repository edits and delegated approval decisions.
+- starts without implementer conversation history when possible;
+- has read-only repository access, the candidate record and project instructions;
+- receives no desired verdict or defensive reasoning from the implementer;
+- independently verifies candidate/integration identities, the actual changes
+  and any relevant external artifact identities; and
+- makes its own approval decision without editing or delegating approval.
 
-Retain the same reviewer for repairs to the same bounded feature when its
-context remains healthy. Replace it for another feature, materially changed
-scope or integration context, unavailable or confused context, or an explicit
-request for a fresh opinion. A replacement reassesses the whole candidate.
-
-If no genuinely independent reviewer can run, report the gate as blocked. Do
-not label self-review as independent review.
+Retain the reviewer for repairs while its context remains usable. Replace it
+for unavailable/confused context, materially different scope or an explicit
+request for a fresh opinion. A replacement assesses the whole candidate. If no
+independent reviewer can run, report the gate as blocked; never self-approve.
 
 ## Required review dimensions
 
-The reviewer creates explicit task-to-implementation and criterion-to-test
-matrices, then assesses:
+Map tasks and criteria to implementation and tests in one compact mapping or
+linked existing records. Group related criteria and describe gaps without
+reproducing source or logs. Assess:
 
-1. **Task and specification completion.** Every claim is implemented, evidenced,
-   neither premature nor silently broadened, and synchronized only after it is
-   earned.
-2. **Acceptance evidence.** Every criterion has executable evidence asserting
-   its outcome or invariant at the appropriate layer, with genuine RED evidence
-   where the workflow requires it.
-3. **Test effectiveness.** Tests protect meaningful behaviour and satisfy
-   regression protection, resistance to refactoring, fast feedback, and
-   maintainability. Coverage and mutation scores do not substitute for this.
-4. **Architecture and operational safety.** Dependency direction, authority,
-   persistence, security, failure atomicity, and project-specific boundaries
-   hold in the actual implementation, not only in architecture tests.
-5. **Better alternatives.** A materially simpler, safer, clearer, more
-   deterministic, or cheaper in-scope design is considered. Style preferences
-   and speculative extensibility do not justify failure.
-6. **Reusable lessons.** Systemic findings are recorded in the existing review record, when supported, as candidates with
-   evidence, a proposed owner, guidance change, downside, and disposition.
-7. **Publication soundness.** The integration identity, manifest, evidence, and
-   finite finalization/cleanup envelope are reproducible.
+1. **Completion.** Every claim is implemented and evidenced, with no premature
+   synchronization or silent scope expansion.
+2. **Acceptance evidence.** Criteria have executable evidence of their outcomes
+   or invariants at the right layer, with genuine RED evidence where required.
+3. **Test effectiveness.** Tests protect behaviour, resist incidental refactoring
+   and provide maintainable, fast feedback. Coverage scores alone are insufficient.
+4. **Architecture and safety.** Actual dependencies, authority, persistence,
+   security, failure atomicity and project boundaries are sound.
+5. **Alternatives.** Consider materially simpler, safer or cheaper in-scope
+   designs; style preferences and speculative extensibility do not justify failure.
+6. **Lessons.** Record supported systemic findings in the existing review record
+   with evidence, proposed owner/change, downside and disposition.
+7. **Publication.** Candidate/integration identity, evidence and the finite
+   finalization envelope are reproducible.
 
 ## Verdict contract
 
 Return exactly one result:
 
-- `PASS`: no in-scope correction remains and the exact candidate plus envelope
-  is ready for publication;
-- `FAIL`: at least one actionable in-scope correction is required; or
-- `BLOCKED`: missing access, evidence, or authority prevents a defensible
-  decision.
+- `PASS`: no in-scope correction remains; the identified candidate and envelope
+  are ready for authorized publication.
+- `FAIL`: an actionable in-scope correction is required.
+- `BLOCKED`: missing access, evidence or authority prevents a defensible decision.
 
-A future guidance proposal alone is not a failing finding unless the current
-candidate violates an in-scope requirement.
+There is no pass with required changes. Each failure names the file/symbol,
+requirement, evidence, consequence and required outcome. A future guidance
+proposal alone does not fail an otherwise compliant candidate.
 
-There is no “pass with required changes.” Each failing finding names the file or
-symbol, requirement or task, evidence, consequence, and required outcome.
+## Repair and renewed review
 
-## Repair loop
+1. Update the existing record with findings and the next action. Keep the same
+   implementation owner for dependent repairs where practical.
+2. Correct findings using the applicable specification and testing workflow.
+   Rerun affected checks and required combined gates. Reuse sound evidence when
+   its dependencies are clear; rerun cheap checks when proving reuse costs more.
+3. Identify the new complete candidate and provide its delta from the last
+   reviewed candidate, updated evidence and findings dispositions.
+4. The retained reviewer examines the delta and affected interactions, carrying
+   forward verified conclusions about unchanged areas. It renews the verdict
+   for the whole current candidate. Reassess more broadly when the delta affects
+   wider requirements or earlier conclusions cannot be trusted.
 
-After `FAIL` or `BLOCKED`:
-
-1. Persist the packet, manifest, verdict, findings, any lesson candidates, and a concise
-   repair capsule outside conversational memory.
-2. Preserve unrelated paths and maintain one writer for the candidate.
-3. Correct findings through the ordinary specification, TDD, coverage,
-   refactoring, and mutation workflow.
-4. Rerun proportionate verification and rebuild the complete packet and
-   fingerprint.
-5. Return the whole candidate to the retained reviewer, not merely the patch for
-   the last finding.
-
-Compact or replace implementation context only when context length, noise, or
-anchoring threatens reasoning. Reread the persisted repair bundle afterward.
-There is no arbitrary review-round limit.
+Upstream integration follows this same process. A changed base needs a renewed
+verdict, but does not by itself require rereading every unchanged file. There is
+no arbitrary review-round limit. Recover context from the existing record when
+needed; create no extra repair capsule when that record already suffices.
 
 ## Finite post-PASS envelope
 
-The proposed envelope may contain only deterministic operations already
-justified by the candidate:
+The envelope contains only deterministic operations justified by the candidate:
+exact status/evidence updates, specification synchronization/archive mappings,
+named validation commands, commits and normal pushes, and bounded cleanup of
+known task-owned targets. Unknown cleanup state requires inspection.
 
-- exact task, evidence, or one status update;
-- exact specification synchronization and archive mappings;
-- named validation commands;
-- staging and committing the reviewed content;
-- remote ref updates caused by fetch and a normal non-force push; and
-- a bounded cleanup plan naming known task-owned targets and requiring
-  inspection rather than deletion for unknown state.
+Every content transformation needs exact paths and an expected patch or resulting
+mode/content hash. Semantic source, test, generated-data and requirement changes
+are never administrative. After `PASS`:
 
-Every content change needs exact paths and either an expected patch or resulting
-mode and content hash. Semantic source, test, generated-data, or requirement
-changes are never administrative.
+1. Verify source still matches the reviewed commit/tree or fallback manifest,
+   and relevant external artifacts remain unchanged.
+2. Apply only the approved envelope and run its named validations.
+3. Commit remaining approved changes with normal hooks. If the checkpoint
+   already contains the complete result, no extra commit is needed.
+4. After hooks, compare the final committed tree and current in-scope inputs
+   with the candidate plus approved transformations. Reject unexpected changes
+   and require validation evidence that qualifies those final inputs.
+5. Fetch without integrating; require the recorded upstream object and verify
+   the destination ref still satisfies the recorded publication conditions.
+6. Push normally, verify the remote outcome, then perform the bounded cleanup.
 
-After `PASS`:
-
-1. Recompute and match the reviewed manifest.
-2. Apply only the approved envelope.
-3. Run every named validation and reject unexpected generated content.
-4. Compare the complete final tree with the reviewed candidate plus approved
-   transformations.
-5. Commit with normal hooks.
-6. Fetch without merging or rebasing and require the recorded upstream object.
-7. Push normally, then execute only the bounded cleanup.
-
-Any content drift, failed validation, upstream movement, push rejection, or
-post-review integration invalidates `PASS`. Rebuild and review the new candidate
-instead of stretching the old approval.
+Candidate drift outside the envelope, failed validation or upstream movement
+suspends publication. Resolve the change and obtain a renewed verdict through
+the repair process. A transport failure or push rejection alone does not erase
+review: inspect the outcome and local/remote identities, then retry only if the
+candidate, upstream and destination ref still satisfy the approved conditions.
+A changed destination ref must be reconciled; never force-push under this gate.

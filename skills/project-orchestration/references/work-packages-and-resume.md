@@ -37,10 +37,11 @@ invent model availability or choose a stronger model because an item is large.
 
 ## Mutable-resource coordination
 
-Keep an owner record for each shared mutable scope: resource/path, current
-executor, source snapshot, operation in progress and handback condition.
-One owner may hold several scopes. Parallel readers may use pinned snapshots;
-their findings must identify which revision or content digest they inspected.
+Record each shared mutable scope's owner, revision, active operation and release
+condition in the existing assignment or task record. One record may serve
+ownership, handback and recovery, with links to the authority for each live fact.
+Keep the same owner through dependent implementation, tests and repairs when
+practical. Readers identify the revision or content digest they inspected.
 
 Serialize shared Git mutations, generated outputs, schemas/contracts, cache
 writes, ports, services, data stores and integration when they overlap.
@@ -56,23 +57,23 @@ A worker's PASS does not prove the assembled candidate or authorize publication.
 Retain raw evidence once and link a compact summary of result, claim, exact inputs
 and known limits. Record which source/configuration, external contract and
 execution environment each result depends on. After a change, invalidate affected
-claims and run the required checks; reuse unaffected evidence only where the
-project permits and the input relationship is established. Unknown dependencies
-need qualification, not an assumed pass. This does not waive integration or
-independent-review gates owned by delivery.
+claims and run the required checks. Reuse evidence when the project permits it
+and its dependencies are clear; rerun a cheap check when proving safe reuse would
+cost more. Unknown dependencies are not an assumed pass. Required integration
+and independent-review gates still apply.
 
-Load the current packet and relevant references instead of replaying full history.
+Load the current task/recovery record and relevant references instead of replaying
+full history.
 Within the same context, reuse already-read instructions when their revision is
 unchanged; after context loss, read applicable instructions and current decisions
 again rather than assuming they are remembered. Recheck mutable facts before acting.
 Ask workers for changed facts, decisions, blockers and evidence links, not repeated
 chronologies or complete logs. Keep required raw records intact outside the summary.
 
-At meaningful checkpoints, record available orchestration cost evidence in the
-existing packet: token usage, agent/tool calls and repeated validation cost, with
-its source and scope. Separate orchestration overhead from native execution cost.
-Label estimates and proxies; unavailable usage is unknown, not zero. Do not claim
-savings without comparable measurements or add costly telemetry merely to fill fields.
+When an actual handoff packet is needed, include readily available
+orchestration cost evidence if it informs a decision. Separate agent effort from
+native execution cost. Label estimates and proxies; unavailable usage is unknown,
+not zero. Do not run telemetry or create a status record merely to fill fields.
 
 For long commands, use completion notifications or bounded waits and the project's
 inspection cadence. Check again on a meaningful event or planned checkpoint;
@@ -81,15 +82,18 @@ Keep any host-required responsiveness and progress updates.
 
 ## Explicit handback
 
-Before ownership changes, the outgoing executor reports:
+Before ownership changes, update or link the existing record as one compact
+handback:
 
-- checkout/path, branch, base and current revision; digests for uncommitted
-  files or artifacts needed to identify the exact handback;
-- changed/owned paths, commands with working directory, output/evidence and
-  exit status, findings and known gaps;
-- running/pending commands and ownership of outputs, caches, ports, services,
-  containers or other shared resources;
-- next action and whether each mutable scope is released or retained.
+- checkout/ref and changed paths; a digest only when needed to identify
+  uncommitted or generated content;
+- outcomes, gaps and links to existing command logs or receipts;
+- running commands and shared resources still owned;
+- next action and explicit release or retention of mutable scope.
+
+A checkpoint revision identifies committed source; hash additional content only
+when needed. This handback can also be the recovery note. Do not create another
+manifest, repeat history or copy authoritative tracker state.
 
 The recipient acknowledges the exact snapshot and resources before taking
 ownership. Silence, timeouts, interruption and an agent's final prose alone do
@@ -97,18 +101,24 @@ not establish release unless it explicitly hands back that scope.
 If an executor disappears, verify pending command/process state and preserve its
 work; resolve ownership under project policy before a replacement writes.
 
-## Durable resume packet
+## Recovery at session boundaries
 
-At meaningful checkpoints, keep a small versioned packet in the established
-authorized record or session handoff location:
+Before stopping with unfinished work, an impending compaction, or transfer to an
+executor without usable context, add the missing recovery details to the existing
+record. An ordinary handback with sufficient context needs no separate packet:
 
 - objective and plan versions, accepted outcome, cut line and stopping condition;
 - decisions, glossary/design authority, source revisions and unresolved questions;
 - tracker IDs/URLs, live-fact ownership and unsynchronized drafts;
-- repository, upstream/base, worktree, branch, candidate revision/digests;
+- repository, upstream/base, worktree, branch and candidate revision;
 - execution owners, delegated packages, pending commands and reserved resources;
 - criteria/evidence/review status, missing business or hosted acceptance;
 - the next ready action, its prerequisites and any required authorization.
+
+For a background operation intended to cross a session boundary, record its
+handle, owner and recovery action at launch, then its terminal result. Capture
+those details for any other command still running at handoff. Possible context
+loss alone is not a reason for periodic copies of the record.
 
 Lead with current status, blocker, owner and next action; link detailed history.
 Update that summary in place rather than appending another full narrative. Preserve
@@ -118,7 +128,7 @@ Store references rather than duplicating sensitive inputs or complete logs.
 Checkpointing does not authorize new repository files or remote writes beyond
 the task's scope.
 
-On resume, read this packet before rediscovery. Revalidate drift in affected
+On resume, read this record before rediscovery. Revalidate drift in affected
 sources, tracker state, upstream/candidate bytes, accepted decisions, command
 results, resources and ownership. Treat unavailable state as unknown.
 Replan only the affected scope; preserve settled direction and usable evidence.

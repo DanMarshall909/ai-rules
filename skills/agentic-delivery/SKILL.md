@@ -133,7 +133,11 @@ Use the narrowest owning test during the inner loop, then widen proportionately:
    rendering, performance, or manual-use gates.
 
 Do not narrow a completion gate to make it pass. If tooling requires composite
-runs, preserve the full intended scope and disclose the split.
+runs, preserve the full intended scope and disclose the split. After a repair,
+rerun affected checks and required combined gates. Reuse prior results only when
+the relevant inputs remain unchanged and the result is still reliable. Rerun
+cheap checks when establishing safe reuse would cost more; do not build custom
+dependency manifests or logging wrappers merely to avoid a fast test.
 
 Mutation analysis of changed core production areas begins after the whole
 coding session, against its final immutable source snapshot. It does not hold
@@ -142,7 +146,8 @@ job as pending, never as passing evidence; use the result-review and follow-up
 rules in `coverage-and-mutation` when it completes.
 
 For long commands, retain the exact command, working directory, complete output,
-duration, and exit status in a named log while showing concise progress and
+duration, and exit status. Reuse the runner's log or receipt when it has these
+facts; create one named log only when it does not. Show concise progress and
 actionable failures. Silence, a partial artifact, or a coverage percentage is
 not proof of success.
 
@@ -157,7 +162,7 @@ behaviour change complete, read and follow
 [references/completion-review.md](references/completion-review.md).
 
 That reference is the procedural owner of upstream integration, candidate
-freezing and manifests, independent PASS/FAIL/BLOCKED review, repair rounds,
+identity, independent PASS/FAIL/BLOCKED review, repair rounds,
 and the finite post-PASS publication envelope. Do not self-approve or mutate the
 reviewed candidate outside that envelope. Publication still needs task authority.
 

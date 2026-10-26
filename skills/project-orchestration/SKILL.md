@@ -9,6 +9,9 @@ Turn the software objective into evidence-backed, dependency-ready slices and
 coordinate their delivery with minimal routine user input. Start rough, refine
 where uncertainty matters, and stop at the agreed outcome. This workflow owns
 project coordination; it does not replace delivery, testing or tracker owners.
+For an ordinary slice, use one owner, the existing task record, a checkpoint
+revision, test results and independent review where required. Add records only
+for a specific review, recovery or project requirement.
 
 ## Establish the objective before delegating
 
@@ -58,6 +61,9 @@ external capabilities. Qualify a dependency that could invalidate the approach
 at the smallest useful real boundary before expanding dependent implementation.
 Use a bounded experiment with a decision at its end, not open-ended retries. Reuse
 accepted direction; do not recreate mockups or ADRs merely to satisfy a phase.
+Once direction is accepted, execute the next ready slice. Reopen delivery choices
+when new evidence or a user correction changes the next action; name that reason
+briefly rather than repeating general planning.
 Maintain enough shared vocabulary and design direction to prevent incompatible
 work packages, and prepare specialist decision requests early.
 
@@ -98,6 +104,9 @@ For every work package, record:
 - the smallest novel boundary needing a tracer, when existing proof is absent;
 - tests, evidence, independent review, handoff, integration and completion rules.
 
+Put these facts in the assignment or existing task record. The same record can
+serve ownership, handback and recovery; do not create copies for each purpose.
+
 Code existence, shared libraries and neighbouring tests are not same-criterion
 proof. Carve the smallest coherent tracer out of mixed work, then use the least
 resource-intensive actually available qualified agents for proven followups.
@@ -108,8 +117,10 @@ rather than ticket size, importance or a timeless hardcoded model list.
 
 Delegate implementation with explicit execution ownership and bounded scope.
 Follow project worktree, branch, PR and shared-resource policies.
-Default to one writer/execution owner per shared mutable scope. Separate
-worktrees do not isolate shared schemas, Git operations, outputs, caches,
+Default to one writer/execution owner per shared mutable scope. Retain that
+owner through dependent implementation, tests and repairs unless availability,
+independence or a concrete benefit calls for transfer. Separate worktrees do
+not isolate shared schemas, Git operations, outputs, caches,
 ports, services or databases; serialize overlapping operations.
 
 Read-only agents use identified snapshots and must flag drift. Before readers
@@ -145,10 +156,11 @@ completion were claimed, or waive gates that also apply to unfinished work.
 Record its isolation or exposure, open criteria and next action. Merge never
 supplies missing acceptance or qualifies a dependency that requires completion.
 
-After each material result, update the authorized tracker narrowly, revise only
-affected future scope and save a durable resume packet. On resume, revalidate
-source, tracker, ownership and environment drift before affected actions; do
-focused replanning rather than restarting settled discovery.
+Update the authorized tracker when its live status, decision, owner or next
+dependency changes. Use the existing record for a handback. Add recovery details
+before stopping with unfinished work, an impending compaction, or transfer to
+an executor without usable context. On resume, revalidate affected state and
+replan only what changed. Do not create parallel status documents.
 Do not schedule recurring work unless requested.
 
 At the agreed stopping condition, report delivered outcomes, candidate and
