@@ -69,5 +69,19 @@ check('unknown-only resources rejected', {'schemaVersion': 1, 'resources': {'cpu
 check('unknown category rejected in version 1', with_unknown_category, False)
 check('nonpositive reservation rejected', with_memory(estimated, reserveMiBPerActiveWorktree=0), False)
 check('measured record needs evidence', with_memory(measured, measurement={}), False)
+version_two = deepcopy(estimated)
+version_two['schemaVersion'] = 2
+version_two['resources']['disk'] = {'workloads': {'checks': {'reserveMiB': 512, 'outputGrowthMiB': 64, 'tempGrowthMiB': 256, 'retainedBudgetMiB': 64, 'basis': 'estimated', 'estimateReason': 'Fixture allowance'}}}
+check('version two disk budget', version_two, True)
+legacy_disk = deepcopy(version_two)
+legacy_disk['schemaVersion'] = 1
+check('version one rejects disk category', legacy_disk, False)
+missing_growth = deepcopy(version_two)
+del missing_growth['resources']['disk']['workloads']['checks']['tempGrowthMiB']
+check('disk budget needs separate temp growth', missing_growth, False)
+negative_growth = deepcopy(version_two)
+negative_growth['resources']['disk']['workloads']['checks']['outputGrowthMiB'] = -1
+check('negative disk growth rejected', negative_growth, False)
+check('version two requires disk budget', dict(estimated, schemaVersion=2), False)
 print('repository resource configuration contract passed')
 PY

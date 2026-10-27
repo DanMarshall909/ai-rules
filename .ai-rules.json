@@ -1,10 +1,22 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "resources": {
     "memory": {
       "reserveMiBPerActiveWorktree": 1024,
       "basis": "estimated",
       "estimateReason": "Shell generator and installer checks are lightweight; allow 1 GiB for concurrent shell and Python subprocesses until a representative process-group peak is measured."
+    },
+    "disk": {
+      "workloads": {
+        "checks": {
+          "reserveMiB": 512,
+          "outputGrowthMiB": 64,
+          "tempGrowthMiB": 256,
+          "retainedBudgetMiB": 64,
+          "basis": "estimated",
+          "estimateReason": "Small shell/Python fixture repositories; preserve 512 MiB free and allow 320 MiB combined growth until representative storage receipts establish a measured budget."
+        }
+      }
     }
   }
 }

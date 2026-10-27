@@ -166,15 +166,21 @@ identity, independent PASS/FAIL/BLOCKED review, repair rounds,
 and the finite post-PASS publication envelope. Do not self-approve or mutate the
 reviewed candidate outside that envelope. Publication still needs task authority.
 
-After a successful push, inspect status, branches, worktrees, processes,
-containers, ports, databases, logs, and caches. Remove only state proven task-
-owned, completed, merged, pushed, and no longer needed as evidence or for likely
-future work. A generated or ignored path can still be valuable: preserve warm
-build trees, compiled targets, dependency installs, and caches when recreating
-them would take substantial time. Clean disposable per-run output first. If
-reclaiming reusable state is necessary, explain its size and rebuild cost and
-get explicit direction before deleting it. Report and retain anything active,
-unrelated, unmerged, unpushed, reusable, or ambiguous.
+Use `storage-budget` before heavy output-producing operations. Check output and
+temporary volumes, accounting for known competing jobs, against the declared
+workload estimate and reserve; pause only a producer that cannot fit. For
+managed disposable output, retain a compact receipt outside the run directory
+and verify cleanup after success, failure or cancellation once workers stop.
+Cleanup failure is a separate reported outcome, even when the command passed.
+
+At handoff, inspect task-owned worktrees, processes and retained output. Keep
+source preservation and generated-output retention separate: a preserved branch
+does not require keeping every build or report copy. Review reusable builds,
+dependencies, caches and evidence against their retention budget with measured
+size, purpose and rebuild cost. Get explicit direction before deleting reusable
+state. Retain active, unrelated, unmerged, unpushed or uncertain work; report its
+next disposition without inventing permission to remove it. Use the existing
+task record and storage receipt rather than a second retention ledger.
 
 Consolidate the observations gathered through `reflect` when control returns to
 the user. Keep material findings and proposed guidance changes in the completion
