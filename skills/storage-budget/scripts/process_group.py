@@ -167,10 +167,13 @@ class WindowsGroup:
             return False
         until = time.monotonic() + 5
         while time.monotonic() < until:
+            process_status = self.wait(self.process, 0)
+            if process_status not in (0, 258):
+                return False
             info = Accounting()
             if not self.query(self.job, 1, c.byref(info), c.sizeof(info), None):
                 return False
-            if info.active == 0:
+            if process_status == 0 and info.active == 0:
                 return True
             time.sleep(.02)
         return False

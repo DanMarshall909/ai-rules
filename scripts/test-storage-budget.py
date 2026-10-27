@@ -96,6 +96,22 @@ class StorageTests(unittest.TestCase):
         self.assertTrue(all(Path(path).is_dir() for path in result["retained_paths"]))
 
     @unittest.skipUnless(os.name=="nt", "requires native Windows process and Job APIs")
+    def test_windows_stop_waits_for_primary_process_signal(self):
+        output_path=self.root/"stop-synchronization.log"
+        with output_path.open("w+b") as output:
+            group=process_group.WindowsGroup([sys.executable,"-c","import time; time.sleep(600)"],dict(os.environ),output)
+            try:
+                stopped=group.stop()
+                primary_signaled=group.wait(group.process,0)==0
+            finally:
+                if group.process and group.wait(group.process,0)==258:
+                    group.terminate(group.job,1)
+                    group.wait(group.process,5000)
+                group.close()
+        self.assertTrue(stopped)
+        self.assertTrue(primary_signaled,"Job accounting reported stopped before the primary process signaled")
+
+    @unittest.skipUnless(os.name=="nt", "requires native Windows process and Job APIs")
     def test_windows_assignment_failure_terminates_unassigned_child(self):
         import ctypes
         from ctypes import wintypes
