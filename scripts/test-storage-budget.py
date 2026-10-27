@@ -9,6 +9,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from unittest.mock import patch
 
@@ -110,6 +111,57 @@ class StorageTests(unittest.TestCase):
                 group.close()
         self.assertTrue(stopped)
         self.assertTrue(primary_signaled,"Job accounting reported stopped before the primary process signaled")
+
+    @unittest.skipUnless(os.name=="nt", "requires native Windows process and Job APIs")
+    def test_windows_stop_waits_for_owned_descendant_signal(self):
+        import ctypes
+        from ctypes import wintypes
+        kernel=ctypes.WinDLL("kernel32",use_last_error=True)
+        open_process=kernel.OpenProcess
+        open_process.restype=wintypes.HANDLE
+        open_process.argtypes=[wintypes.DWORD,wintypes.BOOL,wintypes.DWORD]
+        is_in_job=kernel.IsProcessInJob
+        is_in_job.restype=wintypes.BOOL
+        is_in_job.argtypes=[wintypes.HANDLE,wintypes.HANDLE,ctypes.POINTER(wintypes.BOOL)]
+        wait=kernel.WaitForSingleObject
+        wait.restype=wintypes.DWORD
+        wait.argtypes=[wintypes.HANDLE,wintypes.DWORD]
+        terminate=kernel.TerminateProcess
+        terminate.restype=wintypes.BOOL
+        terminate.argtypes=[wintypes.HANDLE,wintypes.UINT]
+        close=kernel.CloseHandle
+        close.restype=wintypes.BOOL
+        close.argtypes=[wintypes.HANDLE]
+
+        command=[sys.executable,"-c","import subprocess,sys,time;p=subprocess.Popen([sys.executable,'-c','import time;time.sleep(30)'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL);print(p.pid,flush=True);time.sleep(.5)"]
+        child_handle=None
+        with (self.root/"descendant-stop.log").open("w+b") as output:
+            group=process_group.WindowsGroup(command,dict(os.environ),output)
+            try:
+                deadline=time.monotonic()+10
+                exit_code=None
+                while exit_code is None and time.monotonic()<deadline:
+                    exit_code=group.poll()
+                    if exit_code is None:time.sleep(.02)
+                self.assertEqual(0,exit_code,"parent did not exit before descendant verification")
+                output.seek(0)
+                child_pid=int(output.read().decode("utf-8").strip())
+                child_handle=open_process(0x101001,False,child_pid)  # QUERY_LIMITED_INFORMATION | SYNCHRONIZE | TERMINATE
+                self.assertTrue(child_handle,"owned descendant process handle was unavailable")
+                member=wintypes.BOOL()
+                self.assertTrue(is_in_job(child_handle,group.job,ctypes.byref(member)))
+                self.assertTrue(member.value,"descendant escaped its assigned Job object")
+                self.assertEqual(258,wait(child_handle,0))
+                stopped=group.stop()
+                child_status=wait(child_handle,0)
+            finally:
+                if child_handle and wait(child_handle,0)==258:
+                    terminate(child_handle,1)
+                    wait(child_handle,5000)
+                group.close()
+                if child_handle:close(child_handle)
+        self.assertTrue(stopped)
+        self.assertEqual(0,child_status,"Job accounting reported stopped before the owned descendant signaled")
 
     @unittest.skipUnless(os.name=="nt", "requires native Windows process and Job APIs")
     def test_windows_assignment_failure_terminates_unassigned_child(self):

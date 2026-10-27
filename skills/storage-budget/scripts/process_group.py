@@ -78,6 +78,12 @@ class WindowsGroup:
         self.query = api("QueryInformationJobObject", w.BOOL, w.HANDLE, c.c_int, c.c_void_p, w.DWORD, c.c_void_p)
         self.wait = api("WaitForSingleObject", w.DWORD, w.HANDLE, w.DWORD)
         self.exit_code = api("GetExitCodeProcess", w.BOOL, w.HANDLE, c.POINTER(w.DWORD))
+        self.kill_process = api("TerminateProcess", w.BOOL, w.HANDLE, w.UINT)
+        self.open_process = api("OpenProcess", w.HANDLE, w.DWORD, w.BOOL, w.DWORD)
+        self.is_process_in_job = api("IsProcessInJob", w.BOOL, w.HANDLE, w.HANDLE, c.POINTER(w.BOOL))
+        self.create_completion_port = api("CreateIoCompletionPort", w.HANDLE, w.HANDLE, w.HANDLE, c.c_size_t, w.DWORD)
+        self.get_completion = api("GetQueuedCompletionStatus", w.BOOL, w.HANDLE, c.POINTER(w.DWORD),
+                                  c.POINTER(c.c_size_t), c.POINTER(c.c_void_p), w.DWORD)
         class Basic(c.Structure):
             _fields_ = [("process_time", c.c_int64), ("job_time", c.c_int64), ("flags", w.DWORD),
                         ("min_working", c.c_size_t), ("max_working", c.c_size_t), ("active", w.DWORD),
@@ -99,12 +105,23 @@ class WindowsGroup:
                      w.DWORD, c.c_void_p, w.LPCWSTR, c.POINTER(Startup), c.POINTER(Process))
         assign = api("AssignProcessToJobObject", w.BOOL, w.HANDLE, w.HANDLE)
         resume = api("ResumeThread", w.DWORD, w.HANDLE)
-        kill_process = api("TerminateProcess", w.BOOL, w.HANDLE, w.UINT)
         self.job, self.process = create_job(None, None), None
+        self.completion_port, self.child_handles = None, []
+        self.process_id, self.observed_processes = None, 0
+        self.main_notification_seen, self.tracking_failed = False, False
         info, startup, process = Extended(), Startup(), Process()
         assigned = False
         try:
             if not self.job:
+                raise c.WinError(c.get_last_error())
+            self.completion_port = self.create_completion_port(c.c_void_p(-1).value, None, 0, 1)
+            if not self.completion_port:
+                raise c.WinError(c.get_last_error())
+            class Associate(c.Structure):
+                _fields_ = [("key", c.c_void_p), ("port", w.HANDLE)]
+            associate = Associate(1, self.completion_port)
+            if not api("SetInformationJobObject", w.BOOL, w.HANDLE, c.c_int, c.c_void_p, w.DWORD)(
+                    self.job, 7, c.byref(associate), c.sizeof(associate)):
                 raise c.WinError(c.get_last_error())
             info.basic.flags = 0x2000  # JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
             if not set_job(self.job, 9, c.byref(info), c.sizeof(info)):
@@ -128,6 +145,7 @@ class WindowsGroup:
             if not assign(self.job, self.process):
                 raise c.WinError(c.get_last_error())
             assigned = True
+            self.process_id, self.observed_processes = process.pid, 1
             if resume(process.thread) == 0xffffffff:
                 raise c.WinError(c.get_last_error())
         except BaseException as error:
@@ -137,7 +155,7 @@ class WindowsGroup:
                     if assigned:
                         workers_stopped = self.stop()
                     else:
-                        kill_process(process.process, 1)
+                        self.kill_process(process.process, 1)
                         workers_stopped = self.wait(process.process, 5000) == 0
                 except Exception:
                     workers_stopped = False
@@ -148,7 +166,50 @@ class WindowsGroup:
         finally:
             if process.thread:
                 self.close_handle(process.thread)
+    def _track_new_process(self, pid):
+        c, w = self.c, self.w
+        if pid == self.process_id:
+            if not self.main_notification_seen:
+                self.main_notification_seen = True
+                return
+            self.tracking_failed = True
+            return
+        self.observed_processes += 1
+        handle = self.open_process(0x00101001, False, pid)  # PROCESS_TERMINATE | QUERY_LIMITED_INFORMATION | SYNCHRONIZE
+        if not handle:
+            if c.get_last_error() != 87:  # ERROR_INVALID_PARAMETER: process has already exited
+                self.tracking_failed = True
+            return
+        member = w.BOOL()
+        if not self.is_process_in_job(handle, self.job, c.byref(member)):
+            self.close_handle(handle)
+            self.tracking_failed = True
+            return
+        if not member.value:
+            self.close_handle(handle)  # the PID was reused after this job member exited
+            return
+        status = self.wait(handle, 0)
+        if status == 258:
+            self.child_handles.append(handle)
+        elif status == 0:
+            self.close_handle(handle)
+        else:
+            self.close_handle(handle)
+            self.tracking_failed = True
+    def _drain_job_messages(self):
+        c = self.c
+        while True:
+            message, key, value = self.w.DWORD(), c.c_size_t(), c.c_void_p()
+            success = self.get_completion(self.completion_port, c.byref(message), c.byref(key), c.byref(value), 0)
+            if not success:
+                if c.get_last_error() == 258:  # WAIT_TIMEOUT: no queued job notification
+                    return not self.tracking_failed
+                self.tracking_failed = True
+                return False
+            if message.value == 6 and value.value:  # JOB_OBJECT_MSG_NEW_PROCESS
+                self._track_new_process(value.value)
     def poll(self):
+        self._drain_job_messages()
         status = self.wait(self.process, 0)
         if status == 258:
             return None
@@ -163,25 +224,42 @@ class WindowsGroup:
         class Accounting(c.Structure):
             _fields_ = [("times", c.c_int64 * 4), ("faults", w.DWORD), ("total", w.DWORD),
                         ("active", w.DWORD), ("terminated", w.DWORD)]
+        self._drain_job_messages()
         if not self.terminate(self.job, 1):
             return False
         until = time.monotonic() + 5
         while time.monotonic() < until:
+            self._drain_job_messages()
             process_status = self.wait(self.process, 0)
             if process_status not in (0, 258):
                 return False
+            all_children_stopped = True
+            for handle in self.child_handles:
+                status = self.wait(handle, 0)
+                if status == 258:
+                    all_children_stopped = False
+                    self.kill_process(handle, 1)
+                elif status != 0:
+                    return False
             info = Accounting()
             if not self.query(self.job, 1, c.byref(info), c.sizeof(info), None):
                 return False
-            if process_status == 0 and info.active == 0:
+            # Completion-port creation notices are best-effort; the lifetime count detects a missing notice.
+            if (not self.tracking_failed and process_status == 0 and all_children_stopped and
+                    info.active == 0 and info.total == self.observed_processes):
                 return True
             time.sleep(.02)
         return False
     def close(self):
+        for handle in self.child_handles:
+            self.close_handle(handle)
+        self.child_handles.clear()
         if self.job:
             self.close_handle(self.job); self.job = None
         if self.process:
             self.close_handle(self.process); self.process = None
+        if self.completion_port:
+            self.close_handle(self.completion_port); self.completion_port = None
 
 
 def launch(command, environment, output):
