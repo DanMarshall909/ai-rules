@@ -14,6 +14,7 @@ from unittest.mock import patch
 
 SCRIPT = Path(__file__).resolve().parents[1] / "skills/storage-budget/scripts/storage_budget.py"
 sys.path.insert(0,str(SCRIPT.parent))
+import process_group
 spec=importlib.util.spec_from_file_location("storage_budget",SCRIPT)
 storage=importlib.util.module_from_spec(spec);spec.loader.exec_module(storage)
 
@@ -68,6 +69,32 @@ class StorageTests(unittest.TestCase):
         invalid=self.config();invalid["resources"]["disk"]["workloads"]["build"]["tempGrowthMiB"]=-1
         with self.assertRaisesRegex(storage.StorageError,"invalid-disk-budget"):
             storage.admit(invalid,"build",output,temporary)
+
+    def test_missing_executable_cleans_owned_run_directories(self):
+        receipt=self.root/"launch-failure.json"
+        missing=self.root/"missing-executable"
+        result=storage.run_managed(self.config(),"build",self.root,self.root,receipt,
+            [str(missing)],scope="launch-failure",cache_state="cold",timeout=3,sample_seconds=.05)
+        self.assertEqual("execution-error",result["reason"])
+        self.assertTrue(result["workers_stopped"])
+        self.assertEqual(0,result["receipt"]["cleanup_failures"])
+        self.assertEqual(0,result["receipt"]["after_bytes"])
+        self.assertEqual([],result["retained_paths"])
+        self.assertFalse(any(self.root.glob("ai-rules-run-*")))
+
+    def test_unconfirmed_launch_failure_preserves_owned_run_directories(self):
+        receipt=self.root/"unconfirmed-launch.json"
+        failure=process_group.LaunchError("worker state is unknown",workers_stopped=False)
+        with patch("process_group.launch",side_effect=failure):
+            result=storage.run_managed(self.config(),"build",self.root,self.root,receipt,
+                [sys.executable,"-c","pass"],scope="unconfirmed-launch",cache_state="cold")
+        self.assertEqual("execution-error",result["reason"])
+        self.assertFalse(result["workers_stopped"])
+        self.assertEqual(2,result["receipt"]["cleanup_failures"])
+        self.assertGreater(result["receipt"]["after_bytes"],0)
+        self.assertEqual(2,len(result["retained_paths"]))
+        self.assertTrue(all(Path(path).is_dir() for path in result["retained_paths"]))
+
     def test_inventory_does_not_follow_linked_ancestors_or_unbounded_nesting(self):
         target=self.root/"target";target.mkdir();(target/"valuable").write_bytes(b"123456789")
         link=self.root/"link"

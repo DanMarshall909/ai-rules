@@ -8,8 +8,11 @@ matching contract, not the experiment's execution or statistical significance.
 
 ## Identity and privacy
 
-`start` fingerprints regular files under `rule-sets/`, `rules/` and `skills/`,
-including package references/scripts, plus root AGENTS.md, CLAUDE.md and resource configuration when present. Python bytecode caches are excluded.
+`start` fingerprints regular files under `rule-sets/`, `rules/`, `skills/` and
+the repository's shared `scripts/` directory, plus root AGENTS.md, CLAUDE.md
+and resource configuration when present. A shared helper change therefore
+changes the source identity used for final verification and comparison; per-skill
+digests identify package files. Python bytecode caches are excluded.
 Nested links are rejected instead of following arbitrary external content.
 Fingerprinting checks stable content and Git identity; `finish` samples again.
 A change and revert between those samples cannot be detected. The declared

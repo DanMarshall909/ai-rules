@@ -5,10 +5,20 @@ import subprocess
 import time
 
 
+class LaunchError(subprocess.SubprocessError):
+    def __init__(self, message, *, workers_stopped):
+        super().__init__(message)
+        self.workers_stopped = bool(workers_stopped)
+
+
 class PosixGroup:
     def __init__(self, command, environment, output):
-        self.process = subprocess.Popen(command, env=environment, stdout=output, stderr=subprocess.STDOUT,
-                                        stdin=subprocess.DEVNULL, start_new_session=True)
+        try:
+            self.process = subprocess.Popen(command, env=environment, stdout=output, stderr=subprocess.STDOUT,
+                                            stdin=subprocess.DEVNULL, start_new_session=True)
+        except Exception as error:
+            # Popen waits for and reaps a child whose exec fails before returning.
+            raise LaunchError(str(error), workers_stopped=True) from error
     def poll(self):
         return self.process.poll()
     def stop(self):
@@ -92,6 +102,7 @@ class WindowsGroup:
         kill_process = api("TerminateProcess", w.BOOL, w.HANDLE, w.UINT)
         self.job, self.process = create_job(None, None), None
         info, startup, process = Extended(), Startup(), Process()
+        assigned = False
         try:
             if not self.job:
                 raise c.WinError(c.get_last_error())
@@ -115,15 +126,25 @@ class WindowsGroup:
                         os.set_handle_inheritable(handle, False)
             self.process = process.process
             if not assign(self.job, self.process):
-                kill_process(self.process, 1)
-                self.wait(self.process, 5000)
                 raise c.WinError(c.get_last_error())
+            assigned = True
             if resume(process.thread) == 0xffffffff:
-                self.terminate(self.job, 1)
                 raise c.WinError(c.get_last_error())
-        except BaseException:
+        except BaseException as error:
+            workers_stopped = not bool(process.process)
+            if process.process:
+                try:
+                    if assigned:
+                        workers_stopped = self.stop()
+                    else:
+                        self.terminate(process.process, 1)
+                        workers_stopped = self.wait(process.process, 5000) == 0
+                except Exception:
+                    workers_stopped = False
             self.close()
-            raise
+            if not isinstance(error, Exception):
+                raise
+            raise LaunchError(str(error), workers_stopped=workers_stopped) from error
         finally:
             if process.thread:
                 self.close_handle(process.thread)

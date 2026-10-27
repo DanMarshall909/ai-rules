@@ -22,8 +22,9 @@ python <skill>/scripts/skill_metrics.py start --run-id task-11-a --project ai-ru
 The source defaults to the checkout containing this package, including a pinned
 project submodule. Pass `--rules-root <checkout>` consistently to `start`, `use`
 and `finish` when measuring another explicit source. Start outputs its actual
-Git revision when available and a digest of policy and skill content. A dirty
-or unavailable Git identity is explicit; labels cannot impersonate revisions.
+Git revision when available and a digest of policy, skill and shared repository
+script content. Per-skill digests identify their package files. A dirty or
+unavailable Git identity is explicit; labels cannot impersonate revisions.
 
 Batch newly selected skills with `use --run-id <id> --skill <name> ...`. Then
 record the task outcome with `finish --run-id <id> --outcome completed` (or

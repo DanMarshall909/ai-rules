@@ -416,6 +416,8 @@ def run_managed(config, workload, output_parent, temp_parent, receipt_path, comm
         except (OSError, StorageError, subprocess.SubprocessError) as error:
             result["reason"] = "execution-error"
             result["error"] = str(error)
+            if isinstance(error, process_group.LaunchError):
+                result["workers_stopped"] = error.workers_stopped
             complete = False
         finally:
             if old_term is not None:

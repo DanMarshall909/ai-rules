@@ -164,7 +164,7 @@ def git_identity(root):
             return result.stdout.strip()
         if Path(git("rev-parse", "--show-toplevel")).resolve() != root:
             return None, None
-        return git("rev-parse", "--verify", "HEAD"), bool(git("status", "--porcelain", "--untracked-files=all", "--", "rule-sets", "rules", "skills", "AGENTS.md", "CLAUDE.md", ".ai-rules.json"))
+        return git("rev-parse", "--verify", "HEAD"), bool(git("status", "--porcelain", "--untracked-files=all", "--", "rule-sets", "rules", "skills", "scripts", "AGENTS.md", "CLAUDE.md", ".ai-rules.json"))
     except (OSError, subprocess.SubprocessError, MetricsError):
         return None, None
 
@@ -175,7 +175,7 @@ def source_entries(root):
             raise MetricsError("rules content contains a nested link; cannot fingerprint safely")
     def walk_error(error):
         raise error
-    for directory in ("rule-sets", "rules", "skills"):
+    for directory in ("rule-sets", "rules", "skills", "scripts"):
         base = root / directory
         if not base.exists():
             continue

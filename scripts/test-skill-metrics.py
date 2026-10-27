@@ -488,6 +488,26 @@ class SlowTests(MetricsCase):
         self.assertEqual(2, result.returncode)
         self.assertIn("multiple content", result.stderr)
 
+    def test_root_scripts_are_part_of_effective_source_identity(self):
+        def git(*args):
+            return subprocess.run(["git", "-C", str(self.rules), *args], check=True, capture_output=True, text=True).stdout.strip()
+        helper=self.rules/"scripts"/"report-worktree-cleanup.ps1"
+        helper.parent.mkdir(parents=True)
+        helper.write_text("if ($Storage) { 'before' }", encoding="utf-8")
+        git("init", "--initial-branch=main")
+        git("config", "user.name", "Metrics Test")
+        git("config", "user.email", "metrics@example.invalid")
+        git("add", ".")
+        git("commit", "-m", "fixture")
+
+        before=self.start("before-helper-edit")["run"]
+        helper.write_text("if ($false) { 'after' }", encoding="utf-8")
+        finished=self.call("finish", "--run-id", "before-helper-edit", "--outcome", "completed", "--rules-root", str(self.rules))["run"]
+        self.assertEqual("changed",finished["source_integrity"])
+        self.assertNotEqual(before["source"]["digest"],finished["end_source"]["digest"])
+        self.assertFalse(before["source"]["dirty"])
+        self.assertTrue(finished["end_source"]["dirty"])
+
     def test_lone_dirty_git_cohort_requires_digest_but_clean_commit_selection_works(self):
         def git(*args):
             return subprocess.run(["git", "-C", str(self.rules), *args], check=True, capture_output=True, text=True).stdout.strip()
