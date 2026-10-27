@@ -137,7 +137,7 @@ class WindowsGroup:
                     if assigned:
                         workers_stopped = self.stop()
                     else:
-                        self.terminate(process.process, 1)
+                        kill_process(process.process, 1)
                         workers_stopped = self.wait(process.process, 5000) == 0
                 except Exception:
                     workers_stopped = False

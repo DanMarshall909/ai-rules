@@ -95,6 +95,90 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(2,len(result["retained_paths"]))
         self.assertTrue(all(Path(path).is_dir() for path in result["retained_paths"]))
 
+    @unittest.skipUnless(os.name=="nt", "requires native Windows process and Job APIs")
+    def test_windows_assignment_failure_terminates_unassigned_child(self):
+        import ctypes
+        from ctypes import wintypes
+        real_windll=ctypes.WinDLL
+        captured={"pid":None}
+
+        class ProcessInfo(ctypes.Structure):
+            _fields_=[("process",wintypes.HANDLE),("thread",wintypes.HANDLE),
+                      ("pid",wintypes.DWORD),("tid",wintypes.DWORD)]
+
+        class FunctionOverride:
+            def __init__(self,function,callback):
+                object.__setattr__(self,"function",function)
+                object.__setattr__(self,"callback",callback)
+            def __getattr__(self,name):
+                return getattr(self.function,name)
+            def __setattr__(self,name,value):
+                if name in ("restype","argtypes"):
+                    setattr(self.function,name,value)
+                else:
+                    object.__setattr__(self,name,value)
+            def __call__(self,*args):
+                return self.callback(self.function,*args)
+
+        def capture_create(function,*args):
+            created=function(*args)
+            if created:
+                captured["pid"]=ctypes.cast(args[-1],ctypes.POINTER(ProcessInfo)).contents.pid
+            return created
+
+        def reject_assignment(function,*args):
+            return 0
+
+        def patched_windll(name,*,use_last_error=False):
+            kernel=real_windll(name,use_last_error=use_last_error)
+            kernel.CreateProcessW=FunctionOverride(kernel.CreateProcessW,capture_create)
+            kernel.AssignProcessToJobObject=FunctionOverride(kernel.AssignProcessToJobObject,reject_assignment)
+            return kernel
+
+        kernel=real_windll("kernel32",use_last_error=True)
+        open_process=kernel.OpenProcess
+        open_process.restype=wintypes.HANDLE
+        open_process.argtypes=[wintypes.DWORD,wintypes.BOOL,wintypes.DWORD]
+        wait=kernel.WaitForSingleObject
+        wait.restype=wintypes.DWORD
+        wait.argtypes=[wintypes.HANDLE,wintypes.DWORD]
+        terminate=kernel.TerminateProcess
+        terminate.restype=wintypes.BOOL
+        terminate.argtypes=[wintypes.HANDLE,wintypes.UINT]
+        close=kernel.CloseHandle
+        close.restype=wintypes.BOOL
+        close.argtypes=[wintypes.HANDLE]
+
+        def is_running(pid):
+            handle=open_process(0x00100000,False,pid)  # SYNCHRONIZE
+            if not handle:
+                return False
+            try:
+                status=wait(handle,0)
+                self.assertIn(status,(0,258))
+                return status==258
+            finally:
+                close(handle)
+
+        running_after_error=None
+        with (self.root/"assignment-failure.log").open("w+b") as output:
+            with patch.object(ctypes,"WinDLL",side_effect=patched_windll):
+                with self.assertRaises(process_group.LaunchError) as raised:
+                    process_group.WindowsGroup([sys.executable,"-c","import time; time.sleep(600)"],dict(os.environ),output)
+            self.assertIsNotNone(captured["pid"])
+            try:
+                running_after_error=is_running(captured["pid"])
+            finally:
+                handle=open_process(0x0001|0x00100000,False,captured["pid"])  # TERMINATE | SYNCHRONIZE
+                if handle:
+                    try:
+                        terminate(handle,1)
+                        wait(handle,5000)
+                    finally:
+                        close(handle)
+        self.assertTrue(raised.exception.workers_stopped)
+        self.assertFalse(running_after_error,"failed job assignment left its suspended child alive")
+
     def test_inventory_does_not_follow_linked_ancestors_or_unbounded_nesting(self):
         target=self.root/"target";target.mkdir();(target/"valuable").write_bytes(b"123456789")
         link=self.root/"link"
