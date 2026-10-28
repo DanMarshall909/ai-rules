@@ -131,7 +131,7 @@ and never twice — a layered set arrives in repos that already have both.
 | `rules/git.md` | Sync before work; promptly push verified work without force; preserve reviewed bytes and merge history |
 | `rules/issues.md` | Declared GitHub, repository or external tracking with one authority per live fact |
 | `rules/reflection.md` | Reflect quietly during work; aggregate material findings at handoff |
-| `rules/authority.md` | Instruction precedence, task authority, and proportionate scope |
+| `rules/authority.md` | Instruction precedence, shared scope, authority and owner understanding |
 | `rules/sync.md` | Quiet remote and unpublished-work preflight for the shared checkout |
 
 For non-trivial autonomous feature delivery, use `agentic-delivery`. It binds
@@ -142,6 +142,13 @@ mutation mechanics for .NET and JavaScript/TypeScript; repositories can provide
 local modules for other stacks. Explicit task and scoped project instructions
 refine shared defaults within the host's instruction hierarchy; skills and
 adapters do not add authority.
+
+Autonomous goals include shared planning and an understandable owner handover.
+Expose material assumptions before dependent implementation. At completion,
+explain what works, what changed and why, what remains uncertain and where to
+recover; use a concrete example to check understanding. Keep that orientation in
+the existing project/task record across sessions, without adding a second tracker
+or routine phase approvals. Technical delivery and confirmed handover are distinct.
 
 ## Workflow owners
 

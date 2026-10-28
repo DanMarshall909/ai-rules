@@ -39,6 +39,12 @@ next work does not itself authorize implementation. Respect planning-only and
 orchestration-only limits. Within an already authorized objective, routine
 refinement and execution do not need separate approval at each phase.
 
+Make that scope shared with the owner before dependent execution. Surface material
+assumptions and choices about behaviour, architecture, persistent data and cost;
+investigate facts before asking and reuse accepted decisions. A detailed internal
+brief does not prove the planning conversation established shared understanding.
+Use the shared-scope procedure in `agentic-delivery` for an implementation goal.
+
 ## Investigate and refine in rolling waves
 
 Once bounded questions are clear, run independent read-only investigations in
@@ -167,3 +173,9 @@ At the agreed stopping condition, report delivered outcomes, candidate and
 tracker references, evidence levels, outstanding acceptance and released or
 retained resources. Hand over active work explicitly; do not start another
 objective merely because future ideas remain.
+
+Use the owner-handover procedure in `agentic-delivery`: explain demonstrated
+behaviour, important changes and reasons, uncertainty, next action and recovery
+point; check understanding through a concrete consequence. Keep technical delivery
+and owner handover distinct. Reuse the existing record so the next session can
+recover this picture without reconstructing conversations.

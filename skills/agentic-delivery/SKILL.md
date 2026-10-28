@@ -37,6 +37,29 @@ Ask before changing accepted scope, spending money, taking licence or privacy
 risk, publishing externally without prior authority, or making an expensive-to-
 reverse architecture or data decision.
 
+### Establish shared scope before execution
+
+Make the planning conversation detailed enough for the owner to understand the
+change: intended user behaviour, included and excluded scope, affected boundaries,
+material design/data choices, required proof and a safe stopping point. Walk
+through a representative outcome and a relevant refusal or failure case when
+that reveals a consequential ambiguity. Reuse decisions already accepted.
+
+Separate verified facts, routine implementation choices and material assumptions.
+Investigate uncertainty that tools or existing records can resolve; ask the owner
+about decisions that could materially change behaviour, scope, architecture,
+persistent data, cost or reversibility. Do not silently choose a direction or
+treat an agent's detailed plan as evidence that the owner agreed. An authorized
+goal may include bounded discovery with an explicit decision point; hold dependent
+implementation until that point is resolved. Scale planning to the actual risk.
+
+For work spanning sessions, maintain a short orientation in the existing
+authorized project/task record: current outcome, demonstrated working behaviour,
+important changes and reasons, unknown/broken behaviour, and next bounded action
+with the last working checkpoint. Link authoritative status and revision-bound
+evidence; keep one live-fact owner. Update at meaningful handoffs and read it on
+resume. No new diary, per-tool record or second tracker is required.
+
 ## Assign agent capability from criterion evidence
 
 When the host supports delegation or model selection, choose from evidence
@@ -190,17 +213,35 @@ need owner agreement unless already requested.
 
 ## Completion report
 
-Report the outcome and evidence, not merely activity:
+Lead with a handover the owner can reason about:
 
-- release or product criterion advanced;
-- tasks and acceptance criteria satisfied;
-- tests, coverage, mutation, and any manual evidence;
-- independent verdict and candidate identity;
-- commit and publication result;
-- cleanup performed and ambiguous state retained;
-- material aggregated findings and the disposition of guidance proposals;
-- remaining risk; and
-- the next dependency-ready task, without starting a new goal boundary.
+- what now works for the user, tied to the agreed goal;
+- the few behavioural or architectural changes that matter and why;
+- a concrete demonstration or example connecting input, system decision, result
+  and persistence/replay where relevant, with evidence for the claimed revision;
+- what remains uncertain, broken or outside the demonstrated scope; and
+- the next bounded action and the last working state available for recovery.
+
+Keep the engineering detail accessible through existing records: release/product
+criterion, tasks and acceptance criteria satisfied, tests/coverage/mutation/manual
+evidence, independent verdict and candidate identity, commit/publication state,
+cleanup and retained ambiguity, material findings and guidance dispositions.
+Test totals and agent agreement alone do not explain the delivered behaviour.
+Do not start another goal merely because the next dependency is ready.
+
+### Confirm the owner's handover
+
+After presenting the outcome, use a brief conversational check about a concrete
+consequence, boundary or decision to establish whether the owner understands the
+change. Avoid a generic "does that make sense?", a formal quiz or a demand to
+review implementation detail. Invite correction and questions. When a reply
+reveals a gap, explain or demonstrate that part and check again proportionately.
+
+Distinguish technical delivery complete from owner handover confirmed. If there
+is no reply, record understanding as unconfirmed in the existing handover; do
+not invent acceptance or reopen completed engineering gates. Preserve the agreed
+goal and ordinary autonomy. A comprehension gap calls for explanation, not more
+features, tests or unsolicited work.
 
 ## Notes
 
