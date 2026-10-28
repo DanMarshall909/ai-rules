@@ -5,7 +5,7 @@ description: 'Use when autonomously delivering a non-trivial feature or multi-st
 
 # Agentic Delivery
 
-Deliver the smallest accepted outcome all the way from authoritative scope to
+Deliver the accepted outcome all the way from authoritative scope to
 tested, independently reviewed, published completion within the requested scope.
 Explicit task and scoped project instructions refine shared defaults within the
 host's hierarchy. Do not introduce a competing tracker, specification format,
@@ -31,6 +31,15 @@ Before selecting or expanding work:
 - State the goal's expected outcome, stopping condition, allowed side effects,
   required evidence, and cut line. Prefer one coherent feature or release gate
   to an unbounded “finish everything” goal.
+
+Calibrate the amount of work with the owner in both directions. Recommend a
+larger coherent goal when shared scope, settled decisions and recent handovers
+support more work the owner can understand and steer. Recommend a smaller outcome
+or earlier checkpoint when unfamiliar changes, unresolved choices or understanding
+gaps accumulate. Use owner feedback and demonstrated understanding to judge
+capacity; code volume, test counts and agent speed do not establish it. Agree
+scope adjustments with the owner; do not silently expand a goal or redefine it
+around an easier subset.
 
 Proceed autonomously through routine, reversible decisions inside that boundary.
 Ask before changing accepted scope, spending money, taking licence or privacy

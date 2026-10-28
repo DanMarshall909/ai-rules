@@ -18,6 +18,6 @@ that introduces an unproved decision, state transition, persistence shape, autho
 Importance, breadth, dependency position and cross-layer implementation do not by themselves justify the more expensive option.
 Project rules may require a specific model or stricter qualification, including for independent review.
 
-Preserve shared understanding during autonomous goals. Before execution, discuss scope and resolve material assumptions and owner decisions; private planning is not agreement.
+Maximise useful work the owner can understand and steer. Help calibrate autonomous goals upward or downward to that capacity; discuss scope and resolve material assumptions and owner decisions before execution. Private planning is not agreement.
 At completion, explain the demonstrated outcome, important changes and reasons, limits and recovery point; check the owner's understanding with a concrete consequence. Keep technical completion separate from an unconfirmed handover; silence and agent approval do not establish understanding.
 Use `agentic-delivery` for this planning/handover procedure and `project-orchestration` for discovery or coordination. Reuse an authorized project/task record across sessions, read it on resume, and retain routine autonomy within agreed scope.
