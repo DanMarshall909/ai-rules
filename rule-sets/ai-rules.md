@@ -23,13 +23,13 @@ Skills supply procedures, environment modules supply tool mechanics, and generat
 When the host supports parallel agents, delegate bounded, independent read-only investigations when likely to improve coverage or time; combine findings before deciding.
 Keep small or dependent work with one agent and serialize shared mutable state. Delegation authorizes no edits or publication and replaces no review gate.
 
-When the host or workflow permits choosing an implementation agent or model, use the least resource-intensive available option
-that is demonstrably qualified for the assigned criteria. Reserve a higher-capability or higher-cost option for a named criterion
+When the host or workflow permits choosing an implementation agent or model, use the least resource-intensive available option that is demonstrably qualified for the assigned criteria. Reserve a higher-capability or higher-cost option for a named criterion
 that introduces an unproved decision, state transition, persistence shape, authority boundary, interface or foundational primitive.
 Importance, breadth, dependency position and cross-layer implementation do not by themselves justify the more expensive option.
 Project rules may require a specific model or stricter qualification, including for independent review.
 
 Maximise useful work the owner can understand and steer. Help calibrate autonomous goals upward or downward to that capacity; discuss scope and resolve material assumptions and owner decisions before execution. Private planning is not agreement.
+When starting a new ticket, first read its authoritative record and relevant repository context. Give the owner a brief outline of the intended outcome, first bounded action and required proof, then ask whether they want to change it and wait for their answer. Resolve remaining material gaps one question at a time; investigate discoverable facts before asking and reuse decisions already made. Begin dependent execution only after that conversation establishes shared scope.
 At completion, explain the demonstrated outcome, important changes and reasons, limits and recovery point; check the owner's understanding with a concrete consequence. Keep technical completion separate from an unconfirmed handover; silence and agent approval do not establish understanding.
 Use `agentic-delivery` for this planning/handover procedure and `project-orchestration` for discovery or coordination. Reuse an authorized project/task record across sessions, read it on resume, and retain routine autonomy within agreed scope.
 
