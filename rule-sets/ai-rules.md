@@ -19,14 +19,14 @@ Skills supply procedures, environment modules supply tool mechanics, and generat
 - Automatically clean only verified task-owned disposable run output after its workers stop; verify removal and report cleanup failures. Review retained builds, dependencies and caches against a storage budget, explaining measured size and rebuild cost before obtaining direction to delete reusable state. Unknown ownership, active work and storage estimates never supply deletion authority.
 - Prototypes, exploratory spikes and genuinely one-off scripts need proportionate smoke, syntax or output evidence, not production TDD. Production, maintained, reused or recurring operational code follows the normal testing workflow.
 - Perform routine in-scope work under existing authority. Ask before expanding scope, destructive actions not already authorized, or external side effects not covered by the request. Creating a PR does not authorize merging it.
+- For Dan's repositories, accepted work may be merged after an independent GPT-6 Astra completion review records PASS for the exact candidate, required checks and branch protections pass, the reviewed head and intended base are unchanged, and no review findings remain unresolved. This is standing merge authorization for that candidate. An explicit keep-local or review-only instruction still takes precedence.
 
 When the host supports parallel agents, delegate bounded, independent read-only investigations when likely to improve coverage or time; combine findings before deciding.
 Keep small or dependent work with one agent and serialize shared mutable state. Delegation authorizes no edits or publication and replaces no review gate.
 
 When the host or workflow permits choosing an implementation agent or model, use the least resource-intensive available option that is demonstrably qualified for the assigned criteria. Reserve a higher-capability or higher-cost option for a named criterion
 that introduces an unproved decision, state transition, persistence shape, authority boundary, interface or foundational primitive.
-Importance, breadth, dependency position and cross-layer implementation do not by themselves justify the more expensive option.
-Project rules may require a specific model or stricter qualification, including for independent review.
+Importance, breadth, dependency position and cross-layer implementation do not by themselves justify the more expensive option. Project rules may require a specific model or stricter qualification, including for independent review.
 
 Maximise useful work the owner can understand and steer. Help calibrate autonomous goals upward or downward to that capacity; discuss scope and resolve material assumptions and owner decisions before execution. Private planning is not agreement.
 When starting a new ticket, first read its authoritative record and relevant repository context. Give the owner a brief outline of the intended outcome, first bounded action and required proof, then ask whether they want to change it and wait for their answer. Resolve remaining material gaps one question at a time; investigate discoverable facts before asking and reuse decisions already made. Begin dependent execution only after that conversation establishes shared scope.
