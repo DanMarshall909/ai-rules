@@ -23,9 +23,9 @@ Before selecting or expanding work:
   specification or issue system, current branch, status, and unfinished work.
 - Name the current product or release outcome, the specific exit condition this
   work advances, and the first dependency-ready task that owns it.
-- Treat accepted requirements and tasks as authority. Existing code, chat,
-  prototypes, review comments, and generated artifacts are evidence or inputs;
-  they do not silently authorize scope.
+- Treat owner-accepted requirements, plans and tasks as authority. Unaccepted
+  proposals, existing code, prototypes, review comments and generated artifacts
+  are evidence or inputs; they do not silently authorize scope.
 - If the plan, specification, task list, and code disagree, reconcile the
   authoritative artifacts before implementation.
 - State the goal's expected outcome, stopping condition, allowed side effects,
@@ -177,15 +177,30 @@ up a verified ticket, integration, or publication. Report a queued or running
 job as pending, never as passing evidence; use the result-review and follow-up
 rules in `coverage-and-mutation` when it completes.
 
-For long commands, retain the exact command, working directory, complete output,
-duration, and exit status. Reuse the runner's log or receipt when it has these
-facts; create one named log only when it does not. Show concise progress and
-actionable failures. Silence, a partial artifact, or a coverage percentage is
-not proof of success.
-
 Read `coverage-and-mutation` for coverage gaps, survivor classification, harness
 calibration and pruning decisions. It owns evidence interpretation; this skill
 owns when to widen validation and assemble the completion evidence.
+
+### Wait without repeated orchestration
+
+For long commands, retain the exact command, working directory, source and
+runtime identity, complete output, timing and eventual exit status, including
+failures and cancellations. Reuse the runner's log or receipt; add only missing
+evidence. Prefer an established, tested supervisor over a per-ticket wrapper.
+Requalify it when its implementation, execution contract or relevant environment
+changes, or a failure calls its evidence into question; ordinary use needs no
+fresh supervisor calibration. Silence and partial artifacts remain pending,
+never success.
+
+Prefer completion notifications or a background collector that wakes the
+controller on meaningful output or termination. Where polling is necessary,
+use interruptible capped exponential waits: 30, 60, 120, 240, then at most 300
+seconds; reset on meaningful progress, not heartbeats or quiet polls. Keep
+waiting and backoff in the tool or runner where supported. Avoid model turns,
+duplicate watchers and status narration solely to restate an unchanged pending
+state. Host limits and required responsiveness take precedence; report when
+available controls cannot prevent repeated controller wakeups. A collector
+alone does not prove that model invocations have stopped.
 
 ## Review and publish the exact candidate
 
@@ -236,7 +251,10 @@ criterion, tasks and acceptance criteria satisfied, tests/coverage/mutation/manu
 evidence, independent verdict and candidate identity, commit/publication state,
 cleanup and retained ambiguity, material findings and guidance dispositions.
 Test totals and agent agreement alone do not explain the delivered behaviour.
-Do not start another goal merely because the next dependency is ready.
+Once the accepted outcome, required verification, review and authorized delivery
+conditions are satisfied, report the result and stop. Reopen work for a concrete
+correction, invalidated evidence or an unmet requirement. Do not start another
+goal merely because the next dependency is ready.
 
 ### Confirm the owner's handover
 
@@ -249,8 +267,9 @@ reveals a gap, explain or demonstrate that part and check again proportionately.
 Distinguish technical delivery complete from owner handover confirmed. If there
 is no reply, record understanding as unconfirmed in the existing handover; do
 not invent acceptance or reopen completed engineering gates. Preserve the agreed
-goal and ordinary autonomy. A comprehension gap calls for explanation, not more
-features, tests or unsolicited work.
+goal and ordinary autonomy. An unanswered handover does not keep technical work
+active or require another status commit. A comprehension gap calls for
+explanation, not more features, tests or unsolicited work.
 
 ## Notes
 
