@@ -75,10 +75,9 @@ orchestration cost evidence if it informs a decision. Separate agent effort from
 native execution cost. Label estimates and proxies; unavailable usage is unknown,
 not zero. Do not run telemetry or create a status record merely to fill fields.
 
-For long commands, use completion notifications or bounded waits and the project's
-inspection cadence. Check again on a meaningful event or planned checkpoint;
-avoid frequent unchanged polls, duplicate watchers and narration of every poll.
-Keep any host-required responsiveness and progress updates.
+For long commands, use the mechanical waiting procedure in `agentic-delivery`.
+Resume orchestration on a meaningful event or required checkpoint, preserving
+host responsiveness without duplicating watchers or narrating unchanged polls.
 
 ## Explicit handback
 

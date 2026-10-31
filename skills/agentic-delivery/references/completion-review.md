@@ -160,3 +160,10 @@ the repair process. A transport failure or push rejection alone does not erase
 review: inspect the outcome and local/remote identities, then retry only if the
 candidate, upstream and destination ref still satisfy the approved conditions.
 A changed destination ref must be reconciled; never force-push under this gate.
+
+Plan known repository closeout updates into the candidate or approved envelope;
+record the publication outcome once in the authoritative tracker or handoff.
+A verified merge does not by itself require a new evidence commit, status-only
+PR or independent review. Follow up for a required authoritative update,
+invalidated evidence or a concrete correction, applying the documentation-only
+review boundary above. Do not mirror publication status into additional records.
