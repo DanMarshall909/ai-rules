@@ -202,6 +202,23 @@ state. Host limits and required responsiveness take precedence; report when
 available controls cannot prevent repeated controller wakeups. A collector
 alone does not prove that model invocations have stopped.
 
+Give each fallback observation an explicit finite deadline. Reaching it returns
+`pending` with the original process/task identity and evidence location; it does
+not imply failure, cancel the producer or authorize restarting it. Cancellation
+of the observer must interrupt its wait promptly and preserve the producer
+unless cancelling that producer is separately authorized. Resume observation of
+the same live handle or retained receipt. Only an identity-matched terminal
+receipt with a valid numeric exit status proves completion; absent, malformed
+or mismatched receipts remain unverified.
+
+Qualify a changed observation policy with success, failure, quiet and
+heartbeat-only output, a semantic progress transition, observation expiry and
+observer cancellation. Demonstrate that expiry/cancellation preserves the live
+producer and that a later observer collects its terminal result. Heartbeat
+bytes or timestamps alone are not progress and must not reset backoff. Retain
+the exercised policy, timing and terminal evidence; a capped delay alone does
+not prove a bounded observation.
+
 ## Review and publish the exact candidate
 
 Before declaring a non-trivial feature, vertical slice, migration, or product-
