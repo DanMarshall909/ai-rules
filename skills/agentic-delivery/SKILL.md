@@ -15,112 +15,27 @@ This skill coordinates the work. Use `behavior-first-tdd` for test design,
 `coverage-and-mutation` for evidence strength and code pruning, and `reflect`
 quietly throughout execution, consolidating findings at the normal handoff.
 
-## Establish authority and a bounded goal
+## Scope and ownership
 
-Before selecting or expanding work:
+Establish the authoritative accepted outcome, observable criteria, stopping
+condition, allowed side effects, proof and cut line before implementation.
+Reuse accepted decisions; reconcile material disagreements before dependent work.
+Investigate discoverable facts and hold only work depending on unresolved owner
+choices. Routine reversible decisions inside accepted scope need no new approval.
+Agree scope changes; do not silently expand work or redefine an easier subset.
 
-- Read the repository instructions and discover its release plan, canonical
-  specification or issue system, current branch, status, and unfinished work.
-- Name the current product or release outcome, the specific exit condition this
-  work advances, and the first dependency-ready task that owns it.
-- Treat owner-accepted requirements, plans and tasks as authority. Unaccepted
-  proposals, existing code, prototypes, review comments and generated artifacts
-  are evidence or inputs; they do not silently authorize scope.
-- If the plan, specification, task list, and code disagree, reconcile the
-  authoritative artifacts before implementation.
-- State the goal's expected outcome, stopping condition, allowed side effects,
-  required evidence, and cut line. Prefer one coherent feature or release gate
-  to an unbounded “finish everything” goal.
+Read [scope and continuity](references/scope-and-continuity.md) when establishing
+or adjusting scope, refining criteria or carrying a goal across sessions.
+Read [agent assignment](references/agent-assignment.md) before delegation or
+selecting a higher-cost implementation agent: use same-criterion landed proof,
+isolate novel boundaries as tracers and use qualified low-cost followups.
+Project capability requirements and independent review still apply.
 
-Calibrate the amount of work with the owner in both directions. Recommend a
-larger coherent goal when shared scope, settled decisions and recent handovers
-support more work the owner can understand and steer. Recommend a smaller outcome
-or earlier checkpoint when unfamiliar changes, unresolved choices or understanding
-gaps accumulate. Use owner feedback and demonstrated understanding to judge
-capacity; code volume, test counts and agent speed do not establish it. Agree
-scope adjustments with the owner; do not silently expand a goal or redefine it
-around an easier subset.
-
-Proceed autonomously through routine, reversible decisions inside that boundary.
-Ask before changing accepted scope, spending money, taking licence or privacy
-risk, publishing externally without prior authority, or making an expensive-to-
-reverse architecture or data decision.
-
-### Establish shared scope before execution
-
-Make the planning conversation detailed enough for the owner to understand the
-change: intended user behaviour, included and excluded scope, affected boundaries,
-material design/data choices, required proof and a safe stopping point. Walk
-through a representative outcome and a relevant refusal or failure case when
-that reveals a consequential ambiguity. Reuse decisions already accepted.
-
-Separate verified facts, routine implementation choices and material assumptions.
-Investigate uncertainty that tools or existing records can resolve; ask the owner
-about decisions that could materially change behaviour, scope, architecture,
-persistent data, cost or reversibility. Do not silently choose a direction or
-treat an agent's detailed plan as evidence that the owner agreed. An authorized
-goal may include bounded discovery with an explicit decision point; hold dependent
-implementation until that point is resolved. Scale planning to the actual risk.
-
-For work spanning sessions, maintain a short orientation in the existing
-authorized project/task record: current outcome, demonstrated working behaviour,
-important changes and reasons, unknown/broken behaviour, and next bounded action
-with the last working checkpoint. Link authoritative status and revision-bound
-evidence; keep one live-fact owner. Update at meaningful handoffs and read it on
-resume. No new diary, per-tool record or second tracker is required.
-
-## Assign agent capability from criterion evidence
-
-When the host supports delegation or model selection, choose from evidence
-rather than task prestige or apparent code size. Before assigning a higher-cost
-or highest-capability implementation agent, map every delegated acceptance
-criterion using these fields:
-
-| Field | Required evidence |
-|---|---|
-| Criterion | The exact observable outcome or invariant being assigned. |
-| Landed proof | Independently accepted behaviour, code, tests, revision and review that prove the same criterion. |
-| Novel boundary | Any unproved decision, state transition, persistence shape, authority boundary, interface or foundational primitive. |
-| Assignment | `Tracer` for a named novel boundary; otherwise `Followup` with the lowest-cost qualified agent. |
-
-Apply the map as follows:
-
-- A criterion with an unproved boundary is a tracer even when its code looks
-  small. Assign a sufficiently capable agent and make that smallest coherent
-  end-to-end slice the reference implementation.
-- A criterion fully mapped to landed proof is a followup. Use the least
-  resource-intensive available agent that has the required reasoning ability,
-  tools, context and permissions; do not repeat the tracer merely because the
-  feature is important, broad, on the critical path or crosses layers.
-- For mixed work, carve out the smallest tracer that proves the novel boundary
-  and leave every fully mapped criterion as a separately bounded followup.
-- Dependency or code reuse alone does not prove followup status. If the mapping
-  is uncertain, investigate first; unresolved novelty remains a tracer rather
-  than an assumed followup.
-
-Project policy may name concrete models, require a stronger tier or prohibit
-delegation. Independent completion review retains the capability and separation
-requirements in `references/completion-review.md`; this assignment rule does not
-lower them.
-
-## Make the change test-actionable
-
-Before changing product behaviour, require an owning task and an acceptance
-criterion that states an observable outcome or verifiable invariant. Give
-requirements and criteria stable identities when the project's system supports
-them, and make the task reference the criteria it claims to satisfy.
-
-Keep implementation instructions, packages, filenames, and commands in the
-design or task plan rather than disguising them as acceptance criteria. When
-implementation reveals missing behaviour, update the accepted contract before
-writing that behaviour.
-
-Read-only exploration needs no implementation workflow. A spike needs one bounded
-question, a cost or time limit, success and failure thresholds, a fallback, and
-an explicit adopt/revise/defer/stop result. Isolated spikes, prototypes, and
-genuinely one-off scripts may use output or measurement evidence instead of
-production TDD. Maintained, reused or recurring operational scripts follow the
-normal gates even when they are called utilities.
+Read-only exploration needs no implementation workflow. Isolated spikes,
+prototypes and genuinely one-off scripts use proportionate evidence; maintained,
+reused or recurring executable behaviour retains normal gates. Documentation-only
+maintenance does not automatically require independent feature review; apply the
+project's stricter requirements.
 
 ## Establish sole ownership of the workspace
 
@@ -133,17 +48,13 @@ tasks share specifications, build configuration, schemas, generated corpora,
 ports, databases, caches, or unmerged APIs, serialize them. Passing separately
 does not prove the combined result.
 
-## Select environment modules
+## Select applicable procedures
 
-Before choosing build, test, coverage, or mutation commands, read
-[references/environments/index.md](references/environments/index.md) and every
-module matching the changed production areas. In a polyglot repository, load
-all applicable modules and keep their evidence separate until an intentional
-integration gate combines it.
-
-Repository-local drivers and instructions override the portable modules. Never
-substitute a superficially similar flag from another implementation: Stryker.NET
-and StrykerJS, for example, use different incremental and baseline models.
+Before choosing build, test, coverage or mutation commands, read the
+[environment index](references/environments/index.md) and modules matching the
+changed production areas. Load all applicable modules in a polyglot repository;
+keep their evidence separate until an intentional integration gate. Local drivers
+and instructions override portable modules; do not substitute another tool's flags.
 
 ## Deliver one criterion through the complete TDD loop
 
@@ -181,119 +92,28 @@ Read `coverage-and-mutation` for coverage gaps, survivor classification, harness
 calibration and pruning decisions. It owns evidence interpretation; this skill
 owns when to widen validation and assemble the completion evidence.
 
-### Wait without repeated orchestration
+## Long commands, review and closeout
 
-For long commands, retain the exact command, working directory, source and
-runtime identity, complete output, timing and eventual exit status, including
-failures and cancellations. Reuse the runner's log or receipt; add only missing
-evidence. Prefer an established, tested supervisor over a per-ticket wrapper.
-Requalify it when its implementation, execution contract or relevant environment
-changes, or a failure calls its evidence into question; ordinary use needs no
-fresh supervisor calibration. Silence and partial artifacts remain pending,
-never success.
+For long commands, read [mechanical waiting](references/long-running-commands.md).
+Retain identity, complete output, timing and terminal status outside model context.
+Silence, partial artifacts and expired observation remain pending. Use finite,
+interruptible observation; preserve the producer unless cancellation is authorized.
 
-Prefer completion notifications or a background collector that wakes the
-controller on meaningful output or termination. Where polling is necessary,
-use interruptible capped exponential waits: 30, 60, 120, 240, then at most 300
-seconds; reset on meaningful progress, not heartbeats or quiet polls. Keep
-waiting and backoff in the tool or runner where supported. Avoid model turns,
-duplicate watchers and status narration solely to restate an unchanged pending
-state. Host limits and required responsiveness take precedence; report when
-available controls cannot prevent repeated controller wakeups. A collector
-alone does not prove that model invocations have stopped.
+Before declaring a non-trivial feature, vertical slice, migration or behaviour
+change complete, read [completion review](references/completion-review.md).
+It owns upstream integration, exact candidate identity, independent PASS/FAIL/
+BLOCKED review, repair rounds and the finite post-PASS publication envelope.
+Never self-approve, weaken required review capability or mutate the reviewed
+candidate outside that envelope. Publication still needs task authority.
 
-Give each fallback observation an explicit finite deadline. Reaching it returns
-`pending` with the original process/task identity and evidence location; it does
-not imply failure, cancel the producer or authorize restarting it. Cancellation
-of the observer must interrupt its wait promptly and preserve the producer
-unless cancelling that producer is separately authorized. Resume observation of
-the same live handle or retained receipt. Only an identity-matched terminal
-receipt with a valid numeric exit status proves completion; absent, malformed
-or mismatched receipts remain unverified.
+Use `storage-budget` before heavy output-producing operations. At closeout,
+read [resources and handover](references/closeout-and-handover.md): preserve
+active/unrelated/uncertain work, verify task-owned disposable cleanup after
+workers stop, and obtain direction before deleting reusable state.
 
-Qualify a changed observation policy with success, failure, quiet and
-heartbeat-only output, a semantic progress transition, observation expiry and
-observer cancellation. Demonstrate that expiry/cancellation preserves the live
-producer and that a later observer collects its terminal result. Heartbeat
-bytes or timestamps alone are not progress and must not reset backoff. Retain
-the exercised policy, timing and terminal evidence; a capped delay alone does
-not prove a bounded observation.
-
-## Review and publish the exact candidate
-
-Before declaring a non-trivial feature, vertical slice, migration, or product-
-behaviour change complete, read and follow
-[references/completion-review.md](references/completion-review.md).
-
-That reference is the procedural owner of upstream integration, candidate
-identity, independent PASS/FAIL/BLOCKED review, repair rounds,
-and the finite post-PASS publication envelope. Do not self-approve or mutate the
-reviewed candidate outside that envelope. Publication still needs task authority.
-
-Use `storage-budget` before heavy output-producing operations. Check output and
-temporary volumes, accounting for known competing jobs, against the declared
-workload estimate and reserve; pause only a producer that cannot fit. For
-managed disposable output, retain a compact receipt outside the run directory
-and verify cleanup after success, failure or cancellation once workers stop.
-Cleanup failure is a separate reported outcome, even when the command passed.
-
-At handoff, inspect task-owned worktrees, processes and retained output. Keep
-source preservation and generated-output retention separate: a preserved branch
-does not require keeping every build or report copy. Review reusable builds,
-dependencies, caches and evidence against their retention budget with measured
-size, purpose and rebuild cost. Get explicit direction before deleting reusable
-state. Retain active, unrelated, unmerged, unpushed or uncertain work; report its
-next disposition without inventing permission to remove it. Use the existing
-task record and storage receipt rather than a second retention ledger.
-
-Consolidate the observations gathered through `reflect` when control returns to
-the user. Keep material findings and proposed guidance changes in the completion
-report, after the outcome and evidence. Do not create a separate interruption or
-expand the task to implement a new lesson. Changes to standing guidance still
-need owner agreement unless already requested.
-
-## Completion report
-
-Lead with a handover the owner can reason about:
-
-- what now works for the user, tied to the agreed goal;
-- the few behavioural or architectural changes that matter and why;
-- a concrete demonstration or example connecting input, system decision, result
-  and persistence/replay where relevant, with evidence for the claimed revision;
-- what remains uncertain, broken or outside the demonstrated scope; and
-- the next bounded action and the last working state available for recovery.
-
-Keep the engineering detail accessible through existing records: release/product
-criterion, tasks and acceptance criteria satisfied, tests/coverage/mutation/manual
-evidence, independent verdict and candidate identity, commit/publication state,
-cleanup and retained ambiguity, material findings and guidance dispositions.
-Test totals and agent agreement alone do not explain the delivered behaviour.
-Once the accepted outcome, required verification, review and authorized delivery
-conditions are satisfied, report the result and stop. Reopen work for a concrete
-correction, invalidated evidence or an unmet requirement. Do not start another
-goal merely because the next dependency is ready.
-
-### Confirm the owner's handover
-
-After presenting the outcome, use a brief conversational check about a concrete
-consequence, boundary or decision to establish whether the owner understands the
-change. Avoid a generic "does that make sense?", a formal quiz or a demand to
-review implementation detail. Invite correction and questions. When a reply
-reveals a gap, explain or demonstrate that part and check again proportionately.
-
-Distinguish technical delivery complete from owner handover confirmed. If there
-is no reply, record understanding as unconfirmed in the existing handover; do
-not invent acceptance or reopen completed engineering gates. Preserve the agreed
-goal and ordinary autonomy. An unanswered handover does not keep technical work
-active or require another status commit. A comprehension gap calls for
-explanation, not more features, tests or unsolicited work.
-
-## Notes
-
-- Documentation-only maintenance and experiments making no readiness claim do
-  not automatically need the independent feature review. Apply proportionate
-  checks and the project's stricter rules.
-- Exact tools are adapters. OpenSpec, Jira, GitHub, xUnit, pytest, Stryker, and
-  particular agent models are not requirements of this workflow.
-- Autonomy does not expand authority. Finishing, babysitting, or “do not stop”
-  changes persistence, not permission.
+Report demonstrated user behaviour, important changes and reasons, evidence and
+limits, next bounded action and recovery point. Distinguish technical completion
+from owner understanding; an unanswered handover does not reopen engineering.
+Consolidate material `reflect` findings at handoff; do not expand scope to apply
+new standing guidance without authority. Stop when the agreed outcome and all
+required verification, review and authorized delivery conditions are satisfied.
