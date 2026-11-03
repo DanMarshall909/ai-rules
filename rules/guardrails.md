@@ -9,7 +9,7 @@ build-time check covering the whole convention over pinning one faulty instance.
 
 - Name unavailable checks explicitly. Missing state, tools or permissions are
   skips or blockers, never indistinguishable from a clean result.
-- Wire the check into the normal pipeline; a local-only suite is not a CI gate.
+- Wire the check into the normal local verification command so routine validation exercises it. Optional CI may run the same command; CI availability is not required.
 - Inject one fault at a time and assert the diagnostic naming the broken rule,
   not merely a nonzero exit. Setup errors must not impersonate fault detection.
 

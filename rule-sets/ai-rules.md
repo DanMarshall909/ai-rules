@@ -19,7 +19,8 @@ Respect the host's hierarchy; explicit task and scoped project instructions refi
 - Prototypes, exploratory spikes and genuinely one-off scripts need proportionate smoke, syntax or output evidence, not production TDD. Maintained, production, reused or recurring executable code retains normal testing gates.
 - Perform routine in-scope work under existing authority. Ask before expanding scope or destructive actions/external effects not already authorized. PR creation does not authorize merging.
 - Host rejection gates execution; it does not itself prove missing task authority. Recheck the original request and applicable rules before asking again or declaring a blocker. If they authorize the exact action, verify its target/preconditions and resubmit that evidence through the same approval path when reconsideration is allowed. Never evade rejection; if it persists, stop the action and report why.
-- For Dan's repositories, accepted work may be merged after an independent GPT-6 Astra completion review records PASS for the exact candidate, required checks and branch protections pass, the reviewed head and intended base are unchanged, and no review findings remain unresolved. This is standing merge authorization for that candidate. An explicit keep-local or review-only instruction still takes precedence.
+- For Dan's repositories, use local verification as the delivery gate. Run the applicable checks locally against the exact candidate and record their results and gaps. Hosted CI is optional supplementary evidence: do not depend on it, require paid CI, manually trigger or rerun hosted jobs, or wait for green CI unless Dan explicitly requests it. Missing, skipped or infrastructure-failed CI does not block delivery when the required local verification passes; actual test failures still need investigation. Preserve enforced remote restrictions and report any that prevent publication; this rule does not authorize bypassing or changing branch protections.
+- For Dan's repositories, accepted work may be merged after an independent GPT-6 Astra completion review records PASS for the exact candidate, required local verification passes and enforced branch protections are satisfied, the reviewed head and intended base are unchanged, and no review findings remain unresolved. This is standing merge authorization for that candidate. An explicit keep-local or review-only instruction still takes precedence.
 
 Where supported, delegate bounded independent read-only investigations when useful for coverage or time; combine findings before deciding. Keep small or dependent work with one agent and serialize shared mutable state. Delegation grants no edits/publication and replaces no review gate.
 
@@ -94,7 +95,7 @@ build-time check covering the whole convention over pinning one faulty instance.
 
 - Name unavailable checks explicitly. Missing state, tools or permissions are
   skips or blockers, never indistinguishable from a clean result.
-- Wire the check into the normal pipeline; a local-only suite is not a CI gate.
+- Wire the check into the normal local verification command so routine validation exercises it. Optional CI may run the same command; CI availability is not required.
 - Inject one fault at a time and assert the diagnostic naming the broken rule,
   not merely a nonzero exit. Setup errors must not impersonate fault detection.
 
