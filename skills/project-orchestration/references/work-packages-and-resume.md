@@ -133,3 +133,56 @@ results, resources and ownership. Treat unavailable state as unknown.
 Replan only the affected scope; preserve settled direction and usable evidence.
 Do not replay a pending command until its prior outcome is known or a safe retry
 contract applies. Request only the material missing decision or permission.
+
+## Preparing the next slice and execution
+
+## Make the next slice ready
+
+Before implementation, require a clear outcome, observable acceptance criteria,
+dependencies, decision authority and execution owner. Unresolved questions must
+not be able to invalidate this slice's accepted behaviour or constraints.
+Restrict or defer dependent work; continue unrelated ready engineering.
+
+For every work package, record:
+
+- stable item/criterion IDs, outcome, exclusions, dependencies and order;
+- agent role, available model/effort choice and criterion-based reason;
+- delegated decision/repair authority, retry and escalation boundaries, and owned
+  source, tests, contracts, schemas, generated files and mutable resources;
+- independently accepted proof for the SAME criterion, with revision and review;
+- the smallest novel boundary needing a tracer, when existing proof is absent;
+- tests, evidence, independent review, handoff, integration and completion rules.
+
+Put these facts in the assignment or existing task record. The same record can
+serve ownership, handback and recovery; do not create copies for each purpose.
+
+Code existence, shared libraries and neighbouring tests are not same-criterion
+proof. Carve the smallest coherent tracer out of mixed work, then use the least
+resource-intensive actually available qualified agents for proven followups.
+Use stronger capability for a named unproved boundary or required review,
+rather than ticket size, importance or a timeless hardcoded model list.
+
+## Delegate and coordinate execution
+
+Delegate implementation with explicit execution ownership and bounded scope.
+Follow project worktree, branch, PR and shared-resource policies.
+Default to one writer/execution owner per shared mutable scope. Retain that
+owner through dependent implementation, tests and repairs unless availability,
+independence or a concrete benefit calls for transfer. Separate worktrees do
+not isolate shared schemas, Git operations, outputs, caches,
+ports, services or databases; serialize overlapping operations.
+
+Read-only agents use identified snapshots and must flag drift. Before readers
+become writers, explicitly assign ownership. An interruption, silence or partial
+result does not release a writer's scope. Require an explicit handback and
+recipient acknowledgment before another executor takes over.
+
+If delegation tools are unavailable, report that limit. Preserve a user's
+orchestration-only constraint: prepare assignments and a resume packet; do not
+silently implement as the lead. Otherwise use one executor within authority.
+
+Route accepted slice delivery to `agentic-delivery`, behaviour/test changes to
+`behavior-first-tdd`, and independent completion review to the completion-review
+reference inside `agentic-delivery`. Discover and read these packages rather
+than assuming they loaded. If unavailable, state the gap, use applicable project
+procedures, and leave unmet review or evidence gates outstanding.
