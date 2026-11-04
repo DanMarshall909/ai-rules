@@ -625,6 +625,32 @@ Merging an increment does not mean the task is done. When a slice lands with
 work still outstanding, say what is still missing rather than letting the merge
 imply completion.
 
+### Worktree Placement and Preservation Archives
+
+On Windows, keep primary checkouts outside the shared worktree root. Place every
+linked task worktree under exactly one owner namespace:
+
+- personal repositories: `D:\worktrees\personal\<repository>\<task-slug>`;
+- Rapid Circle repositories: `D:\worktrees\rc\<repository>\<task-slug>`.
+
+Do not create linked worktrees beside a repository, inside a repository, under
+artifacts or temporary directories, or under a second worktree root. Resolve
+the absolute target path and confirm it is unused before creating a worktree.
+Treat pre-existing worktrees elsewhere as legacy exceptions: inventory and
+preserve them, then migrate or remove them only in an explicitly authorized
+cleanup task. Do not bulk-relocate them merely to adopt this convention.
+
+When the user decides that unintegrated work must be preserved rather than
+merged, retain its exact tip under `archived/<original-branch-name>`. Record the
+archive in the durable deferral ledger and verify that its commit is reachable
+from the intended remote before treating preservation as complete. An archive
+name alone does not resolve deferred work.
+
+Routine cleanup must exclude remotely preserved `archived/*` refs and their
+worktrees. They remain visible to the active-work gate and ledger review, but
+are not deletion, rename, integration, or replay candidates unless the user
+explicitly targets that archive.
+
 ---
 
 ## Issue & Finding Tracking
