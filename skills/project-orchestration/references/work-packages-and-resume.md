@@ -102,6 +102,13 @@ work; resolve ownership under project policy before a replacement writes.
 
 ## Recovery at session boundaries
 
+The root reads the canonical project handoff through `session-handoff` on fresh
+startup and replaces it at substantive completion or goal stop. Delegated
+workers, including nested coordinators, hand back to their parent; they do not
+rotate that file or replace their assignment with older project-wide context.
+The root incorporates relevant handbacks and links existing tracker/evidence
+records, preserving one authority per live fact.
+
 Before stopping with unfinished work, an impending compaction, or transfer to an
 executor without usable context, add the missing recovery details to the existing
 record. An ordinary handback with sufficient context needs no separate packet:

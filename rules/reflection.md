@@ -5,5 +5,5 @@ Quietly aggregate evidence in existing authorized records; continue the task and
 Pause only affected actions for active correctness/safety failures, invalid
 evidence or blocked progress. Resolve within authority; ask only for needed decisions.
 Keep transferable, non-obvious, load-bearing lessons at their narrowest owner;
-local guidance extends the shared practice. No compulsory journal or read-only writes.
+local guidance extends the shared practice. No separate journal; root handoffs follow `session-handoff`.
 Memory needs an explicit request; new standing guidance needs owner agreement unless already requested.

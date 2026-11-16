@@ -20,7 +20,8 @@ Capture useful evidence in an existing authorized task, review or tool-feedback
 record. Deduplicate repeated findings and preserve only enough context to
 reproduce the issue or justify the future decision. Do not introduce a mandatory
 journal, second tracker or record for every tool call. During read-only work,
-retain observations for the response rather than writing files.
+retain observations for the response; root closeout may write the canonical
+handoff under `session-handoff`. This grants no other record-editing authority.
 
 Do not interrupt progress with ordinary friction reports, reflection commentary
 or guidance proposals. Pause only the affected action when current correctness

@@ -27,6 +27,12 @@ need owner agreement unless already requested.
 
 ## Completion report
 
+The root coordinator uses `session-handoff` to replace the canonical project
+recovery summary after substantive task completion or goal stop. Delegated
+agents return their handback to the parent, including resource release; even a
+nested coordinator does not rotate the project handoff. Keep authoritative task
+status and detailed evidence in their existing records and link them.
+
 Lead with a handover the owner can reason about:
 
 - what now works for the user, tied to the agreed goal;

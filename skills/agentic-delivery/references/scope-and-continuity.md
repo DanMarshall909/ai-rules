@@ -51,8 +51,9 @@ treat an agent's detailed plan as evidence that the owner agreed. An authorized
 goal may include bounded discovery with an explicit decision point; hold dependent
 implementation until that point is resolved. Scale planning to the actual risk.
 
-For work spanning sessions, maintain a short orientation in the existing
-authorized project/task record: current outcome, demonstrated working behaviour,
+For work spanning sessions, the root uses `session-handoff` for the canonical
+recovery summary, linked to the existing authoritative project/task record:
+current outcome, demonstrated working behaviour,
 important changes and reasons, unknown/broken behaviour, and next bounded action
 with the last working checkpoint. Link authoritative status and revision-bound
 evidence; keep one live-fact owner. Update at meaningful handoffs and read it on

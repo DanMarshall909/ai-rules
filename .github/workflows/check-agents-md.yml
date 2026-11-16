@@ -48,6 +48,10 @@ jobs:
         run: python scripts/test-fixture-cleanup.py --lane slow
       - name: conventions hold
         run: scripts/check-conventions.sh
+      - name: handoff fast lane
+        run: python scripts/test-handoff.py --lane fast
+      - name: handoff slow lane
+        run: python scripts/test-handoff.py --lane slow
 
   windows-installer:
     runs-on: windows-latest

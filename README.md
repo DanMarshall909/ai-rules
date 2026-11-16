@@ -162,6 +162,7 @@ or routine phase approvals. Technical delivery and confirmed handover are distin
 | Track work or evidence in declared repository Markdown | [track-repository-work](skills/track-repository-work/SKILL.md) |
 | Track work in another declared work-item system | [track-external-work-items](skills/track-external-work-items/SKILL.md) |
 | Deliver accepted implementation scope | [agentic-delivery](skills/agentic-delivery/SKILL.md) |
+| Read or replace the one project handoff at root startup/closeout | [session-handoff](skills/session-handoff/SKILL.md) |
 | Design tests and complete each TDD cycle | [behavior-first-tdd](skills/behavior-first-tdd/SKILL.md) |
 | Interpret coverage, mutants and pruning evidence | [coverage-and-mutation](skills/coverage-and-mutation/SKILL.md) |
 | Freeze, independently review and publish a candidate | [completion-review](skills/agentic-delivery/references/completion-review.md) |
@@ -373,6 +374,16 @@ Faster execution with materially worse storage is mixed; missing required
 observations are insufficient. Sampled peaks are lower bounds, and unrelated
 host free-space changes are not attributable to the measured task.
 
+## Session handoffs
+
+For the global handoff command, preview/install with
+`scripts/install-handoff.sh --dry-run` then `scripts/install-handoff.sh`.
+At every fresh root session run `ai-handoff latest --project "$PWD"` before
+substantive work. Delegated agents hand back to their parent. Create/rotate with
+`ai-handoff new --project "$PWD" --expect '<revision-or-none>' --from /path/prepared.md`.
+See the [handoff skill](skills/session-handoff/SKILL.md) for explicit startup,
+ownership, non-Codex use and recovery instructions.
+
 ## Checks
 
 ```bash
@@ -385,6 +396,7 @@ scripts/test-rules-sync-preflight.sh # quiet rules-sync preflight behaviour
 scripts/test-repo-config.sh        # repository resource configuration contract
 scripts/test-new-skill.sh          # the skill scaffold's behaviour
 scripts/test-new-rule-set.sh       # the rule and rule-set scaffolds
+python3 scripts/test-handoff.py --lane combined # current/archive, role and install contracts
 scripts/check-conventions.sh       # skills load, installers agree, rules registered
 python3 scripts/test-skill-metrics.py --lane combined # local metrics and comparison contracts
 python3 scripts/test-storage-budget.py --lane combined # inventory, admission and managed cleanup
