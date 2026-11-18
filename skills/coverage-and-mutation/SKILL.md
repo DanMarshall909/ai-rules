@@ -121,11 +121,15 @@ process tree and retain the resource and stop receipts for diagnosis.
 - Code that cannot be justified is removed, not covered. Code that exists only to
   be exercised by its own tests — no production callers — is not justified by
   those tests.
-- Before deleting dead or unreferenced code, decide whether it is useful
-  functionality that should be *wired up* rather than deleted (e.g. a correct
-  primitive with no caller yet). Assess its value and propose wiring it up. Only
-  delete genuine leftovers and duplicates. Never delete useful code to raise a
-  coverage number.
+- Retain or wire up dead or unreferenced code only for a real current consumer,
+  an accepted near-term need, or a compatibility obligation. Name the consumer
+  or accepted work and why this implementation is needed. Check public APIs,
+  dynamic loading, configuration, shipped versions and persisted data before
+  declaring it unused; inaccessible evidence remains unknown.
+- Do not invent callers or propose wiring code up just to save it from removal.
+  If no justification survives, propose removing the code and its exclusive
+  tests within the authorized scope. Preserve shared regression protection and
+  known contracts. Never delete useful code to raise a coverage number.
 
 ## Compatibility code needs a real past
 
