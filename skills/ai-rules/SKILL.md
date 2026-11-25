@@ -88,11 +88,14 @@ installing into a user profile.
 
 ## Validate and commit
 
-Read README's `Checks` section from this repository and run that complete
-checklist before committing, including the PowerShell suite on Windows. It is
-the human-facing command list; `.github/workflows/check-agents-md.yml` owns CI
-execution. New suites must be wired into CI. Retain command, output, duration
-and exit status for long runs; runtime varies by platform.
+Select checks from README's `Checks` section by affected behaviour and contracts.
+Use realistic scenario review for guidance, generation/convention checks for
+distribution, and relevant installer tests for bundled packages. Executable changes
+need owning tests and affected regressions, including platform checks where relevant.
+Broaden for uncertain impact or enforced gates; report unavailable evidence.
+README lists commands; `.github/workflows/check-agents-md.yml` owns CI execution.
+Wire new suites into CI and retain command, output, duration and exit status for
+long runs.
 
 For maintained executable behavior, follow `behavior-first-tdd`: preserve an
 intended failing test before its implementation, using `test(red)` commits when

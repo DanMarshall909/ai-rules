@@ -20,8 +20,11 @@ Tests should describe what happens from an outside perspective: inputs, commands
 ## Choose the Test Level from the Behaviour
 
 Observable behaviour is relative to the owning component's public boundary; it
-does not require driving the whole application. Choose the narrowest level that
-can faithfully prove the claimed outcome before writing the test:
+does not require driving the whole application. Choose the smallest scope that
+clearly and faithfully proves the current acceptance criterion. Never trade test
+clarity or business protection for speed, fewer tests or a higher score.
+Parameter tables and helpers must preserve readable scenarios and distinct
+failure identities. Before writing the test, select its level:
 
 - Unit or component tests prove local rules such as formatting, validation,
   calculations and local state transitions through real production logic.
@@ -53,20 +56,47 @@ contract is affected; sharing a repository is insufficient. Honour enforced
 gates, but report unrelated tests run by a hook as incidental gate execution,
 not evidence for the changed behaviour.
 
+## Keep Business Rules Visible
+
+Make each current acceptance criterion easy to follow through its scenario and
+relevant conditions to an observable assertion and the meaningful violation it
+detects. Use existing specs and readable tests; add a separate mapping only when
+needed or required by the project. A name, mapping entry or coverage score alone
+is not proof. If the link is unclear, rethink the test.
+
+BDD scenarios can live at unit level. When a scenario spans systems, retain
+evidence of their cooperation; passing tests for separate parts do not prove it.
+
+Requirements and tests evolve together. New or revised behaviour needs a test
+that rejects the previous behaviour where it differs; demonstrate that RED when
+feasible and disclose an unavoidable gap. Retire superseded expectations because
+the accepted requirement changed, never merely to match production output.
+Behaviour-preserving refactors should stay green, and compatible additions may
+leave existing tests green. Investigate unexplained green results after a
+nontrivial change and failures in unaffected contracts. Seek a minimal but
+significant set of failures that identifies affected guarantees without incidental
+coupling; do not force failures for internal edits or pursue a target count.
+
+## Change Test Level Without Losing Meaning
+
+When replacing an integration or end-to-end test with unit tests, preserve its
+business rule, relevant conditions and meaningful fault detection through real
+production logic. Keep any necessary interface or complete-path evidence;
+replacing dependencies with mocks does not establish equivalence. Run the
+replacement before removing the original, and use a representative fault if its
+protection is uncertain. If the business story becomes harder to follow, improve
+the decomposition or retain the clearer test.
+
+Inspect related tests sharing a confirmed weakness, such as the same fixture,
+interface or responsibility. Assess their guarantees individually and keep edits
+within authorized scope. Use `test-suite-review` when a comparative review helps.
+
 ## Before Changing Behavior
 
-Inspect adjacent tests, then state briefly:
-
-- what behaviour is changing and which accepted criterion authorizes it;
-- which existing tests already protect nearby behaviour;
-- whether an existing table, property, fixture, or scenario can absorb the case
-  without losing test quality;
-- which test will specify the behaviour and what observable outcome it asserts;
-  and
-- how that test fares on regression protection, resistance to refactoring, fast
-  feedback, and maintainability.
-
-If this cannot be stated clearly, pause and clarify before editing.
+Inspect nearby tests and briefly explain the accepted behaviour change, the test
+that will prove it and the expected failure. Reuse an existing table or fixture
+when it keeps the scenario clear. Existing specs, tests and the normal work update
+usually suffice; resolve unclear requirements before changing their behaviour.
 
 ## TDD Workflow
 
@@ -83,10 +113,9 @@ If this cannot be stated clearly, pause and clarify before editing.
 6. REFACTOR production code and tests while the suite is green. Simplify
    responsibilities, vocabulary, coupling, fixtures, and assertions; remove
    redundant tests and unjustified code.
-7. Record the production and test improvements separately, or a concrete reason
-   why each side genuinely needs no change.
-8. Run the relevant tests through the project's normal driver before beginning
-   another criterion.
+7. Run the relevant tests through the project's normal driver before beginning
+   another criterion. Include material refactoring decisions in the normal handoff;
+   do not create a separate record for every phase.
 
 Do not treat GREEN as completion. It proves the current example passes; COVERAGE
 asks what remains unprotected or unearned, and REFACTOR prevents that design
@@ -134,13 +163,13 @@ median exceeds 1.5 times that tier's median. This triggers investigation, not
 automatic failure or exclusion. Ignore trivial timing noise, and investigate
 suite-level slowness even when every test has similar duration.
 
-For a slow integration test, first ask whether its business rule can be tested
-at unit level with real production logic and deterministic inputs. If it can,
-move the rule assertion there and retain a focused integration test for the
-boundary contract. Do not mock away the business behaviour or replace its
-observable outcome with interaction-only mock assertions. If a real boundary
-is essential, improve fixture/setup cost or document its value and place the
-test in a named slower verification lane. Run affected slow contracts at required
+For a slow integration test, ask whether its business scenario can be proved
+at unit level with real production logic and deterministic inputs. Follow
+"Change Test Level Without Losing Meaning" before changing it;
+retain any required boundary evidence. If a real boundary is essential, improve
+fixture/setup cost or document its value and place the test in a named slower
+verification lane. Never obscure the scenario or mock away its behaviour to
+meet a timing target. Run affected slow contracts at required
 checkpoints and before final publication; retain enforced gates and do not defer
 the sole oracle for the current criterion beyond that criterion's completion.
 

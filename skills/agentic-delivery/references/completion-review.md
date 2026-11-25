@@ -86,10 +86,13 @@ reproducing source or logs. Assess:
 
 1. **Completion.** Every claim is implemented and evidenced, with no premature
    synchronization or silent scope expansion.
-2. **Acceptance evidence.** Criteria have executable evidence of their outcomes
-   or invariants at the right layer, with genuine RED evidence where required.
+2. **Acceptance evidence.** Current criteria connect clearly to real scenarios
+   and assertions at the right layer. Test-level changes preserve business
+   conditions and necessary interface evidence; mappings alone are insufficient.
 3. **Test effectiveness.** Tests protect behaviour, resist incidental refactoring
-   and provide maintainable, fast feedback. Coverage scores alone are insufficient.
+   and remain clear. Never trade clarity or business protection for speed or scores.
+   Apply `behavior-first-tdd` to requirement changes and unexpected test results:
+   changed behaviour needs meaningful RED; behaviour-preserving refactors stay green.
 4. **Architecture and safety.** Actual dependencies, authority, persistence,
    security, failure atomicity and project boundaries are sound.
 5. **Alternatives.** Consider materially simpler, safer or cheaper in-scope

@@ -165,6 +165,7 @@ or routine phase approvals. Technical delivery and confirmed handover are distin
 | Read or replace the one project handoff at root startup/closeout | [session-handoff](skills/session-handoff/SKILL.md) |
 | Design tests and complete each TDD cycle | [behavior-first-tdd](skills/behavior-first-tdd/SKILL.md) |
 | Interpret coverage, mutants and pruning evidence | [coverage-and-mutation](skills/coverage-and-mutation/SKILL.md) |
+| Review test families or suites without losing acceptance evidence | [test-suite-review](skills/test-suite-review/SKILL.md) |
 | Challenge codebase value and propose code/test removals | [trim-codebase](skills/trim-codebase/SKILL.md) |
 | Freeze, independently review and publish a candidate | [completion-review](skills/agentic-delivery/references/completion-review.md) |
 | Select stack-specific commands | [environment modules](skills/agentic-delivery/references/environments/index.md) |
@@ -446,6 +447,7 @@ skills/
   break-reminders/SKILL.md      ← host-aware requested session pacing
   behavior-first-tdd/SKILL.md   ← behaviour-first TDD
   coverage-and-mutation/SKILL.md ← interpretation and pruning evidence
+  test-suite-review/SKILL.md    ← focused or whole-suite test reviews
   security-by-design/SKILL.md   ← sensitive boundaries and secure design
   reflect/SKILL.md              ← background reflection and aggregated handoff findings
   upgrade-global-skills/SKILL.md ← update the checkout and global packages

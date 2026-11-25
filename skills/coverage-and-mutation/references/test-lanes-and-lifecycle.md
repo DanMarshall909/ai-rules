@@ -17,8 +17,11 @@ inventory and lane reconciliation do not require running unrelated suites for
 every change. Rerun affected slow contracts when later changes invalidate that
 checkpoint. Do not postpone the sole oracle for the current criterion, and retain
 earlier checkpoints required by project policy. Both lanes remain available for
-regression evidence; moving a test never removes its assertions. Local behaviour
-belongs in unit or component tests, even if an end-to-end fixture could prove it.
+regression evidence; changing lane membership preserves the test's assertions.
+Changing test level follows `behavior-first-tdd`: preserve the current acceptance
+scenario, its clarity and its required evidence. Requirement changes may retire
+superseded expectations deliberately. Local behaviour belongs in unit or component
+tests when they clearly prove the required context.
 
 On every ordinary run, capture available per-test elapsed time, setup/teardown
 cost and suite wall time, and review candidates in both directions against the

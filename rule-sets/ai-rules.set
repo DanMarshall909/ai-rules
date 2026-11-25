@@ -19,6 +19,7 @@ rule: reflection
 
 skill: agentic-delivery
 skill: behavior-first-tdd
+skill: test-suite-review
 skill: coverage-and-mutation
 skill: security-by-design
 skill: break-reminders

@@ -184,6 +184,12 @@ links_to "installs every workflow declared by the base set" \
 links_to "installs the base coverage workflow" \
   "${HOME}/.agents/skills/coverage-and-mutation" \
   "${REPO}/skills/coverage-and-mutation"
+links_to "base installation exposes test-suite review to canonical-profile agents" \
+  "${HOME}/.agents/skills/test-suite-review" \
+  "${REPO}/skills/test-suite-review"
+links_to "base installation exposes test-suite review to Claude" \
+  "${HOME}/.claude/skills/test-suite-review" \
+  "${REPO}/skills/test-suite-review"
 links_to "installs the base security workflow" \
   "${HOME}/.agents/skills/security-by-design" \
   "${REPO}/skills/security-by-design"

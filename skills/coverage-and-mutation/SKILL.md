@@ -43,6 +43,19 @@ Stryker.NET `--since` produces a changed-mutant subset, while StrykerJS
 Prefer repository-local drivers and verify options against the installed
 version.
 
+## Diagnose Amplified Test Costs
+
+Mutation amplifies test and fixture costs. Investigate slow runs, separating
+compilation, instrumentation and selection overhead from test execution. When
+local rules repeatedly pay integration costs, use `behavior-first-tdd` to move
+them to unit tests without losing clarity, business conditions or necessary
+interface evidence. Inspect related tests sharing the cause; `test-suite-review`
+can help compare candidates.
+
+Mutation timings flag candidates; comparable ordinary runs support performance
+and lane decisions. Similar timings or mutant kills do not prove redundancy.
+Slowness alone never justifies exclusions, skipped tests or weaker assertions.
+
 ## Long runs and agent token use
 
 Separate mutation compute from agent activity. Let useful runs continue within
