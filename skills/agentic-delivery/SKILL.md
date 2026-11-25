@@ -65,15 +65,24 @@ Use the repository's managed driver and machine-readable evidence when supplied.
 
 ## Build evidence in widening rings
 
-Use the narrowest owning test during the inner loop, then widen proportionately:
+Use the narrowest owning test during the inner loop, then select wider checks
+from the affected behaviour, dependencies and contracts. These are available
+levels of evidence, not a mandatory progression to every repository test:
 
 1. criterion-owning tests;
 2. feature or package tests;
-3. the fast unit suite;
-4. the complete suite;
+3. relevant fast unit or component suites;
+4. affected integration and end-to-end contracts;
 5. owning-package coverage;
 6. applicable build, architecture, specification, generated-data, security,
    rendering, performance, or manual-use gates.
+
+Integration tests prove integrations; local behaviour belongs at its owning
+unit or component boundary. Frontend-only changes do not call for Rust/backend
+suites unless backend behaviour, shared code or the frontend/backend contract is
+affected. Widen when impact or uncertainty justifies it. Honour enforced hooks;
+identify unrelated suites they run as incidental gate execution, not supporting
+evidence for the feature. Changing hook selection is a separate scoped change.
 
 Do not narrow a completion gate to make it pass. If tooling requires composite
 runs, preserve the full intended scope and disclose the split. After a repair,

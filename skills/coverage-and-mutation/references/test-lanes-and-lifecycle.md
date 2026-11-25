@@ -10,11 +10,15 @@ suite, with no overlap or loss. Account explicitly for skips, platform limits an
 quarantine rather than treating unavailable checks as passes.
 
 Fast is the normal development feedback lane. Slow retains expensive fixture,
-process, real-system and end-to-end contracts, run once on the final candidate
-before completing a ticket. Rerun affected slow contracts when later changes
-invalidate that checkpoint. Do not postpone the sole oracle for the current
-criterion, and retain earlier checkpoints required by project policy. Both lanes
-remain required regression evidence; moving a test never removes its assertions.
+process, real-system and end-to-end contracts. Run the relevant slow contracts
+once on the final candidate before completing a ticket; scope them to affected
+owners, dependencies and boundaries, plus applicable enforced gates. Full suite
+inventory and lane reconciliation do not require running unrelated suites for
+every change. Rerun affected slow contracts when later changes invalidate that
+checkpoint. Do not postpone the sole oracle for the current criterion, and retain
+earlier checkpoints required by project policy. Both lanes remain available for
+regression evidence; moving a test never removes its assertions. Local behaviour
+belongs in unit or component tests, even if an end-to-end fixture could prove it.
 
 On every ordinary run, capture available per-test elapsed time, setup/teardown
 cost and suite wall time, and review candidates in both directions against the

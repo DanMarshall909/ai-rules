@@ -17,6 +17,31 @@ production and test refactoring have been considered.
 
 Tests should describe what happens from an outside perspective: inputs, commands, files, public APIs, observable outputs, diagnostics, state transitions, rendered artifacts, or errors. Do not test implementation minutia such as private fields, helper algorithms, storage layout, or incidental constructors unless that API is itself a public contract.
 
+## Choose the Test Level from the Behaviour
+
+Observable behaviour is relative to the owning component's public boundary; it
+does not require driving the whole application. Choose the narrowest level that
+can faithfully prove the claimed outcome before writing the test:
+
+- Unit or component tests prove local rules such as formatting, validation,
+  calculations and local state transitions through real production logic.
+- Integration tests prove that collaborators work together across a boundary,
+  including wiring, serialization, persistence, transport and failure contracts.
+- End-to-end tests prove outcomes whose correctness depends on the complete
+  application path. Name what that path uniquely proves before paying its cost.
+
+Keep local edge cases and data variants in the owning fast tests, preferably
+parameterized when they share a contract. Retain representative integration
+cases for distinct boundary risks; do not repeat every local case through an
+expensive integration or end-to-end fixture. Do not mock away the behaviour being
+proved or replace outcome assertions with incidental interaction assertions.
+
+Select regression scope from affected behaviour and dependencies. A frontend
+change needs backend tests when backend behaviour, shared code or its boundary
+contract is affected; sharing a repository is insufficient. Honour enforced
+gates, but report unrelated tests run by a hook as incidental gate execution,
+not evidence for the changed behaviour.
+
 ## Before Changing Behavior
 
 Inspect adjacent tests, then state briefly:
@@ -104,9 +129,9 @@ move the rule assertion there and retain a focused integration test for the
 boundary contract. Do not mock away the business behaviour or replace its
 observable outcome with interaction-only mock assertions. If a real boundary
 is essential, improve fixture/setup cost or document its value and place the
-test in a named slower verification lane. A slower lane still runs at required
-checkpoints and before final publication; do not defer the sole oracle for the
-current criterion beyond that criterion's completion.
+test in a named slower verification lane. Run affected slow contracts at required
+checkpoints and before final publication; retain enforced gates and do not defer
+the sole oracle for the current criterion beyond that criterion's completion.
 
 ## Calibrate Test Abstractions Against Real Boundaries
 
