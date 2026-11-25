@@ -77,8 +77,10 @@ levels of evidence, not a mandatory progression to every repository test:
 6. applicable build, architecture, specification, generated-data, security,
    rendering, performance, or manual-use gates.
 
-Integration tests prove integrations; local behaviour belongs at its owning
-unit or component boundary. Frontend-only changes do not call for Rust/backend
+Add an integration test only when required to prove an interface between two
+systems, with assertions that fail when that interface breaks. Behaviour owned
+by one system belongs in unit tests; `behavior-first-tdd` owns the test-level
+decision. Frontend-only changes do not call for Rust/backend
 suites unless backend behaviour, shared code or the frontend/backend contract is
 affected. Widen when impact or uncertainty justifies it. Honour enforced hooks;
 identify unrelated suites they run as incidental gate execution, not supporting

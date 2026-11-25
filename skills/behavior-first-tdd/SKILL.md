@@ -25,10 +25,21 @@ can faithfully prove the claimed outcome before writing the test:
 
 - Unit or component tests prove local rules such as formatting, validation,
   calculations and local state transitions through real production logic.
-- Integration tests prove that collaborators work together across a boundary,
-  including wiring, serialization, persistence, transport and failure contracts.
+- Add integration tests only when required to prove an interface between two
+  systems, such as producer/consumer compatibility or error propagation across
+  that interface.
 - End-to-end tests prove outcomes whose correctness depends on the complete
   application path. Name what that path uniquely proves before paying its cost.
+
+Before adding an integration test, name the two systems, their interface contract
+and the concrete interface failure the test must detect. Its assertions must
+fail when that contract breaks. Merely involving multiple systems, components
+or processes is insufficient. If the asserted behaviour is owned by one system
+and can be proved without crossing the interface, write a unit test through that
+system's public boundary instead. For example, a serializer's local formatting
+rules belong in unit tests; compatibility between its output and another
+system's consumer can require an integration test. Apply this decision regardless
+of how fast the proposed integration test runs.
 
 Keep local edge cases and data variants in the owning fast tests, preferably
 parameterized when they share a contract. Retain representative integration
@@ -137,9 +148,10 @@ the sole oracle for the current criterion beyond that criterion's completion.
 
 When a fixture, fake, stub, recording or in-memory adapter stands in for an
 external tool or system, establish the subset of its behavior on which fast
-tests rely. Write a focused integration contract test that exercises the real
-boundary, independently observes representative successful and material
-failure outcomes, and checks that the stand-in preserves the contract-bearing
+tests rely. Reuse existing integration contract coverage; add a focused test
+only where needed to prove the relied-on interface. This evidence must exercise
+the real boundary, independently observe representative successful and material
+failure outcomes, and check that the stand-in preserves the contract-bearing
 inputs, outputs and relationships. Do not use the production parser or the
 stand-in itself as the sole oracle; two matching mistakes are not calibration.
 Keep malformed and edge-case variants in fast tests, but do not claim a stand-in
