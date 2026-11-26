@@ -100,6 +100,12 @@ function Get-AgentSpec {
         Target = Get-CanonicalTarget -SkillName $SkillName
         Scope = if ($inProject) { 'Project' } else { 'User' }
       } }
+    'antigravity' { @{
+        Root   = Join-Path $home_ '.gemini\config'
+        Target = if ($inProject) { Get-CanonicalTarget -SkillName $SkillName }
+                 else { Join-Path $home_ (Join-Path '.gemini\config\skills' $SkillName) }
+        Scope = if ($inProject) { 'Project' } else { 'User' }
+      } }
     'cursor' { @{
         Root   = Join-Path $cwd '.cursor'
         Target = Join-Path $cwd (Join-Path '.cursor\skills' $SkillName)
@@ -114,7 +120,7 @@ function Get-AgentSpec {
   }
 }
 
-$knownAgents = @('claude', 'codex', 'opencode', 'copilot', 'cursor', 'cline')
+$knownAgents = @('claude', 'codex', 'opencode', 'copilot', 'antigravity', 'cursor', 'cline')
 
 function Get-SourcePath {
   param([string]$SkillName)
@@ -147,7 +153,7 @@ if ($List) {
   foreach ($a in $knownAgents) {
     $spec = Get-AgentSpec -Name $a -SkillName 'x'
     $state = if (Test-Path $spec.Root) { 'detected' } else { 'not found' }
-    Write-Host ("  {0,-9} {1,-10} {2} ({3})" -f $a, $state, $spec.Root, $spec.Scope.ToLower())
+    Write-Host ("  {0,-12} {1,-10} {2} ({3})" -f $a, $state, $spec.Root, $spec.Scope.ToLower())
     foreach ($s in Get-AvailableSkills) {
       $t = (Get-AgentSpec -Name $a -SkillName $s).Target
       if ((Get-LinkTarget $t) -eq (Get-SourcePath $s)) {
@@ -288,7 +294,7 @@ function Retire-FlatRule {
 foreach ($s in $Skill) {
   Write-Host $s
   foreach ($a in $targetAgents) {
-    if ($a -eq 'claude') {
+    if ($a -eq 'claude' -or ($a -eq 'antigravity' -and -not $Project)) {
       $canonical = Get-CanonicalTarget -SkillName $s
       $installed = Install-Link -Source (Join-Path $skillsDir $s) `
                                 -Target $canonical `

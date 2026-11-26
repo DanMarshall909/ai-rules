@@ -98,6 +98,15 @@ import_line() {
   fi
 }
 
+antigravity_import_line() {
+  local set="${1:-ai-rules}"
+  if command -v cygpath >/dev/null 2>&1; then
+    printf '@[%s](%s/rule-sets/%s.md)' "${set}" "$(cygpath -m "${REPO}")" "${set}"
+  else
+    printf '@[%s](%s/rule-sets/%s.md)' "${set}" "${REPO}" "${set}"
+  fi
+}
+
 echo "install-rules.sh"
 
 # --- base AGENTS.md into a profile -----------------------------------------
@@ -198,6 +207,96 @@ links_to "installs the base break workflow" \
   "${REPO}/skills/break-reminders"
 absent "does not put base skills in the current project" \
   "${PWD}/.agents/skills/behavior-first-tdd"
+
+sandbox
+"${INSTALL}" --agent antigravity >/dev/null 2>&1
+links_to "antigravity base installation exposes behavior-first-tdd canonically" \
+  "${HOME}/.agents/skills/behavior-first-tdd" \
+  "${REPO}/skills/behavior-first-tdd"
+links_to "antigravity base installation exposes behavior-first-tdd under ~/.gemini/config/skills" \
+  "${HOME}/.gemini/config/skills/behavior-first-tdd" \
+  "${REPO}/skills/behavior-first-tdd"
+links_to "antigravity base installation exposes test-suite-review canonically" \
+  "${HOME}/.agents/skills/test-suite-review" \
+  "${REPO}/skills/test-suite-review"
+links_to "antigravity base installation exposes test-suite-review under ~/.gemini/config/skills" \
+  "${HOME}/.gemini/config/skills/test-suite-review" \
+  "${REPO}/skills/test-suite-review"
+absent "antigravity base installation does not put base skills in the current project" \
+  "${PWD}/.agents/skills/behavior-first-tdd"
+
+# --- the Antigravity @[...] include ----------------------------------------
+
+echo "antigravity @include"
+sandbox
+"${INSTALL}" --agent antigravity >/dev/null 2>&1
+if grep -qF "$(antigravity_import_line)" "${HOME}/.gemini/AGENTS.md" 2>/dev/null; then
+  ok "writes the include into ~/.gemini/AGENTS.md"
+else
+  no "writes the include into ~/.gemini/AGENTS.md" \
+     "got: $(cat "${HOME}/.gemini/AGENTS.md" 2>&1 | head -3)"
+fi
+absent "antigravity leaves the project's AGENTS.md alone" "${PWD}/AGENTS.md"
+
+sandbox
+mkdir -p "${HOME}/.gemini"
+printf 'my own notes\nkeep these\n' > "${HOME}/.gemini/AGENTS.md"
+"${INSTALL}" --agent antigravity >/dev/null 2>&1
+if grep -q "my own notes" "${HOME}/.gemini/AGENTS.md" && \
+   grep -q "keep these" "${HOME}/.gemini/AGENTS.md"; then
+  ok "antigravity keeps what was already in the file"
+else
+  no "antigravity keeps what was already in the file" "$(cat "${HOME}/.gemini/AGENTS.md")"
+fi
+if grep -qF "$(antigravity_import_line)" "${HOME}/.gemini/AGENTS.md"; then
+  ok "antigravity appends the include to an existing file"
+else
+  no "antigravity appends the include to an existing file"
+fi
+
+sandbox
+"${INSTALL}" --agent antigravity >/dev/null 2>&1
+"${INSTALL}" --agent antigravity >/dev/null 2>&1
+count="$(grep -cF "$(antigravity_import_line)" "${HOME}/.gemini/AGENTS.md" 2>/dev/null)"
+if [[ "${count}" == "1" ]]; then
+  ok "antigravity does not add the include twice"
+else
+  no "antigravity does not add the include twice" "found ${count} copies"
+fi
+
+sandbox
+mkdir -p "${HOME}/.gemini"
+printf '# disabled: %s\n' "$(antigravity_import_line)" > "${HOME}/.gemini/AGENTS.md"
+"${INSTALL}" --agent antigravity >/dev/null 2>&1
+count="$(grep -cxF "$(antigravity_import_line)" "${HOME}/.gemini/AGENTS.md" 2>/dev/null || true)"
+if [[ "${count}" == "1" ]]; then
+  ok "antigravity does not mistake a commented include for an active one"
+else
+  no "antigravity does not mistake a commented include for an active one" \
+    "found ${count} active includes"
+fi
+
+sandbox
+mkdir -p "${HOME}/.gemini/AGENTS.md"
+fails_with "antigravity fails when the include cannot be written" "could not write" \
+  "${INSTALL}" --agent antigravity
+
+sandbox
+"${INSTALL}" --agent antigravity >/dev/null 2>&1
+if grep -qE '^@\[[^]]+\]\(/[a-z]/' "${HOME}/.gemini/AGENTS.md" 2>/dev/null; then
+  no "antigravity writes a path the agent can open" "wrote a POSIX-style drive path"
+else
+  ok "antigravity writes a path the agent can open"
+fi
+
+sandbox
+"${INSTALL}" --agent antigravity >/dev/null 2>&1
+line="$(grep '^@\[' "${HOME}/.gemini/AGENTS.md" 2>/dev/null)"
+if [[ "${line}" == *'\'* && "${line}" == *'/'* ]]; then
+  no "antigravity writes one separator style, not two" "got: ${line}"
+else
+  ok "antigravity writes one separator style, not two"
+fi
 
 # --- the Claude @ import ---------------------------------------------------
 
@@ -393,6 +492,29 @@ links_to "installs the set's skills into the project" \
   "${PWD}/.claude/skills/refresh-tool-surface" "${REPO}/skills/refresh-tool-surface"
 absent "installs no skill into the profile" "${HOME}/.claude/skills/refresh-tool-surface"
 
+sandbox
+printf '# Our project\n\nOur own guidance.\n' > "${PWD}/AGENTS.md"
+"${INSTALL}" --rule-set tool-repos --agent antigravity >/dev/null 2>&1
+"${INSTALL}" --rule-set tool-repos --agent antigravity >/dev/null 2>&1
+links_to "antigravity links a layered set beside the project's AGENTS.md" \
+  "${PWD}/rule-sets/tool-repos.md" "${REPO}/rule-sets/tool-repos.md"
+if grep -q "Our own guidance." "${PWD}/AGENTS.md"; then
+  ok "antigravity keeps the project's own AGENTS.md"
+else
+  no "antigravity keeps the project's own AGENTS.md" "$(cat "${PWD}/AGENTS.md")"
+fi
+n="$(count_of "${PWD}/AGENTS.md" "rule-sets/tool-repos.md")"
+if [[ "${n}" == "1" ]]; then
+  ok "antigravity points the project's AGENTS.md at a layered set once"
+else
+  no "antigravity points the project's AGENTS.md at a layered set once" "found ${n} pointers"
+fi
+absent "antigravity layered set leaves ~/.gemini/AGENTS.md alone" "${HOME}/.gemini/AGENTS.md"
+links_to "antigravity installs the layered set's skills into the project" \
+  "${PWD}/.agents/skills/refresh-tool-surface" "${REPO}/skills/refresh-tool-surface"
+absent "antigravity layered set installs no skill into ~/.gemini/config/skills" \
+  "${HOME}/.gemini/config/skills/refresh-tool-surface"
+
 # --- --project --------------------------------------------------------------
 
 echo "--project"
@@ -427,10 +549,10 @@ echo "--list"
 sandbox
 out="$("${INSTALL}" --list 2>&1)"
 if [[ $? -eq 0 ]]; then ok "exits 0"; else no "exits 0" "${out}"; fi
-if grep -q "claude" <<<"${out}" && grep -q "copilot" <<<"${out}"; then
+if grep -q "claude" <<<"${out}" && grep -q "copilot" <<<"${out}" && grep -q "antigravity" <<<"${out}"; then
   ok "names the agents"
 else
-  no "names the agents" "Copilot was absent from the list"
+  no "names the agents" "Copilot or Antigravity was absent from the list"
 fi
 
 # A set nobody can discover is one nobody installs, so --list is where the
@@ -453,6 +575,15 @@ else
   no "reports what is already installed" "${out}"
 fi
 
+sandbox
+"${INSTALL}" --agent antigravity >/dev/null 2>&1
+out="$("${INSTALL}" --list 2>&1)"
+if grep -qF "installed: ai-rules" <<<"${out}"; then
+  ok "reports when antigravity base rules are installed"
+else
+  no "reports when antigravity base rules are installed" "${out}"
+fi
+
 # --- autodetect ------------------------------------------------------------
 
 echo "autodetect"
@@ -468,6 +599,15 @@ mkdir -p "${HOME}/.copilot"
 "${INSTALL}" >/dev/null 2>&1
 links_to "autodetects Copilot" \
   "${HOME}/.copilot/copilot-instructions.md" "${REPO}/AGENTS.md"
+
+sandbox
+mkdir -p "${HOME}/.gemini/config"
+"${INSTALL}" >/dev/null 2>&1
+if grep -qF "$(antigravity_import_line)" "${HOME}/.gemini/AGENTS.md" 2>/dev/null; then
+  ok "autodetects Antigravity"
+else
+  no "autodetects Antigravity" "missing include in ${HOME}/.gemini/AGENTS.md"
+fi
 
 sandbox
 exits_nonzero "fails when no agent is detected" "${INSTALL}"
@@ -519,11 +659,12 @@ links_to "OpenCode still installs the profile defaults" \
 
 echo "--dry-run"
 sandbox
-mkdir -p "${HOME}/.codex" "${HOME}/.claude"
+mkdir -p "${HOME}/.codex" "${HOME}/.claude" "${HOME}/.gemini/config"
 "${INSTALL}" --dry-run >/dev/null 2>&1
 absent "links nothing" "${HOME}/.codex/AGENTS.md"
 absent "links no rule set" "${HOME}/.codex/rule-sets/ai-rules.md"
 absent "writes no import" "${HOME}/.claude/CLAUDE.md"
+absent "writes no antigravity include" "${HOME}/.gemini/AGENTS.md"
 
 # --- bad input -------------------------------------------------------------
 

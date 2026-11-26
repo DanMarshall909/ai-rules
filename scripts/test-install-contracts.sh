@@ -51,6 +51,9 @@ done
 grep -qF '/rule-sets/standalone.md' "${fixture}/standalone-home/.claude/CLAUDE.md" || {
   echo "FAIL: Claude does not import the selected standalone policy" >&2; exit 1;
 }
+grep -qF '/rule-sets/standalone.md' "${fixture}/standalone-home/.gemini/AGENTS.md" || {
+  echo "FAIL: Antigravity does not include the selected standalone policy" >&2; exit 1;
+}
 for path in .cursor/rules/standalone.mdc .clinerules/standalone.md; do
   grep -qF '# Standalone Contract' "${fixture}/standalone/${path}" || {
     echo "FAIL: project adapter does not contain the selected standalone policy: ${path}" >&2; exit 1;
@@ -58,6 +61,9 @@ for path in .cursor/rules/standalone.mdc .clinerules/standalone.md; do
 done
 [[ -f "${fixture}/standalone-home/.agents/skills/reflect/SKILL.md" ]] || {
   echo "FAIL: standalone set omitted its declared skill" >&2; exit 1;
+}
+[[ -f "${fixture}/standalone-home/.gemini/config/skills/reflect/SKILL.md" ]] || {
+  echo "FAIL: standalone set omitted Antigravity skill" >&2; exit 1;
 }
 standalone_install --list > "${fixture}/listing"
 grep -qF 'installed: standalone' "${fixture}/listing" || {

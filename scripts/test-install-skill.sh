@@ -168,6 +168,13 @@ links_to "copilot installs a discoverable skill directory" \
   "${HOME}/.agents/skills/reflect" "${REPO}/skills/reflect"
 
 sandbox
+"${INSTALL}" --agent antigravity reflect >/dev/null 2>&1
+links_to "antigravity installs the canonical skill package" \
+  "${HOME}/.agents/skills/reflect" "${REPO}/skills/reflect"
+links_to "antigravity installs a skill directory" \
+  "${HOME}/.gemini/config/skills/reflect" "${REPO}/skills/reflect"
+
+sandbox
 "${INSTALL}" --agent cursor reflect >/dev/null 2>&1
 links_to "cursor installs a native skill package" \
   "${PWD}/.cursor/skills/reflect" "${REPO}/skills/reflect"
@@ -224,6 +231,14 @@ links_to "copilot gets the skill package under .agents/" \
   "${project}/.agents/skills/reflect" "${REPO}/skills/reflect"
 
 sandbox
+project="${PWD}"
+"${INSTALL}" --project "${project}" --agent antigravity reflect >/dev/null 2>&1
+links_to "antigravity gets the skill package under .agents/" \
+  "${project}/.agents/skills/reflect" "${REPO}/skills/reflect"
+absent "leaves the antigravity profile alone" \
+  "${HOME}/.gemini/config/skills/reflect"
+
+sandbox
 mkdir -p "${SANDBOX_ELSEWHERE:=${PWD}/../elsewhere}"
 "${INSTALL}" --project "${PWD}/../elsewhere" --agent cursor reflect >/dev/null 2>&1
 links_to "a project agent follows --project too" \
@@ -245,7 +260,8 @@ out="$("${INSTALL}" --agent all reflect 2>&1)"
 links_to "all: claude"   "${HOME}/.claude/skills/reflect"                 "${REPO}/skills/reflect"
 links_to "all: codex"    "${HOME}/.agents/skills/reflect"                 "${REPO}/skills/reflect"
 links_to "all: opencode" "${HOME}/.agents/skills/reflect"                 "${REPO}/skills/reflect"
-links_to "all: copilot"  "${HOME}/.agents/skills/reflect"                 "${REPO}/skills/reflect"
+links_to "all: copilot"     "${HOME}/.agents/skills/reflect"                 "${REPO}/skills/reflect"
+links_to "all: antigravity" "${HOME}/.gemini/config/skills/reflect"          "${REPO}/skills/reflect"
 absent "all: no OpenCode command adapter" \
   "${XDG_CONFIG_HOME}/opencode/command/reflect.md"
 links_to "all: cursor"   "${PWD}/.cursor/skills/reflect"                 "${REPO}/skills/reflect"
@@ -254,6 +270,11 @@ if grep -qF "copilot:" <<<"${out}"; then
   ok "all selects Copilot"
 else
   no "all selects Copilot" "Copilot was absent from installer output"
+fi
+if grep -qF "antigravity:" <<<"${out}"; then
+  ok "all selects Antigravity"
+else
+  no "all selects Antigravity" "Antigravity was absent from installer output"
 fi
 
 echo "autodetect"
@@ -269,6 +290,14 @@ mkdir -p "${HOME}/.copilot"
 "${INSTALL}" reflect >/dev/null 2>&1
 links_to "autodetects Copilot" \
   "${HOME}/.agents/skills/reflect" "${REPO}/skills/reflect"
+
+sandbox
+mkdir -p "${HOME}/.gemini/config"
+"${INSTALL}" reflect >/dev/null 2>&1
+links_to "autodetects Antigravity canonically" \
+  "${HOME}/.agents/skills/reflect" "${REPO}/skills/reflect"
+links_to "autodetects Antigravity" \
+  "${HOME}/.gemini/config/skills/reflect" "${REPO}/skills/reflect"
 
 sandbox
 exits_nonzero "fails when no agent is detected" "${INSTALL}" reflect
@@ -365,6 +394,12 @@ mkdir -p "${HOME}/.claude"
 "${INSTALL}" --dry-run --agent claude reflect >/dev/null 2>&1
 absent "creates no canonical link" "${HOME}/.agents/skills/reflect"
 absent "creates nothing" "${HOME}/.claude/skills/reflect"
+
+sandbox
+mkdir -p "${HOME}/.gemini/config"
+"${INSTALL}" --dry-run --agent antigravity reflect >/dev/null 2>&1
+absent "antigravity dry-run creates no canonical link" "${HOME}/.agents/skills/reflect"
+absent "antigravity dry-run creates nothing under ~/.gemini/config/skills" "${HOME}/.gemini/config/skills/reflect"
 
 # --- several skills --------------------------------------------------------
 
