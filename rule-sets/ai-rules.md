@@ -11,98 +11,103 @@ Lean, agent-agnostic rules for any coding assistant.
 
 ## Authority and Scope
 
-Respect the host's hierarchy; explicit task and scoped project instructions refine shared defaults. Skills supply procedures, environment modules supply mechanics, and generated adapters expose policy; none grants authority. Name unresolved conflicts and pause only affected actions.
+Explicit task and project instructions refine these defaults. Skills supply
+procedures, never authority. Name unresolved conflicts and pause only affected
+actions.
 
-- Review, explanation and diagnosis authorize relevant read-only checks, not implementation or publication. Persistence does not expand scope.
-- Preserve unrelated work. Apply the Git startup gate before independent work; otherwise block only overlapping operations or those that could change, hide or destroy it. Worktree isolation does not bypass the gate.
-- Automatically remove only verified task-owned disposable run output after workers stop; verify cleanup and report failures. Before deleting retained builds, dependencies or caches, explain measured size and rebuild cost against their storage budget and obtain direction. Unknown ownership, active work and estimates grant no deletion authority.
-- Prototypes, exploratory spikes and genuinely one-off scripts need proportionate smoke, syntax or output evidence, not production TDD. Maintained, production, reused or recurring executable code retains normal testing gates.
-- Perform routine in-scope work under existing authority. Ask before expanding scope or destructive actions/external effects not already authorized. PR creation does not authorize merging.
-- Host rejection gates execution; it does not itself prove missing task authority. Recheck the original request and applicable rules before asking again or declaring a blocker. If they authorize the exact action, verify its target/preconditions and resubmit that evidence through the same approval path when reconsideration is allowed. Never evade rejection; if it persists, stop the action and report why.
-- For Dan's repositories, use local verification as the delivery gate. Run the applicable checks locally against the exact candidate and record their results and gaps. Hosted CI is optional supplementary evidence: do not depend on it, require paid CI, manually trigger or rerun hosted jobs, or wait for green CI unless Dan explicitly requests it. Missing, skipped or infrastructure-failed CI does not block delivery when the required local verification passes; actual test failures still need investigation. Preserve enforced remote restrictions and report any that prevent publication; this rule does not authorize bypassing or changing branch protections.
-- For Dan's repositories, accepted work may be merged after an independent GPT-6 Astra completion review records PASS for the exact candidate, required local verification passes and enforced branch protections are satisfied, the reviewed head and intended base are unchanged, and no review findings remain unresolved. This is standing merge authorization for that candidate. An explicit keep-local or review-only instruction still takes precedence.
-
-Where supported, delegate bounded independent read-only investigations when useful for coverage or time; combine findings before deciding. Keep small or dependent work with one agent and serialize shared mutable state. Delegation grants no edits/publication and replaces no review gate.
-
-When agent/model selection is available, choose the least resource-intensive demonstrably qualified option. Higher capability/cost needs a named criterion with an unproved decision, transition, persistence shape, authority boundary, interface or foundational primitive; importance, breadth, dependency position and layers alone do not justify it. Project rules may require specific models or stricter qualification, including independent review.
-
-Use `session-handoff` at fresh root-session startup and substantive task completion or goal stop: run `ai-handoff latest --project <project>` before work and replace the single canonical handoff through the tool at closeout. Delegated agents, including nested coordinators, hand back to their parent and never rotate it. Narrow local handoff maintenance remains authorized while development is blocked. Start with the task, handoff and applicable instructions; use targeted searches, bounded reads and compact summaries, retaining full logs outside context. Load procedures only when relevant; reuse valid decisions/evidence, reread after context loss or changed inputs, recheck mutable facts and repeat checks only for changed inputs, failures, uncertainty or required gates.
-
-Read a ticket's authority and relevant context. An accepted plan or implementation instruction establishes its stated scope; do not repeat confirmation. Otherwise outline outcome, first bounded action and proof, invite changes and wait for the owner. Investigate discoverable facts before resolving material choices one at a time; hold only dependent execution. Calibrate scope to what the owner can understand and steer; private planning is not agreement.
-During authorized delivery, treat workflow pauses as checkpoints. Obtain the required evidence and independent verdicts, resolve in-scope findings, and record tool approvals when the evidence and existing authority permit. Resume from the last valid checkpoint. Hand back at the agreed stopping point or when progress requires the owner to approve, decide or act.
-
-At completion explain demonstrated behaviour, important changes/reasons, limits and recovery; check understanding through a concrete consequence. Silence or agent approval proves no understanding; unconfirmed handover does not reopen completed engineering. Stop when accepted outcomes and required delivery conditions are satisfied. Use `agentic-delivery` for accepted non-trivial implementation and applicable waiting/closeout; `project-orchestration` for needed discovery, coordination or recovery. Read-only and documentation-only tasks do not activate full delivery or production TDD; maintained behaviour retains testing, review and final gates.
+- **Read-only vs. write**: Review, explanation, and diagnosis authorize
+  read-only checks only, not edits or publication.
+- **Preserve unrelated work**: Never overwrite, hide, or destroy unrelated
+  changes. Apply the Git startup gate before new independent work.
+- **Deletion authority**: Automatically delete verified task-owned
+  disposable run output after workers stop, and compact task evidence at
+  closeout (stripping raw coverage exports, build/snapshot copies, and
+  test-result trees while keeping compact summaries, logs, and verdicts).
+  Never delete retained builds, dependencies, caches, or unknown files
+  without reporting measured size and rebuild cost and getting explicit
+  direction.
+- **Testing proportionality**: Prototypes, spikes, and one-off scripts need
+  proportionate smoke/output checks; maintained or reused code keeps full TDD
+  and verification gates.
+- **Host rejections**: If the host rejects a tool call, recheck authority and
+  preconditions before retrying once with evidence; never evade rejection.
+- **Delivery gate (Dan's repos)**: Local verification against the exact
+  candidate is the gate. Hosted CI is optional—never depend on paid CI,
+  manually trigger/rerun jobs, or wait for green CI unless asked (still
+  investigate real test failures and respect enforced branch protections).
+- **Standing merge rule (Dan's repos)**: Accepted work may be merged once an
+  independent high-capability completion review records `PASS` for the exact
+  candidate, local checks and branch protections pass, head and base are
+  unchanged, and no findings remain—unless told to keep local or review-only.
+- **Session handoff**: At fresh root-session startup before substantive repo
+  work (not pure Q&A), use `session-handoff` (`ai-handoff latest --project <p>`)
+  and replace the canonical handoff at closeout. Delegated agents hand back to
+  their parent only.
+- **Workflow routing**: Use `agentic-delivery` for accepted non-trivial
+  implementation (including handover verification) and `project-orchestration`
+  for discovery or multi-slice coordination. An accepted instruction or plan
+  authorizes its stated scope without re-confirmation; otherwise propose the
+  outcome, first action, and proof first.
 
 ---
 
 ## Rules and Skills Sync
 
-Before the first non-trivial repository task in a session, run the installed `upgrade-global-skills` preflight when network access
-is available: PowerShell on Windows, Bash on Linux or macOS. It prints nothing when the durable checkout is clean and matches its
-remote default branch. Surface any advisory so the user can choose when to upgrade; do not update, stash, reset, clean, or rewrite
-the checkout merely because the preflight found drift.
+Before the first substantive repository task in a session (when online), run
+the installed `upgrade-global-skills` preflight. It is silent when clean and
+synced; surface any advisory without mutating the checkout.
 
 ---
 
 ## Break Reminders
 
-Use the `break-reminders` skill when the user requests a paced working session or
-scheduled reminders. Suggested cadence is a short break every 30 minutes and a
-goal check every 2 hours within the agreed working window.
-
-Ordinary coding work does not authorize scheduling. Use only available host
-capabilities and relevant session context; report unsupported scheduling honestly.
+Use the `break-reminders` skill only when the user requests a paced session or
+scheduled reminders (suggested cadence: 30m break, 2h goal check). Ordinary
+coding does not authorize scheduling; report unsupported host scheduling
+honestly.
 
 ---
 
 ## Agentic TDD Protocol
 
-For behaviour changes use the `behavior-first-tdd` skill: **Tidy → RED → GREEN → COVERAGE → REFACTOR → next RED**; one observable criterion at a time. GREEN alone does not complete it. Choose the smallest test scope that clearly proves the current acceptance criterion. Never trade test clarity or business protection for execution speed, fewer tests or a higher score. Keep the criterion, scenario, assertion and detectable violation visibly connected; revisit them together when requirements change. Behaviour owned by one system belongs in unit tests. Add an integration test only when required to prove an interface between two systems; name that interface and the failure its assertions must detect. End-to-end tests prove outcomes that depend on the full path. Behaviour-first does not mean end-to-end-first.
-Every maintained suite in every repository has explicit fast and slow lanes. Review timing/lane candidates on each ordinary run; move tests either way only after comparable reruns rule out an anomaly. Run the relevant slow contracts at the final ticket checkpoint; `coverage-and-mutation` owns the procedure. Select verification by affected behaviour, dependencies and contracts, not by everything in the repository. Keep routine feedback within a few seconds; question tests >1.5× peer median. Move local rule assertions to real unit or component tests; retain distinct boundary evidence, never mock away the rule.
+For maintained behavior changes, use the `behavior-first-tdd` skill:
+**Tidy → RED → GREEN → COVERAGE → REFACTOR**, one observable criterion at a
+time.
 
-Calibrate external-boundary test stand-ins against real contract tests with independent success/failure oracles; rerun on tool or contract changes and use only within proven scope.
-
-Preserve RED via project driver or permitted commit; never break shared trunk.
-Use `agentic-delivery` for non-trivial implementation, not read-only reviews.
+- Choose the smallest test scope that proves the criterion: unit tests for
+  single-system behavior, integration tests only for a named cross-system
+  interface failure, E2E only when full-path behavior is what's being proved.
+- Never mock away the rule under test or trade business clarity for speed.
+- Keep fast and slow lanes explicit; calibrate boundary stand-ins against real
+  contract tests. Never break shared trunk.
 
 ---
 
 ## Coverage & Dead Code
 
-When reviewing coverage, mutation results, compatibility paths, or dead code, use the `coverage-and-mutation` skill.
+Use the `coverage-and-mutation` skill for coverage, mutation, compatibility, or
+dead-code decisions.
 
-- Aim for 100% coverage of core code through externally observable behavior.
-- Coverage proves execution in the measured run with sound instrumentation, not a checked assertion; uncovered code did not execute in that run.
-- Remove code with no useful caller or contract instead of covering it for its own sake.
-- Establish coverage before mutation; calibrate with a fault a test rejects. After the whole session, run mutation on the final snapshot, one active job per repository; never block tickets or integration, and review and act on results later.
-- Use copy-on-write sandboxes for mutation runs, with a pinned immutable source/tool/dependency base and an independent writable layer per attempt. Reuse prepared dependencies instead of downloading or copying full caches for each run. Use filesystem snapshots/reflinks or isolated overlays; symlinks and hardlinks to shared writable files do not provide isolation. Keep reports and recovery evidence outside disposable layers. Verify base identity, write isolation and owned-worker cleanup; if safe CoW storage is unavailable, report the blocker rather than silently falling back to full copies or shared writes.
-- Always exclude end-to-end tests from mutation runs; retain them as separate boundary evidence.
-- Exclude slow-lane tests from every mutation phase. Use source-bound coverage from both ordinary lanes to exclude only sections covered by slow tests but no fast tests; keep fast-covered sections eligible and genuinely uncovered sections visible. Missing or stale lane attribution is a disclosed pending scope, never an invented exclusion or passing score.
-- Minimise agent token use during mutation runs with automated monitoring and compact result analysis. Respect the user's runtime and resource budgets; elapsed time alone does not justify cancellation or weaker evidence.
-- Measure the whole controller's model round trips and repeated context separately from native output; small response-byte totals alone do not prove low agent token use.
-- Diagnose mutation performance before tuning concurrency: separate build, baseline, coverage and mutation execution; use a bounded supported trace or test-duration artifact and representative whole-owner pilots. Preserve independent assertions, thresholds, controls and the final full gate.
-- Complete mutation cleanup after success, failure and cancellation: verify owned workers stopped, retain compact evidence and reusable baselines, remove owned disposable sandboxes/instrumented copies/temp output, and record disk space reclaimed. Inspect uncertain ownership; never use broad deletion of worktrees, builds or shared caches to recover space.
+- Aim for 100% coverage of core code via externally observable behavior.
+- Coverage proves execution, not assertion; remove unjustified code rather than
+  covering it.
+- Establish coverage before mutation. Run mutation post-session on the final
+  snapshot (one active job per repo; never block tickets). Exclude E2E and
+  slow-lane tests, use isolated CoW sandboxes, and clean up owned disposable
+  output after completion or cancellation.
 
 ---
 
 ## Guardrails
 
-When a harmful mistake can recur unnoticed and a test could mechanically prevent
-it, identify the invariant, the failure it catches and the cost. Build it if
-already in scope; otherwise propose it for the user's decision. Prefer a
-build-time check covering the whole convention over pinning one faulty instance.
+When a harmful mistake can recur unnoticed, prefer a build-time or local test
+check covering the whole convention over pinning one instance. Build it if in
+scope; otherwise propose it.
 
-### A guardrail must be able to fail
-
-- Name unavailable checks explicitly. Missing state, tools or permissions are
-  skips or blockers, never indistinguishable from a clean result.
-- Wire the check into the normal local verification command so routine validation exercises it. Optional CI may run the same command; CI availability is not required.
-- Inject one fault at a time and assert the diagnostic naming the broken rule,
-  not merely a nonzero exit. Setup errors must not impersonate fault detection.
-
-Use the `coverage-and-mutation` skill to assess that evidence. Semantic judgment
-about scope, useful code or abstraction is not proved by a keyword check. Route
-such lessons through the `reflect` skill rather than claiming mechanical proof.
+- Name unavailable checks explicitly as skips or blockers, never clean passes.
+- Wire checks into normal local verification.
+- Verify every guardrail by injecting a fault and asserting the diagnostic
+  names the broken rule—not merely a nonzero exit.
 
 ---
 
@@ -122,78 +127,44 @@ security review, use the `security-by-design` skill.
 
 ## Git Workflow
 
-- Before work that may change a repository, fetch its remote and fast-forward-pull the checked-out tracked branch.
-  If dirty, detached, diverged, missing an upstream, offline, or unable to fast-forward, preserve state, report the condition, and reconcile under project policy before overlapping work; never stash, reset, rebase, merge, or force merely to pass this preflight.
-- Before starting new independent work or creating a worktree, inventory the target repository's local and remote feature branches and linked worktrees after fetching. Any non-trunk branch with commits not integrated into its intended trunk, or any worktree with unfinished changes, blocks new independent work unless explicitly parked by the user or designated as an exploratory spike.
-  Exceptions require an explicit user decision in this session or the repository's existing tracker. Record the branch/worktree, purpose and decision in that tracker; never infer an exception from names, age, inactivity, isolation, a PASS, publication or the word "experiment", or invent one to proceed.
-  Report blocking refs and paths; unknown disposition or an unavailable inventory also blocks new work. Continue only read-only investigation or authorized completion/integration of existing work until every blocker is integrated or explicitly parked/designated as a spike. The gate does not itself authorize merging, deleting or parking work.
-- Before starting a new task or creating a worktree, inspect the target repository and automatically clean up finished work: remove clean, inactive worktrees only when all their commits and branch tips are reachable from the intended trunk, then delete their fully merged local branches with `git worktree remove` and `git branch -d`; never force removal.
-  Preserve primary/current worktrees, trunk branches, dirty/untracked files, unmerged commits, active or resumable cycles and uncertain ownership. Archive required evidence, verify its contents and retain original paths and HEADs for recovery before removal. Follow Authority and Scope for build, dependency and cache deletion; leave other repositories alone and report removed and retained items.
-- Maintain tracked `.ai-rules.json` during authorized repository changes: `schemaVersion: 1` remains valid with `resources.memory`, a positive `reserveMiBPerActiveWorktree`, and `basis: estimated` plus `estimateReason`, or `basis: measured` plus `observedPeakMiB` and dated workload/evidence in `measurement`. Version 2 retains memory and adds `resources.disk.workloads`; use `storage-budget` for disk fields and validation. Replace estimates after representative measurement; the source checkout documents the full format in `docs/repo-config.md`.
-- Before a heavy build, restore, test or other output-producing operation, use `storage-budget` to check its actual output and temporary volumes against the workload growth estimate and free-space reserve. Missing or insufficient headroom blocks that operation, not unrelated work. Preserve shared caches and existing output; storage measurements do not authorize removal.
-- Fetch and integrate the intended upstream according to project policy before final validation and completion review. Preserve merge history: plain rebase drops merge commits; integrate before merging or use a project-approved merge-preserving strategy and inspect the resulting graph.
-- Push each authorized, verified commit to its intended branch normally and promptly, without a separate push approval. Respect an explicit request to keep work local and the repository's branch-protection or PR policy. When completion review applies, require `PASS` and finish its exact post-review envelope before pushing; fetch without pull/rebase/merge and require the recorded upstream object. Changed upstream or candidate bytes invalidate `PASS`; integrate, revalidate and review again before publication.
-- Force-push requires explicit authority and a `backup/<branch>-<timestamp>` first; creating a backup is not permission to rewrite a remote branch.
-- Review the staged diff before committing. Use present-tense, imperative commit
-  messages explaining why. Never skip hooks unless explicitly asked.
-
-### Trunk-Based Development
-
-Keep trunk releasable and branches short-lived. Prefer small coherent vertical
-increments, aiming to integrate within roughly a day when authorized and all
-required gates pass. A time target or green build is not merge authorization.
-
-Unfinished-but-safe work may land behind a flag or unwired when accepted by the
-project. If an integration breaks trunk, restoring trunk outranks new work.
-When a slice lands with work outstanding, state what remains; integration does
-not itself prove task completion or deployed runtime health.
+- **Sync first**: Before changes, fetch and fast-forward-pull the tracked
+  branch. If dirty, detached, diverged, offline, or unable to fast-forward,
+  preserve state and report—never stash, reset, rebase, or force to pass.
+- **Unfinished work gate**: Before new independent work or a new worktree,
+  inventory local branches, worktrees, and active feature branches after
+  fetching. Unintegrated work blocks new independent work unless explicitly
+  parked or designated as a spike in this session or the tracker.
+- **Cleanup & storage**: Use `worktree-cleanup-audit` for merged-worktree
+  cleanup (never force-remove). Maintain `.ai-rules.json` with `storage-budget`
+  and check headroom before heavy builds/restores/tests; insufficient headroom
+  blocks only that operation.
+- **Integration & push**: Integrate upstream preserving merge history before
+  final verification and completion review. Push authorized verified commits
+  promptly; if completion review applies, require `PASS` on the exact unchanged
+  head and upstream before pushing.
+- **History & commits**: Force-push requires explicit authority and a
+  `backup/<branch>-<timestamp>` first. Review staged diffs, write imperative
+  "why" commit messages, and never skip hooks unless asked. Keep trunk
+  releasable with short-lived branches.
 
 ---
 
 ## Issue & Finding Tracking
 
-Follow the project's declared GitHub Issues/optional Projects, repository
-Markdown, external tracker or hybrid. Preserve declared paths and schemas;
-do not force migration or introduce a second authority to mirror status.
+Follow the repository's declared tracker (GitHub Issues/Projects, repo
+Markdown, external tracker, or hybrid) with one authority per live fact. Use
+`track-github-work`, `track-repository-work`, or `track-external-work-items`
+for mechanics and fallback layouts.
 
-Keep one authority per live fact. In a hybrid, assign distinct jobs: the chosen
-tracker owns live priority, assignment and status; repository files may hold
-durable investigation, evidence, decisions or security findings. Link stable
-item, criterion, dependency and evidence references without competing status
-fields. OpenSpec design/evidence is not automatically a workflow tracker.
-
-Use the discoverable skill packages `track-github-work`,
-`track-repository-work` or `track-external-work-items` for mechanics.
-Missing packages or access require honest capability reporting; use available
-authorized tools without claiming a workflow loaded or synchronization succeeded.
-
-Only if no tracker or repository layout is declared, use:
-```text
-docs/issues/
-  open/[area]/[ticket-id]-[slug].md
-  resolved/[area]/[ticket-id]-[slug].md
-```
-Discover existing business-domain areas. For authoritative fallback files,
-resolution sets `status: Resolved`, records evidence in the decision log and
-moves the file to `resolved/[area]/`. For linked evidence files, open/resolved
-means investigation archival only; record that decision and link live status.
-Close work only under the project's completion rule; update linked evidence
-within the authorized change.
-
-Reread before narrow updates, preserve concurrent edits, use supported
-conditional writes and read back results. Unavailable access is not no work.
-Label unsynchronized drafts; never create a shadow tracker. Existing task-update
-authority covers routine in-scope maintenance; outreach needs separate authority.
-For security findings, also use `security-by-design`.
+- Preserve declared schemas and never introduce a shadow tracker.
+- Report unavailable tracker access honestly; label unsynchronized drafts.
+- Close work only under the project's completion rule with recorded evidence.
 
 ---
 
 ## Reflection
 
-Use the `reflect` skill at the end of every session, and during material corrections, surprising results, tool fallbacks and completed slices.
-Quietly aggregate evidence in existing authorized records; continue the task and report material findings at the normal handoff.
-Pause only affected actions for active correctness/safety failures, invalid
-evidence or blocked progress. Resolve within authority; ask only for needed decisions.
-Keep transferable, non-obvious, load-bearing lessons at their narrowest owner;
-local guidance extends the shared practice. No separate journal; root handoffs follow `session-handoff`.
-Memory needs an explicit request; new standing guidance needs owner agreement unless already requested.
+Use the `reflect` skill quietly during work (on corrections, surprises,
+fallbacks, or completed slices) and aggregate material findings at handoff.
+Keep lessons at their narrowest owner; change memory or standing guidance only
+with explicit owner approval.

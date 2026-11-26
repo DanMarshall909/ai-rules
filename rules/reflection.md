@@ -1,9 +1,6 @@
 # Reflection
 
-Use the `reflect` skill at the end of every session, and during material corrections, surprising results, tool fallbacks and completed slices.
-Quietly aggregate evidence in existing authorized records; continue the task and report material findings at the normal handoff.
-Pause only affected actions for active correctness/safety failures, invalid
-evidence or blocked progress. Resolve within authority; ask only for needed decisions.
-Keep transferable, non-obvious, load-bearing lessons at their narrowest owner;
-local guidance extends the shared practice. No separate journal; root handoffs follow `session-handoff`.
-Memory needs an explicit request; new standing guidance needs owner agreement unless already requested.
+Use the `reflect` skill quietly during work (on corrections, surprises,
+fallbacks, or completed slices) and aggregate material findings at handoff.
+Keep lessons at their narrowest owner; change memory or standing guidance only
+with explicit owner approval.

@@ -462,6 +462,45 @@ class StorageTests(unittest.TestCase):
                 self.assertEqual(0,result["receipt"]["after_bytes"])
             self.assertFalse(result["receipt"]["sample_complete"])
 
+    def test_registered_roots_falls_back_when_git_worktree_lacks_z_flag(self):
+        repo_a = self.root / "repo-a"
+        repo_b = self.root / "repo-b"
+        repo_a.mkdir()
+        repo_b.mkdir()
+        resolved_a = os.path.abspath(str(repo_a))
+        resolved_b = os.path.abspath(str(repo_b))
+
+        def fake_run(cmd, **kwargs):
+            if cmd[:3] == ["git", "-C", str(repo_a)] and cmd[3:] == ["worktree", "list", "--porcelain", "-z"]:
+                return subprocess.CompletedProcess(cmd, 129, stdout=b"", stderr=b"error: unknown switch `z'\n")
+            if cmd[:3] == ["git", "-C", str(repo_a)] and cmd[3:] == ["worktree", "list", "--porcelain"]:
+                out = f"worktree {repo_a}\nHEAD 0000\n\nworktree {repo_b}\nHEAD 1111\n\n".encode()
+                return subprocess.CompletedProcess(cmd, 0, stdout=out, stderr=b"")
+            if cmd[0] == "git" and cmd[3:] == ["ls-files", "-z"]:
+                return subprocess.CompletedProcess(cmd, 0, stdout=b"src/a.py\0", stderr=b"")
+            raise AssertionError(f"unexpected command: {cmd}")
+
+        with patch.object(storage.subprocess, "run", side_effect=fake_run):
+            roots, tracked, diagnostics = storage.registered_roots([repo_a])
+        self.assertEqual([], diagnostics)
+        self.assertEqual([resolved_a, resolved_b], roots)
+        self.assertIn("src/a.py", tracked[resolved_a])
+        self.assertIn("src/a.py", tracked[resolved_b])
+
+        bad_repo = self.root / "bad-repo"
+        bad_repo.mkdir()
+        calls = []
+
+        def fake_non_usage_error(cmd, **kwargs):
+            calls.append(cmd)
+            return subprocess.CompletedProcess(cmd, 128, stdout=b"", stderr=b"fatal: not a git repository\n")
+
+        with patch.object(storage.subprocess, "run", side_effect=fake_non_usage_error):
+            roots_err, _, diagnostics_err = storage.registered_roots([bad_repo])
+        self.assertEqual([], roots_err)
+        self.assertEqual(["worktree-inventory-unavailable"], diagnostics_err)
+        self.assertEqual([["git", "-C", str(bad_repo), "worktree", "list", "--porcelain", "-z"]], calls)
+
 if __name__ == "__main__":
     parser=argparse.ArgumentParser();parser.add_argument("--lane",choices=["fast","slow","combined","all"],default="combined");args=parser.parse_args()
     suite=unittest.defaultTestLoader.loadTestsFromTestCase(StorageTests)

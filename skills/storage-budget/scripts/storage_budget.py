@@ -127,8 +127,17 @@ def registered_roots(repositories):
         try:
             safe_path(repository)
             result = subprocess.run(["git", "-C", str(repository), "worktree", "list", "--porcelain", "-z"],
-                                    capture_output=True, timeout=10, check=True)
-            for record in result.stdout.decode("utf-8", "surrogateescape").split("\0"):
+                                    capture_output=True, timeout=10)
+            if result.returncode == 0:
+                records = result.stdout.decode("utf-8", "surrogateescape").split("\0")
+            elif result.returncode == 129:
+                fallback = subprocess.run(["git", "-C", str(repository), "worktree", "list", "--porcelain"],
+                                          capture_output=True, timeout=10, check=True)
+                records = fallback.stdout.decode("utf-8", "surrogateescape").splitlines()
+            else:
+                raise subprocess.CalledProcessError(result.returncode, result.args,
+                                                    output=result.stdout, stderr=result.stderr)
+            for record in records:
                 if record.startswith("worktree "):
                     root = str(Path(os.path.abspath(record[9:])))
                     if root not in roots:

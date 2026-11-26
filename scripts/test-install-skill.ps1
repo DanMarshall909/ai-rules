@@ -149,6 +149,11 @@ try {
   Assert-LinksTo "copilot installs a discoverable skill directory" "$s\home\.agents\skills\reflect" "$repo\skills\reflect"
 
   $s = New-Sandbox
+  Invoke-Install -Agent antigravity reflect | Out-Null
+  Assert-LinksTo "antigravity installs the canonical skill package" "$s\home\.agents\skills\reflect" "$repo\skills\reflect"
+  Assert-LinksTo "antigravity installs a skill directory" "$s\home\.gemini\config\skills\reflect" "$repo\skills\reflect"
+
+  $s = New-Sandbox
   Invoke-Install -Agent cursor reflect | Out-Null
   Assert-LinksTo "cursor installs a native skill package" "$s\project\.cursor\skills\reflect" "$repo\skills\reflect"
 
@@ -194,6 +199,12 @@ try {
     "$s\project\.agents\skills\reflect" "$repo\skills\reflect"
 
   $s = New-Sandbox
+  Invoke-Install -Project "$s\project" -Agent antigravity reflect | Out-Null
+  Assert-LinksTo "antigravity gets the skill package under .agents" `
+    "$s\project\.agents\skills\reflect" "$repo\skills\reflect"
+  Assert-Absent "leaves the antigravity profile alone" "$s\home\.gemini\config\skills\reflect"
+
+  $s = New-Sandbox
   New-Item -ItemType Directory -Force -Path "$s\elsewhere" | Out-Null
   Invoke-Install -Project "$s\elsewhere" -Agent cursor reflect | Out-Null
   Assert-LinksTo "a project agent follows -Project too" `
@@ -211,12 +222,15 @@ try {
   Assert-LinksTo "all: claude"   "$s\home\.claude\skills\reflect"              "$repo\skills\reflect"
   Assert-LinksTo "all: codex"    "$s\home\.agents\skills\reflect"              "$repo\skills\reflect"
   Assert-LinksTo "all: opencode" "$s\home\.agents\skills\reflect"              "$repo\skills\reflect"
-  Assert-LinksTo "all: copilot"  "$s\home\.agents\skills\reflect"              "$repo\skills\reflect"
+  Assert-LinksTo "all: copilot"     "$s\home\.agents\skills\reflect"              "$repo\skills\reflect"
+  Assert-LinksTo "all: antigravity" "$s\home\.gemini\config\skills\reflect"       "$repo\skills\reflect"
   Assert-Absent "all: no OpenCode command adapter" "$s\home\.config\opencode\command\reflect.md"
   Assert-LinksTo "all: cursor"   "$s\project\.cursor\skills\reflect"           "$repo\skills\reflect"
   Assert-LinksTo "all: cline"    "$s\project\.clinerules\skills\reflect"        "$repo\skills\reflect"
   if ($r.Out -match 'copilot:') { Ok "all selects Copilot" }
   else { No "all selects Copilot" "Copilot was absent from installer output" }
+  if ($r.Out -match 'antigravity:') { Ok "all selects Antigravity" }
+  else { No "all selects Antigravity" "Antigravity was absent from installer output" }
 
   Write-Host "autodetect"
   $s = New-Sandbox
@@ -229,6 +243,12 @@ try {
   New-Item -ItemType Directory -Force -Path "$s\home\.copilot" | Out-Null
   Invoke-Install reflect | Out-Null
   Assert-LinksTo "autodetects Copilot" "$s\home\.agents\skills\reflect" "$repo\skills\reflect"
+
+  $s = New-Sandbox
+  New-Item -ItemType Directory -Force -Path "$s\home\.gemini\config" | Out-Null
+  Invoke-Install reflect | Out-Null
+  Assert-LinksTo "autodetects Antigravity canonically" "$s\home\.agents\skills\reflect" "$repo\skills\reflect"
+  Assert-LinksTo "autodetects Antigravity" "$s\home\.gemini\config\skills\reflect" "$repo\skills\reflect"
 
   New-Sandbox | Out-Null
   Assert-Fails "fails when no agent is detected" reflect

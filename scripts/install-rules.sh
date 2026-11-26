@@ -48,15 +48,18 @@ RULE_SET_DIR="${REPO}/rule-sets"
 # repo to /d/code/... and Claude Code on Windows cannot open that.
 CLAUDE_IMPORT="@$(native_path "${REPO}")/CLAUDE.md"
 CLAUDE_CONFIG="${HOME}/.claude/CLAUDE.md"
+ANTIGRAVITY_CONFIG="${HOME}/.gemini/AGENTS.md"
 
-# Where AGENTS.md has to appear for each agent to read it. Claude is absent by
-# design: it takes the import instead, handled separately below.
+# Where AGENTS.md has to appear for each agent to read it. Claude and
+# Antigravity are absent by design: they take an import/include instead,
+# handled separately below.
 rules_target() { # <agent>
   case "$1" in
     claude)            printf '%s' "${CLAUDE_CONFIG}" ;;
     codex)             printf '%s' "${HOME}/.codex/AGENTS.md" ;;
     opencode)          printf '%s' "$(config_home)/opencode/AGENTS.md" ;;
     copilot)           printf '%s' "${HOME}/.copilot/copilot-instructions.md" ;;
+    antigravity)       printf '%s' "${ANTIGRAVITY_CONFIG}" ;;
     cursor)            printf '%s' "${PROJECT}/.cursor/rules/${SET_NAME}.mdc" ;;
     cline)             printf '%s' "${PROJECT}/.clinerules/${SET_NAME}.md" ;;
   esac
@@ -64,8 +67,8 @@ rules_target() { # <agent>
 
 rule_set_target() { # <agent>
   case "$1" in
-    claude) printf '%s' "" ;;
-    *)      printf '%s/rule-sets/%s.md' "$(dirname "$(rules_target "$1")")" "${SET_NAME}" ;;
+    claude|antigravity) printf '%s' "" ;;
+    *)                  printf '%s/rule-sets/%s.md' "$(dirname "$(rules_target "$1")")" "${SET_NAME}" ;;
   esac
 }
 
@@ -73,10 +76,10 @@ rule_set_target() { # <agent>
 # absent again: it is given an import of the set instead of a link to it.
 set_target() { # <agent>
   case "$1" in
-    claude)         printf '%s' "" ;;
-    codex|opencode|copilot) printf '%s/rule-sets/%s.md' "${PROJECT}" "${SET_NAME}" ;;
-    cursor)         printf '%s/.cursor/rules/%s.mdc' "${PROJECT}" "${SET_NAME}" ;;
-    cline)          printf '%s/.clinerules/%s.md' "${PROJECT}" "${SET_NAME}" ;;
+    claude)                             printf '%s' "" ;;
+    codex|opencode|copilot|antigravity) printf '%s/rule-sets/%s.md' "${PROJECT}" "${SET_NAME}" ;;
+    cursor)                             printf '%s/.cursor/rules/%s.mdc' "${PROJECT}" "${SET_NAME}" ;;
+    cline)                              printf '%s/.clinerules/%s.md' "${PROJECT}" "${SET_NAME}" ;;
   esac
 }
 
@@ -139,6 +142,7 @@ SET_FILE="$(generated_of "${SET_NAME}")"
 LAYER="$(field_one "${MANIFEST}" layer)"
 RULE_SET="${SET_FILE}"
 ENTRYPOINT="${AGENTS_MD}"
+ANTIGRAVITY_IMPORT="@[${SET_NAME}]($(native_path "${REPO}")/rule-sets/${SET_NAME}.md)"
 if [[ "${SET_NAME}" != "${BASE_SET}" ]]; then
   # A standalone set is its own policy. The default AGENTS.md entrypoint
   # deliberately points at ai-rules and cannot represent another base set.
@@ -172,6 +176,10 @@ claude_imported() {
   [[ -f "${CLAUDE_CONFIG}" ]] && grep -qxF "${CLAUDE_IMPORT}" "${CLAUDE_CONFIG}"
 }
 
+antigravity_imported() {
+  [[ -f "${ANTIGRAVITY_CONFIG}" ]] && grep -qxF "${ANTIGRAVITY_IMPORT}" "${ANTIGRAVITY_CONFIG}"
+}
+
 if [[ ${LIST} -eq 1 ]]; then
   echo "rules from ${REPO}"
   echo ""
@@ -193,10 +201,12 @@ if [[ ${LIST} -eq 1 ]]; then
     else
       t="$(rules_target "${a}")"
     fi
-    printf '  %-9s %-10s %s\n' "${a}" "${state}" "${t}"
+    printf '  %-12s %-10s %s\n' "${a}" "${state}" "${t}"
 
     if [[ "${a}" == "claude" ]]; then
       claude_imported && printf '              installed: %s (@import)\n' "${SET_NAME}"
+    elif [[ "${a}" == "antigravity" && -z "${LAYER}" ]]; then
+      antigravity_imported && printf '              installed: %s (@include)\n' "${SET_NAME}"
     elif [[ -n "${LAYER}" ]]; then
       [[ -L "${t}" && "$(readlink "${t}")" == "${SET_FILE}" ]] &&
         printf '              installed: %s\n' "${SET_NAME}"
@@ -250,6 +260,10 @@ install_base_set() {
     install_claude_import
     return
   fi
+  if [[ "${agent}" == "antigravity" ]]; then
+    append_once "${ANTIGRAVITY_CONFIG}" "${ANTIGRAVITY_IMPORT}" "antigravity: ${ANTIGRAVITY_CONFIG}"
+    return
+  fi
   target="$(rules_target "${agent}")"
   if link_to "${ENTRYPOINT}" "${target}" "${agent}: ${target}"; then
     rule_target="$(rule_set_target "${agent}")"
@@ -268,7 +282,7 @@ install_layered_set() {
       append_once "${PROJECT}/CLAUDE.md" "${import}" \
         "claude: ${PROJECT}/CLAUDE.md"
       ;;
-    codex|opencode)
+    codex|opencode|antigravity)
       target="$(set_target "${agent}")"
       if link_to "${SET_FILE}" "${target}" "${agent}: ${target}"; then
         # AGENTS.md has no import syntax, so the pointer is a sentence an agent

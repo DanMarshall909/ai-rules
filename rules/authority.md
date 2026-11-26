@@ -1,23 +1,39 @@
 # Authority and Scope
 
-Respect the host's hierarchy; explicit task and scoped project instructions refine shared defaults. Skills supply procedures, environment modules supply mechanics, and generated adapters expose policy; none grants authority. Name unresolved conflicts and pause only affected actions.
+Explicit task and project instructions refine these defaults. Skills supply
+procedures, never authority. Name unresolved conflicts and pause only affected
+actions.
 
-- Review, explanation and diagnosis authorize relevant read-only checks, not implementation or publication. Persistence does not expand scope.
-- Preserve unrelated work. Apply the Git startup gate before independent work; otherwise block only overlapping operations or those that could change, hide or destroy it. Worktree isolation does not bypass the gate.
-- Automatically remove only verified task-owned disposable run output after workers stop; verify cleanup and report failures. Before deleting retained builds, dependencies or caches, explain measured size and rebuild cost against their storage budget and obtain direction. Unknown ownership, active work and estimates grant no deletion authority.
-- Prototypes, exploratory spikes and genuinely one-off scripts need proportionate smoke, syntax or output evidence, not production TDD. Maintained, production, reused or recurring executable code retains normal testing gates.
-- Perform routine in-scope work under existing authority. Ask before expanding scope or destructive actions/external effects not already authorized. PR creation does not authorize merging.
-- Host rejection gates execution; it does not itself prove missing task authority. Recheck the original request and applicable rules before asking again or declaring a blocker. If they authorize the exact action, verify its target/preconditions and resubmit that evidence through the same approval path when reconsideration is allowed. Never evade rejection; if it persists, stop the action and report why.
-- For Dan's repositories, use local verification as the delivery gate. Run the applicable checks locally against the exact candidate and record their results and gaps. Hosted CI is optional supplementary evidence: do not depend on it, require paid CI, manually trigger or rerun hosted jobs, or wait for green CI unless Dan explicitly requests it. Missing, skipped or infrastructure-failed CI does not block delivery when the required local verification passes; actual test failures still need investigation. Preserve enforced remote restrictions and report any that prevent publication; this rule does not authorize bypassing or changing branch protections.
-- For Dan's repositories, accepted work may be merged after an independent GPT-6 Astra completion review records PASS for the exact candidate, required local verification passes and enforced branch protections are satisfied, the reviewed head and intended base are unchanged, and no review findings remain unresolved. This is standing merge authorization for that candidate. An explicit keep-local or review-only instruction still takes precedence.
-
-Where supported, delegate bounded independent read-only investigations when useful for coverage or time; combine findings before deciding. Keep small or dependent work with one agent and serialize shared mutable state. Delegation grants no edits/publication and replaces no review gate.
-
-When agent/model selection is available, choose the least resource-intensive demonstrably qualified option. Higher capability/cost needs a named criterion with an unproved decision, transition, persistence shape, authority boundary, interface or foundational primitive; importance, breadth, dependency position and layers alone do not justify it. Project rules may require specific models or stricter qualification, including independent review.
-
-Use `session-handoff` at fresh root-session startup and substantive task completion or goal stop: run `ai-handoff latest --project <project>` before work and replace the single canonical handoff through the tool at closeout. Delegated agents, including nested coordinators, hand back to their parent and never rotate it. Narrow local handoff maintenance remains authorized while development is blocked. Start with the task, handoff and applicable instructions; use targeted searches, bounded reads and compact summaries, retaining full logs outside context. Load procedures only when relevant; reuse valid decisions/evidence, reread after context loss or changed inputs, recheck mutable facts and repeat checks only for changed inputs, failures, uncertainty or required gates.
-
-Read a ticket's authority and relevant context. An accepted plan or implementation instruction establishes its stated scope; do not repeat confirmation. Otherwise outline outcome, first bounded action and proof, invite changes and wait for the owner. Investigate discoverable facts before resolving material choices one at a time; hold only dependent execution. Calibrate scope to what the owner can understand and steer; private planning is not agreement.
-During authorized delivery, treat workflow pauses as checkpoints. Obtain the required evidence and independent verdicts, resolve in-scope findings, and record tool approvals when the evidence and existing authority permit. Resume from the last valid checkpoint. Hand back at the agreed stopping point or when progress requires the owner to approve, decide or act.
-
-At completion explain demonstrated behaviour, important changes/reasons, limits and recovery; check understanding through a concrete consequence. Silence or agent approval proves no understanding; unconfirmed handover does not reopen completed engineering. Stop when accepted outcomes and required delivery conditions are satisfied. Use `agentic-delivery` for accepted non-trivial implementation and applicable waiting/closeout; `project-orchestration` for needed discovery, coordination or recovery. Read-only and documentation-only tasks do not activate full delivery or production TDD; maintained behaviour retains testing, review and final gates.
+- **Read-only vs. write**: Review, explanation, and diagnosis authorize
+  read-only checks only, not edits or publication.
+- **Preserve unrelated work**: Never overwrite, hide, or destroy unrelated
+  changes. Apply the Git startup gate before new independent work.
+- **Deletion authority**: Automatically delete verified task-owned
+  disposable run output after workers stop, and compact task evidence at
+  closeout (stripping raw coverage exports, build/snapshot copies, and
+  test-result trees while keeping compact summaries, logs, and verdicts).
+  Never delete retained builds, dependencies, caches, or unknown files
+  without reporting measured size and rebuild cost and getting explicit
+  direction.
+- **Testing proportionality**: Prototypes, spikes, and one-off scripts need
+  proportionate smoke/output checks; maintained or reused code keeps full TDD
+  and verification gates.
+- **Host rejections**: If the host rejects a tool call, recheck authority and
+  preconditions before retrying once with evidence; never evade rejection.
+- **Delivery gate (Dan's repos)**: Local verification against the exact
+  candidate is the gate. Hosted CI is optional—never depend on paid CI,
+  manually trigger/rerun jobs, or wait for green CI unless asked (still
+  investigate real test failures and respect enforced branch protections).
+- **Standing merge rule (Dan's repos)**: Accepted work may be merged once an
+  independent high-capability completion review records `PASS` for the exact
+  candidate, local checks and branch protections pass, head and base are
+  unchanged, and no findings remain—unless told to keep local or review-only.
+- **Session handoff**: At fresh root-session startup before substantive repo
+  work (not pure Q&A), use `session-handoff` (`ai-handoff latest --project <p>`)
+  and replace the canonical handoff at closeout. Delegated agents hand back to
+  their parent only.
+- **Workflow routing**: Use `agentic-delivery` for accepted non-trivial
+  implementation (including handover verification) and `project-orchestration`
+  for discovery or multi-slice coordination. An accepted instruction or plan
+  authorizes its stated scope without re-confirmation; otherwise propose the
+  outcome, first action, and proof first.

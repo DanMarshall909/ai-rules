@@ -39,6 +39,7 @@ user_target() { # <agent> <skill>
   case "$1" in
     claude)                   printf '%s' "${HOME}/.claude/skills/$2" ;;
     codex|opencode|copilot)   canonical_target "$2" ;;
+    antigravity)              printf '%s' "${HOME}/.gemini/config/skills/$2" ;;
     cursor)                   printf '%s' "${PROJECT}/.cursor/skills/$2" ;;
     cline)                    printf '%s' "${PROJECT}/.clinerules/skills/$2" ;;
   esac
@@ -53,10 +54,10 @@ user_target() { # <agent> <skill>
 # look for a project's own skill packages.
 project_target() { # <agent> <skill>
   case "$1" in
-    claude)                   printf '%s' "${PROJECT}/.claude/skills/$2" ;;
-    codex|opencode|copilot)   canonical_target "$2" ;;
-    cursor)                   printf '%s' "${PROJECT}/.cursor/skills/$2" ;;
-    cline)                    printf '%s' "${PROJECT}/.clinerules/skills/$2" ;;
+    claude)                               printf '%s' "${PROJECT}/.claude/skills/$2" ;;
+    codex|opencode|copilot|antigravity)   canonical_target "$2" ;;
+    cursor)                               printf '%s' "${PROJECT}/.cursor/skills/$2" ;;
+    cline)                                printf '%s' "${PROJECT}/.clinerules/skills/$2" ;;
   esac
 }
 
@@ -175,7 +176,7 @@ if [[ ${LIST} -eq 1 ]]; then
   for a in ${KNOWN_AGENTS}; do
     root="$(agent_root "${a}")"
     if [[ -d "${root}" ]]; then state="detected"; else state="not found"; fi
-    printf '  %-9s %-10s %s (%s)\n' "${a}" "${state}" "${root}" "$(agent_scope "${a}")"
+    printf '  %-12s %-10s %s (%s)\n' "${a}" "${state}" "${root}" "$(agent_scope "${a}")"
     while IFS= read -r s; do
       t="$(agent_target "${a}" "${s}")"
       if [[ -L "${t}" && "$(readlink "${t}")" == "$(agent_source "${a}" "${s}")" ]]; then
@@ -230,7 +231,7 @@ failures=0
 for skill in "${SKILLS[@]}"; do
   echo "${skill}"
   for agent in "${TARGET_AGENTS[@]}"; do
-    if [[ "${agent}" == "claude" ]]; then
+    if [[ "${agent}" == "claude" || ( "${agent}" == "antigravity" && ${PROJECT_SCOPED} -eq 0 ) ]]; then
       if ! link_to "${SKILLS_DIR}/${skill}" \
                    "$(canonical_target "${skill}")" \
                    "portable: $(canonical_target "${skill}")"; then

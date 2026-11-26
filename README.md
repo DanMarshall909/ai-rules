@@ -1,7 +1,7 @@
 # ai-rules
 
 Lean, agent-agnostic AI coding rules. Works with Claude Code, Codex, OpenCode,
-GitHub Copilot, Cursor, and Cline.
+GitHub Copilot, Antigravity, Cursor, and Cline.
 
 The concise, always-loaded shared policy lives in
 [`rule-sets/ai-rules.md`](rule-sets/ai-rules.md).
@@ -111,7 +111,7 @@ scripts/install-rules.sh --rule-set tool-repos --project ../some-tool
 | Agent | Gets |
 |-------|------|
 | `claude` | `@` import of the set appended to the project's `CLAUDE.md` |
-| `codex`, `opencode` | `<project>/rule-sets/<set>.md`, plus one pointer line in the project's `AGENTS.md` |
+| `codex`, `opencode`, `antigravity` | `<project>/rule-sets/<set>.md`, plus one pointer line in the project's `AGENTS.md` |
 | `copilot` | the same set and `AGENTS.md` pointer, plus a preserving `.github/copilot-instructions.md` adapter |
 | `cursor` | `.cursor/rules/<set>.mdc` |
 | `cline` | `.clinerules/<set>.md` |
@@ -206,6 +206,7 @@ scripts\install-skill.ps1 -Agent 'cursor,cline' -Project ..\some-tool reflect
 |-------|----------------|-------|
 | `claude` | `~/.agents/skills/<skill>/`, plus `~/.claude/skills/<skill>/` | user |
 | `codex`, `opencode`, `copilot` | `~/.agents/skills/<skill>/` | user |
+| `antigravity` | `~/.agents/skills/<skill>/`, plus `~/.gemini/config/skills/<skill>/` | user |
 | `cursor` | `.cursor/skills/<skill>/` | project |
 | `cline` | `.clinerules/skills/<skill>/` | project |
 
@@ -254,11 +255,15 @@ scripts/install-rules.sh --agent claude,cursor --project ../some-tool
 | `codex` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `~/.codex/AGENTS.md` and `~/.codex/rule-sets/ai-rules.md` |
 | `opencode` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `~/.config/opencode/AGENTS.md` and `~/.config/opencode/rule-sets/ai-rules.md` |
 | `copilot` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `~/.copilot/copilot-instructions.md` and `~/.copilot/rule-sets/ai-rules.md` |
+| `antigravity` | an `@[...](...)` inline include of `rule-sets/ai-rules.md` | `~/.gemini/AGENTS.md` (user) |
 | `cursor` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `.cursor/rules/ai-rules.mdc` and `.cursor/rules/rule-sets/ai-rules.md` |
 | `cline` | symlinks to `AGENTS.md` and `rule-sets/ai-rules.md` | `.clinerules/ai-rules.md` and `.clinerules/rule-sets/ai-rules.md` |
 
 Claude Code resolves `@` imports at read time, so it imports
-`rule-sets/ai-rules.md`. Codex and OpenCode read a small `AGENTS.md` entrypoint;
+`rule-sets/ai-rules.md`. Antigravity expands `@[label](path)` inline while
+preserving user content in `~/.gemini/AGENTS.md`; keep separate personal rules
+under `~/.gemini/config/rules/*.md` so each file stays within Antigravity's 24 KB
+per-file rule cap. Codex and OpenCode read a small `AGENTS.md` entrypoint;
 Copilot receives that entrypoint through its native personal-instructions
 filename. All three point at the same generated rule set. An edit to a rule
 reaches installed profiles and project-only adapters once
