@@ -119,16 +119,21 @@ links_to "codex links AGENTS.md into its profile" \
 links_to "codex links the rule set beside AGENTS.md" \
   "${HOME}/.codex/rule-sets/ai-rules.md" "${REPO}/rule-sets/ai-rules.md"
 resource_rule="$(grep -F '.ai-rules.json' "${HOME}/.codex/rule-sets/ai-rules.md" | head -n 1)"
-resource_fields=(schemaVersion resources.memory reserveMiBPerActiveWorktree basis measured estimated)
+contract="${HOME}/.agents/skills/storage-budget/references/contract.md"
+resource_fields=(schemaVersion resources.memory reserveMiBPerActiveWorktree basis measured estimated resources.disk.workloads)
 resource_missing=""
-for field in "${resource_fields[@]}"; do
-  [[ "${resource_rule}" == *"${field}"* ]] || resource_missing+=" ${field}"
-done
-if [[ -n "${resource_rule}" && -z "${resource_missing}" &&
-      "${resource_rule}" != *'](../'* ]]; then
-  ok "installed resource rule is self-contained"
+if [[ ! -f "${contract}" ]]; then
+  resource_missing=" contract.md"
 else
-  no "installed resource rule is self-contained" \
+  for field in "${resource_fields[@]}"; do
+    grep -qF "${field}" "${contract}" || resource_missing+=" ${field}"
+  done
+fi
+if [[ -n "${resource_rule}" && "${resource_rule}" == *"storage-budget"* &&
+      "${resource_rule}" != *'](../'* && -z "${resource_missing}" ]]; then
+  ok "installed resource rule routes to self-contained storage-budget contract"
+else
+  no "installed resource rule routes to self-contained storage-budget contract" \
     "missing:${resource_missing:- none}; rule: ${resource_rule:-missing}"
 fi
 absent "codex leaves the project's AGENTS.md alone" "${PWD}/AGENTS.md"

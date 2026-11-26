@@ -177,6 +177,13 @@ else
   no "keeps the always-loaded base policy below 200 lines" \
     "generated ${lines} lines"
 fi
+bytes="$(wc -c < rule-sets/ai-rules.md)"
+if [[ ${bytes} -lt 10000 ]]; then
+  ok "keeps the always-loaded base policy below 10000 bytes"
+else
+  no "keeps the always-loaded base policy below 10000 bytes" \
+    "generated ${bytes} bytes"
+fi
 for skill in behavior-first-tdd coverage-and-mutation security-by-design \
              break-reminders reflect; do
   contains "routes detailed work to ${skill}" rule-sets/ai-rules.md \
