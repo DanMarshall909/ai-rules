@@ -19,10 +19,13 @@ actions.
   read-only checks only, not edits or publication.
 - **Preserve unrelated work**: Never overwrite, hide, or destroy unrelated
   changes. Apply the Git startup gate before new independent work.
-- **Deletion authority**: Automatically delete only verified task-owned
-  disposable run output after workers stop. Never delete retained builds,
-  dependencies, caches, or unknown files without reporting measured size and
-  rebuild cost and getting explicit direction.
+- **Deletion authority**: Automatically delete verified task-owned
+  disposable run output after workers stop, and compact task evidence at
+  closeout (stripping raw coverage exports, build/snapshot copies, and
+  test-result trees while keeping compact summaries, logs, and verdicts).
+  Never delete retained builds, dependencies, caches, or unknown files
+  without reporting measured size and rebuild cost and getting explicit
+  direction.
 - **Testing proportionality**: Prototypes, spikes, and one-off scripts need
   proportionate smoke/output checks; maintained or reused code keeps full TDD
   and verification gates.

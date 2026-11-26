@@ -44,6 +44,11 @@ configuration, execution limits, receipt interpretation and recovery.
    with the retention budget, investigate unknown content, and explain rebuild
    costs before requesting deletion of reusable state. Keep source, shared caches,
    evidence and deferred work separate. No automatic cache eviction is provided.
+   Durable evidence kept outside disposable run directories should remain
+   compact after closeout (retaining summaries, receipts, logs, and verdicts
+   while stripping raw coverage/test-result/snapshot dumps once merged), and
+   heavy raw evidence should be routed to an approved secondary or external
+   volume when configured rather than the primary checkout disk.
 
 ## Run and verify disposable-output cleanup
 

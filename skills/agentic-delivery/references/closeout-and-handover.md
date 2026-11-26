@@ -19,6 +19,19 @@ state. Retain active, unrelated, unmerged, unpushed or uncertain work; report it
 next disposition without inventing permission to remove it. Use the existing
 task record and storage receipt rather than a second retention ledger.
 
+When compacting or retaining non-disposable run state:
+
+- Compact task-owned evidence directories at closeout (once verified and merged
+  or handed off): strip heavy raw outputs (raw coverage exports, object
+  archives, test-result trees, pre-mutation snapshots, and temporary
+  `bin`/`obj`/`target` copies), retaining only compact JSON/Markdown summaries,
+  receipts, logs, and verdicts.
+- Route heavy raw run evidence to a project- or host-configured secondary or
+  external volume when available rather than growing the primary checkout disk.
+- Rely on normal automatic retirement of stale build-cache generations under
+  the repository's `.ai-rules.json` retention budget unless a task explicitly
+  requires preserving older generations.
+
 Consolidate the observations gathered through `reflect` when control returns to
 the user. Keep material findings and proposed guidance changes in the completion
 report, after the outcome and evidence. Do not create a separate interruption or
